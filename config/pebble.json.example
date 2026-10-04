@@ -1,0 +1,20 @@
+{
+  "pebble": {
+    "certificate": "{STATE}/pki/acme-leaf.pem",
+    "httpPort": 5002,
+    "listenAddress": "127.0.0.1:14000",
+    "managementListenAddress": "127.0.0.1:15000",
+    "privateKey": "{STATE}/pki/acme-leaf-key.pem",
+    "profiles": {
+      "default": {
+        "description": "Qwacamole short-lived local test",
+        "validityPeriod": 360
+      }
+    },
+    "retryAfter": {
+      "authz": 1,
+      "order": 1
+    },
+    "tlsPort": 5001
+  }
+}

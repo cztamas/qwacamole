@@ -31,3 +31,8 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Project-local runtimes, test PKI, service state, browser profiles, raw evidence
+.tools/
+.local/
+bin/

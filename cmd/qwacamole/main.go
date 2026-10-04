@@ -1,0 +1,141 @@
+package main
+
+import (
+	"encoding/json"
+	"flag"
+	"fmt"
+	"github.com/cztamas/qwacamole/internal/browser"
+	"github.com/cztamas/qwacamole/internal/pki"
+	"log"
+	"net/url"
+	"os"
+	"path/filepath"
+	"time"
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("usage: qwacamole demo|browser|browser-suite|integration-test|pki|fixture|lifecycle|refresh-test|failure-test|clean")
+	}
+	f := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
+	dir := f.String("state", ".local", "state directory")
+	bin := f.String("browser", "", "stock browser executable")
+	metadata := f.String("metadata", "", "genuine PKIMetadata version directory")
+	profile := f.String("profile", "", "new isolated profile path")
+	ct := f.Bool("ct-exception", false, "disable only CT enforcement in this test process")
+	tlsTrust := f.Bool("tls-trust", true, "inject TLS root")
+	reuse := f.Bool("reuse-profile", false, "reuse existing isolated profile without trust patching")
+	qwacTrust := f.Bool("qwac-trust", true, "inject QWAC root")
+	url := f.String("url", "https://qwac.example.com:8443/", "navigation URL")
+	screenshot := f.Bool("screenshot", false, "capture the rendered diagnostic page")
+	expect := f.String("expect", "positive", "required native browser result")
+	name := f.String("name", "positive", "evidence case name")
+	tlsRootPath := f.String("tls-root", "", "override TLS trust root PEM")
+	country := f.String("country", "HU", "synthetic organization country")
+	locality := f.String("locality", "Budapest", "synthetic organization locality")
+	registration := f.String("registration", "NTRHU-TEST-0001", "synthetic organization identifier")
+	org := f.String("organization", "Qwacamole Synthetic Organization TEST", "synthetic organization")
+	_ = f.Parse(os.Args[2:])
+	var e error
+	switch os.Args[1] {
+	case "clean":
+		e = clean(*dir)
+	case "integration-test":
+		e = integration(*dir, *bin, *metadata)
+	case "refresh-test":
+		e = refreshTest(*dir)
+	case "failure-test":
+		e = failureTest(*dir)
+	case "browser-suite":
+		e = suite(*dir, *bin, *metadata)
+	case "lifecycle":
+		e = lifecycle(*dir)
+	case "demo":
+		e = demo(*dir)
+	case "pki":
+		e = pki.Generate(filepath.Join(*dir, "pki"), pki.Identity{Host: "qwac.example.com", Organization: *org, Country: *country, Locality: *locality, Registration: *registration})
+	case "fixture":
+		e = fixture(*dir)
+	case "browser":
+		if *bin == "" || *metadata == "" {
+			b, m, err := browser.Detect()
+			if err != nil {
+				log.Fatal(err)
+			}
+			if *bin == "" {
+				*bin = b
+			}
+			if *metadata == "" {
+				*metadata = m
+			}
+		}
+		rootPath := *tlsRootPath
+		if rootPath == "" {
+			rootPath = filepath.Join(*dir, "pki/tls-root.pem")
+		}
+		tr, err := pki.ReadCert(rootPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		qr, err := pki.ReadCert(filepath.Join(*dir, "pki/qwac-root.pem"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		if *profile == "" {
+			*profile = filepath.Join(*dir, "profiles", *name+fmt.Sprint(time.Now().UnixNano()))
+		}
+		if !*reuse {
+			if e = browser.Prepare(*profile, *metadata, tr, qr, *tlsTrust, *qwacTrust); e != nil {
+				log.Fatal(e)
+			}
+		}
+		_ = os.MkdirAll(filepath.Join(*dir, "evidence"), 0700)
+		initURL, err := urlpkg(*url)
+		if err != nil {
+			log.Fatal(err)
+		}
+		var result browser.Result
+		result, e = browser.Run(browser.Options{Binary: *bin, Profile: *profile, NetLog: filepath.Join(*dir, "evidence", *name+"-netlog.json"), URL: *url, InitURL: initURL, CTException: *ct, Screenshot: *screenshot})
+		if e == nil {
+			d, _ := json.MarshalIndent(result, "", "  ")
+			e = os.WriteFile(filepath.Join(*dir, "evidence", *name+"-result.json"), d, 0600)
+			fmt.Println(string(d))
+			if e == nil {
+				e = browser.Assert(result, *expect, qr)
+			}
+		}
+	default:
+		log.Fatal("unknown command")
+	}
+	if e != nil {
+		log.Fatal(e)
+	}
+}
+
+func urlpkg(target string) (string, error) {
+	u, e := url.Parse(target)
+	if e != nil {
+		return "", e
+	}
+	u.Path = "/init"
+	u.RawQuery = ""
+	return u.String(), nil
+}
+
+func clean(dir string) error {
+	abs, e := filepath.Abs(dir)
+	if e != nil {
+		return e
+	}
+	cwd, e := os.Getwd()
+	if e != nil {
+		return e
+	}
+	if abs == cwd || abs == "/" {
+		return fmt.Errorf("refusing cleanup of repository or filesystem root")
+	}
+	if _, e = os.Stat(filepath.Join(abs, ".qwacamole-state")); e != nil {
+		return fmt.Errorf("refusing cleanup without project state marker: %w", e)
+	}
+	return os.RemoveAll(abs)
+}
