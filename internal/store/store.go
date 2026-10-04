@@ -120,11 +120,11 @@ func Open(cfg Config) (*Manager, error) {
 		return nil, fmt.Errorf("recovery binding: %w", err)
 	}
 
-	cs, e := m.certsLocked(time.Now())
+	cs, e := m.certsLocked()
 	if e != nil {
 		return nil, e
 	}
-	if len(cs) > 0 { // refresh also re-verifies an expired document before it is advertised
+	if hasLiveCertificate(cs, time.Now()) { // refresh also re-verifies an expired document before it is advertised
 		if e = m.publishLocked(cs, time.Now()); e != nil {
 			return nil, fmt.Errorf("recovery publication: %w", e)
 		}
@@ -139,7 +139,7 @@ func (m *Manager) Snapshot() State {
 	s.IDs = append([]string(nil), s.IDs...)
 	return s
 }
-func (m *Manager) certsLocked(now time.Time) ([]*x509.Certificate, error) {
+func (m *Manager) certsLocked() ([]*x509.Certificate, error) {
 	var cs []*x509.Certificate
 	for _, s := range m.current.Certs {
 		d, e := base64.StdEncoding.DecodeString(s)
@@ -150,17 +150,27 @@ func (m *Manager) certsLocked(now time.Time) ([]*x509.Certificate, error) {
 		if e != nil {
 			return nil, e
 		}
-		if c.NotAfter.After(now) {
-			cs = append(cs, c)
-		}
+		// A browser may keep an authenticated HTTP/2 connection beyond this
+		// certificate's expiry. Retain its binding alongside renewed certificates
+		// for the lifetime of this local state; pruning by NotAfter breaks those
+		// connections. This does not change TLS verification for new handshakes.
+		cs = append(cs, c)
 	}
 	return cs, nil
+}
+func hasLiveCertificate(cs []*x509.Certificate, now time.Time) bool {
+	for _, c := range cs {
+		if c.NotAfter.After(now) {
+			return true
+		}
+	}
+	return false
 }
 func (m *Manager) Publish(c *x509.Certificate) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	now := time.Now()
-	cs, e := m.certsLocked(now)
+	cs, e := m.certsLocked()
 	if e != nil {
 		return e
 	}
@@ -182,11 +192,11 @@ func (m *Manager) Refresh() error {
 	if m.current.Expires > now.Add(15*time.Second).Unix() {
 		return nil
 	}
-	cs, e := m.certsLocked(now)
+	cs, e := m.certsLocked()
 	if e != nil {
 		return e
 	}
-	if len(cs) == 0 {
+	if !hasLiveCertificate(cs, now) {
 		return nil
 	}
 	return m.publishLocked(cs, now)

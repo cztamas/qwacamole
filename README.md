@@ -71,17 +71,101 @@ must be free:
 
 ## Quickstart
 
-In terminal A:
+Choose the synthetic owner data to put in the QWAC certificate, then run one
+command to build, start the local services, prepare browser trust, and open the
+example site in a **visible stock Chrome window**:
 
 ```sh
 git clone https://github.com/cztamas/qwacamole.git
 cd qwacamole
+make browser-demo DEMO_ARGS='-organization "Example Synthetic Owner TEST" -country HU -locality Budapest -registration NTRHU-TEST-0001'
+```
+
+The organization, country, locality, and registration are signed certificate
+subject data. The RS256 Annex B binding links that QWAC certificate to the
+ordinary TLS certificate for the fixed local hostname `qwac.example.com`.
+Omit `DEMO_ARGS` to use the default synthetic owner. The command creates a fresh
+`.local/browser-demo-*/` state and a fresh isolated profile on every invocation,
+so there is no old Pebble root or browser trust to clean before relaunching.
+Only one demo can use the fixed local ports at a time. A second launch checks
+those ports before generating state and reports the occupied port immediately.
+
+Wait for the site to open, then inspect **Chrome's own UI**, as in the reference
+Security panel:
+
+1. Click the site controls icon immediately to the left of the address.
+2. Click **Connection is secure** to open the **Security** panel.
+3. Confirm **EU Qualified Status** and
+   **Issued to: Example Synthetic Owner TEST [HU]**.
+4. Click the qualified-status row to inspect the QWAC certificate. The separate
+   **Certificate details** row describes the ordinary TLS certificate.
+
+Observed in stock Chrome 154 with the synthetic `Qwacamole Browser Demo TEST`
+owner (change the command's organization to use that exact example):
+
+![Chrome's native Security panel showing EU Qualified Status for the synthetic test owner](docs/images/qualified-status.png)
+
+The [QWAC certificate viewer](docs/images/qwac-certificate-viewer.png) shows the
+same organization and separate test QWAC issuer. These are captures of Chrome's
+native UI, not a simulated panel rendered in the web page.
+
+The owner and country in the qualified-status row must match your input; changing
+`-organization` or `-country` changes the signed values shown there. The page
+shows all four synthetic owner fields and current binding state, but its text
+does not assert browser verification. **EU Qualified Status is a native Chrome
+security indicator**, not HTML rendered by this demo. With our synthetic trusted
+authority it is a local test of that UI, not legal EU qualification.
+
+Leave the terminal running while inspecting the browser. Automatic TLS renewal
+and binding refresh continue in the background. Reload the site after renewal
+and reopen its Security panel to check that qualified status remains visible.
+Chrome may retain an existing HTTP/2 connection and display its original TLS
+certificate even after that certificate's six-minute expiry. The binding keeps
+that certificate covered alongside the renewed certificates for this demo state.
+New connections still require a currently valid TLS certificate. To inspect the
+replacement certificate itself, open a fresh browser check as described below.
+The browser remains open beyond the startup check; no headless browser or static
+page screenshot substitutes for this interactive flow.
+
+Close the demo browser's windows or press **Ctrl-C** in the terminal to stop its
+browser, Caddy, Pebble, and DNS responder. The command then reads the flushed
+NetLog and asserts native verification, including the injected QWAC root. A
+successful shutdown prints `PASS native Chrome QWAC verification`. The printed
+state directory retains `evidence/interactive-netlog.json` and
+`evidence/interactive-result.json`, plus certificates, bindings, and logs. Use
+`make clean STATE=.local/browser-demo-<printed-suffix>` after preserving any
+evidence you need. `STATE` on `make browser-demo` selects the **parent** directory
+for its fresh run, whereas cleanup selects the exact generated child.
+
+For an explicit compatible browser/component pair:
+
+```sh
+make browser-demo \
+  DEMO_ARGS='-organization "Example Synthetic Owner TEST" -country HU -locality Budapest -registration NTRHU-TEST-0001' \
+  BROWSER_ARGS='-browser "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" -metadata "/Users/you/Library/Application Support/Google/Chrome/PKIMetadata/1793"'
+```
+
+Use the same binary and component throughout a run. Native UI labels can vary by
+browser version or language; the tested English Chrome 154 pair is described
+above. The command enables `VerifyQWACs`, injects separate TLS/QWAC authorities
+only into its copied profile, and applies the isolated CT-only exception described
+in [Browser trust and CT](#isolated-browser-trust-and-ct). It does not alter your
+normal browser or system trust or bypass ordinary certificate errors.
+
+The diagnostic page is `https://qwac.example.com:8443/`. The launcher maps this
+reserved example hostname to `127.0.0.1` in its isolated process. Opening that
+URL in an ordinary browser does not reproduce the required routing or trust.
+
+## Automated browser checks
+
+The headless validation commands remain available separately from the visible
+quickstart. In terminal A, start a server-only demo:
+
+```sh
 make demo STATE=.local/quickstart
 ```
 
-Leave that command running. Once it prints the demo URL, wait a few seconds for
-the first ACME issuance; `.local/quickstart/bindings/current.json` confirms that a
-binding has been published. In terminal B, `cd` to the same repository and run:
+In terminal B, after `.local/quickstart/bindings/current.json` appears:
 
 ```sh
 make browser-check STATE=.local/quickstart > .local/quickstart/evidence/browser-console.log 2>&1
@@ -89,24 +173,12 @@ cat .local/quickstart/evidence/positive-result.json
 make test
 ```
 
-The browser check launches stock Chrome **headlessly** in a fresh isolated
-profile, initializes its copied PKI Metadata, navigates with caching disabled,
-collects NetLog, asserts native QWAC acceptance, and exits. Success means exit
-status zero, `is_valid_2qwac_binding: true`, and a verified chain ending at the
-injected QWAC root. The Go assertion also checks that root-store version 1000000
-loaded. A server page or screenshot alone is insufficient proof.
-
-The diagnostic page is `https://qwac.example.com:8443/`. The launcher maps this
-reserved example hostname to `127.0.0.1` in its isolated process. Opening that
-URL in an ordinary browser does not reproduce the required routing or trust.
-To view the rendered page without changing normal browser settings:
-
-```sh
-bin/qwacamole browser -state .local/quickstart -name page -screenshot \
-  -ct-exception -tls-root .local/quickstart/pki/pebble-root.pem \
-  > .local/quickstart/evidence/page-console.log 2>&1
-open .local/quickstart/evidence/page-page.png
-```
+`browser-check` launches headless Chrome, asserts native acceptance, and exits.
+Success requires `is_valid_2qwac_binding: true`, root-store version 1000000, and
+the verified chain ending at the injected QWAC root. The default result is
+`positive-result.json`; raw evidence is `positive-netlog.json` in `evidence/`.
+For page-only visual evidence, the direct `browser` command also has `-screenshot`
+(as shown in the manual walkthrough); it does not capture Chrome's native panel.
 
 Stop terminal A with **Ctrl-C**. It stops its Pebble, Caddy, and DNS children but
 preserves state and evidence. To run the entire automated demonstration with
@@ -132,7 +204,8 @@ pair (the metadata argument is the version directory, not its parent):
 make browser-test BROWSER_ARGS='-browser "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" -metadata "/Users/you/Library/Application Support/Google/Chrome/PKIMetadata/1793"'
 ```
 
-The same `BROWSER_ARGS` works with `make browser-check`. Direct `bin/qwacamole`
+The same `BROWSER_ARGS` works with `make browser-check` and `make browser-demo`.
+Direct `bin/qwacamole`
 commands accept `-browser` and `-metadata`; use both when discovery is unsuitable.
 
 ## Manual validation, step by step
@@ -211,6 +284,26 @@ real automatic renewal. Its report must have distinct `old_tls_id` and
 the same published binding is checked against both certificates. The renewed
 browser check must again succeed. `-reuse-profile` does not patch trust again.
 Do not manually generate a binding or restart services to cause this rotation.
+
+Also validate the connection that stays open beyond its original certificate's
+expiry, which a fresh browser check alone does not exercise:
+
+```sh
+bin/qwacamole browser -state .local/manual -name through-expiry \
+  -ct-exception -tls-root .local/manual/pki/pebble-root.pem \
+  -through-tls-expiry \
+  > .local/manual/evidence/through-expiry-console.log 2>&1
+```
+
+This takes up to seven minutes. It repeatedly navigates in one browser, keeping
+the existing connection active while Caddy renews, then continues through a
+complete 45-second binding lifetime after the original TLS leaf expires so
+independent refresh cannot be hidden by an older document.
+`through-expiry-result.json` must contain
+identical `expiry_check.initial_tls_id` and `final_tls_id`, a `checked_at` later
+than `initial_not_after`, and successful native QWAC verification with no later
+binding failures. Reconnection is an explicit test failure. This check also works
+against the state directory printed by `make browser-demo` while it is running.
 
 ### 4. Check independent refresh and Caddy-only restart
 
@@ -336,7 +429,9 @@ system trust is changed by cleanup.
 | `ERR_CERT_AUTHORITY_INVALID` on a positive case | Check the TLS root selection, component loading, and whether Pebble was fully restarted. An old profile trusts the old Pebble root; use fresh service state and a fresh profile. |
 | `ERR_CERTIFICATE_TRANSPARENCY_REQUIRED` on a positive case | Use the documented `-ct-exception` for this isolated test; omit it only for the CT control. |
 | No binding manifest or connection refused | Inspect `evidence/pebble.log`, `evidence/caddy.log`, and the demo terminal. Check ports and successful HTTP-01 validation. The URL banner precedes completion of initial issuance. |
-| Address already in use | Stop the earlier project demo/fixture via its own terminal; inspect the conflicting listener before taking any action on another process. |
+| Visible demo opens but qualified status is missing | Wait briefly for the asynchronous binding check, reload the page, and reopen Chrome's Security panel. Confirm a secure connection and the correct browser/component pair. Inspect `evidence/chrome-console.log` and the native result after closing. |
+| Address already in use | The visible launcher checks its ports before generating state. Stop the earlier project demo/fixture via its own terminal; inspect the conflicting listener before taking any action on another process. |
+| Chrome shows an old TLS certificate after renewal | An existing HTTP/2 connection can retain that certificate beyond its expiry. Renewed bindings cover it for the lifetime of this local state. Use `-through-tls-expiry` to verify that connection and a fresh browser check to verify the replacement. |
 | Renewal or failure recovery times out | Inspect Caddy's renewal/ARI/retry logs and Pebble challenge logs. Do not force a certificate reload or manual binding generation and count that as automatic renewal. |
 | State fails after a full service restart | Pebble's TLS root is newly generated. Preserve evidence, stop services, clean that state, and begin again. Caddy-only restart uses `restart-request`. |
 | Old test PKI or CRL has expired | State is short-lived: QWAC certificates last 24 hours and test CRLs 23 hours. Generate fresh state. |
@@ -354,6 +449,7 @@ Useful files in each state:
 | `evidence/caddy.log`, `evidence/pebble.log` | Real issuance/challenge/renewal/failure logs |
 | `evidence/*-result.json` | Browser version, relevant launch flags, navigation errors and selected native events |
 | `evidence/*-netlog.json` | Complete raw Chromium NetLog; numeric event IDs are defined in its constants |
+| `evidence/interactive-result.json`, `interactive-netlog.json`, `chrome-console.log` | Visible browser evidence and diagnostics; the result is finalized after the demo browser closes |
 | `evidence/rotation.json`, `refresh-test.json`, `restart.json`, `failure-test.json` | Lifecycle and recovery observations |
 | `evidence/browser-suite.json`, `integration.json` | Automated case results and lifecycle summary; present when those runners are used |
 | `profiles/` | Isolated browser user-data directories with copied/patched metadata |
@@ -374,12 +470,14 @@ NetLog chain and binding result supply browser verification evidence.
 | `internal/binding/` | Annex B RS256 signing, profile checks and local verifier |
 | `internal/store/` | Atomic publication, shared snapshots, overlap, refresh, recovery |
 | `internal/browser/` | Lossless protobuf patching, stock browser launch and native assertions |
-| `cmd/qwacamole/` | Local service supervisor, fixtures and test orchestration |
+| `cmd/qwacamole/` | Visible browser-demo supervisor, local services, fixtures and test orchestration |
 | `scripts/bootstrap.sh`, `Makefile` | Pinned local toolchain and entry points |
 | `config/*.example` | Config shapes from tested runs; replace `{STATE}` with an absolute path if using directly |
 | `docs/` | Implementation plan and execution evidence |
 
-`make build` builds both binaries; `make demo` builds and starts services;
+`make build` builds both binaries; `make browser-demo` builds, starts fresh local
+services, and opens visible Chrome with the selected owner data; `make demo`
+builds and starts services without a browser;
 `make test` runs Go race tests after bootstrap/build; `make browser-check` checks
 an already running demo; `make browser-test` (also `make integration-test`) runs
 the complete fresh-state demonstration. `make fixture` starts the negative
@@ -415,9 +513,14 @@ succeeds. This project gates in `Issue`, not in the post-obtain event.
 The shared manager writes content-addressed, immutable `/bindings/<sha256>.jose`
 documents, fsyncs them, then atomically switches `current.json`. Readers observe
 complete snapshots. Old documents remain on disk until project cleanup. During
-rotation, current bindings include previous unexpired TLS certificates and the
-new certificate. Thus existing connections remain covered during the tested
-rotation interval. Expired TLS entries are pruned on refresh. Restart verifies
+rotation, current bindings include all previously published TLS certificates and
+the new certificate. They remain covered through refresh and restart until state
+cleanup: an existing authenticated HTTP/2 connection may outlive its leaf's
+expiry. Pruning that hash at expiry would remove qualified status on such a
+connection even though renewal succeeded. This is a retention policy for this
+short-lived local demo; the set grows with renewals and fresh state is required
+for a new run. Ordinary TLS expiry verification for new connections is unchanged.
+Restart verifies
 stored signatures, document hashes, certificate IDs, and profiles before
 republication; issuer configuration also recovers an already stored TLS
 certificate when no binding manifest exists.

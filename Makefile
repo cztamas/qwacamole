@@ -7,7 +7,8 @@ export XDG_DATA_HOME := $(CURDIR)/.local/xdg-data
 export XDG_CONFIG_HOME := $(CURDIR)/.local/xdg-config
 STATE ?= .local
 BROWSER_ARGS ?=
-.PHONY: bootstrap build demo test browser-test browser-check integration-test fixture clean clean-all
+DEMO_ARGS ?=
+.PHONY: bootstrap build browser-demo demo test browser-test browser-check integration-test fixture clean clean-all
 bootstrap:
 	./scripts/bootstrap.sh
 build: bootstrap
@@ -15,6 +16,8 @@ build: bootstrap
 	.tools/bin/xcaddy build v2.10.2 --with github.com/cztamas/qwacamole=$(CURDIR) --output bin/caddy > .local/evidence/xcaddy-build.log 2>&1
 demo: build
 	bin/qwacamole demo -state $(STATE)
+browser-demo: build
+	bin/qwacamole browser-demo -state $(STATE) $(DEMO_ARGS) $(BROWSER_ARGS)
 test:
 	$(GO) test -race ./...
 # Full browser acceptance remains nonzero while stock Chrome ignores exp.

@@ -53,8 +53,8 @@ func Assert(r Result, expect string, root *x509.Certificate) error {
 	}
 	switch expect {
 	case "positive":
-		if r.NavigationError != "" || !valid || !rootSeen {
-			return fmt.Errorf("native acceptance missing: navigation=%s valid=%v authority=%v", r.NavigationError, valid, rootSeen)
+		if r.NavigationError != "" || !valid || !rootSeen || errDescription != "" || certError != 0 {
+			return fmt.Errorf("native acceptance missing or later failed: navigation=%s valid=%v authority=%v binding=%q certificate=%v", r.NavigationError, valid, rootSeen, errDescription, certError)
 		}
 	case "signature":
 		if r.NavigationError != "" || valid || errDescription != "binding signature invalid" {

@@ -131,3 +131,62 @@ func TestAtomicRotationFailureRecoveryAndReaders(t *testing.T) {
 		t.Fatal("restart lost certificate coverage")
 	}
 }
+
+func TestExpiredTLSConnectionStaysBoundAfterRefreshAndRestart(t *testing.T) {
+	dir := t.TempDir()
+	pkidir := filepath.Join(dir, "pki")
+	if err := pki.Generate(pkidir, pki.Identity{Host: "qwac.example.com", Organization: "Overlap TEST", Country: "HU", Locality: "Budapest", Registration: "NTRHU-TEST"}); err != nil {
+		t.Fatal(err)
+	}
+	cfg := Config{Dir: filepath.Join(dir, "bindings"), PKI: pkidir, Host: "qwac.example.com", Lifetime: 45 * time.Second}
+	m, err := Open(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	leaf, _ := pki.ReadCert(filepath.Join(pkidir, "tls-leaf.pem"))
+	root, _ := pki.ReadCert(filepath.Join(pkidir, "tls-root.pem"))
+	key, _ := pki.ReadKey(filepath.Join(pkidir, "tls-root-key.pem"))
+	now := time.Now().Truncate(time.Second)
+	template := *leaf
+	template.NotBefore, template.NotAfter = now.Add(-time.Minute), now.Add(-time.Second)
+	old, err := pki.Issue(&template, root, leaf.PublicKey.(*rsa.PublicKey), key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Publish while the first certificate was valid; a replacement is then
+	// issued, and the browser's original connection outlives the first leaf.
+	if err := m.publishLocked([]*x509.Certificate{old}, now.Add(-2*time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Publish(leaf); err != nil {
+		t.Fatal(err)
+	}
+	m.current.Expires = 0 // force the independent refresh path
+	if err := m.Refresh(); err != nil {
+		t.Fatal(err)
+	}
+	recovered, err := Open(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := recovered.Snapshot()
+	if !reflect.DeepEqual(s.IDs, []string{binding.ID(old), binding.ID(leaf)}) {
+		t.Fatal("expired connection lost binding coverage", s.IDs)
+	}
+	doc, err := os.ReadFile(filepath.Join(cfg.Dir, filepath.Base(s.URL)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	qwac, _ := pki.ReadCert(filepath.Join(pkidir, "qwac-root.pem"))
+	if err := binding.Verify(string(doc), cfg.Host, []*x509.Certificate{old, leaf}, qwac, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := binding.Sign(m.material, []*x509.Certificate{old}, now, time.Minute); err == nil {
+		t.Fatal("all-expired TLS set extended the binding lifetime")
+	}
+	pool := x509.NewCertPool()
+	pool.AddCert(root)
+	if _, err := old.Verify(x509.VerifyOptions{Roots: pool, DNSName: cfg.Host, CurrentTime: now}); err == nil {
+		t.Fatal("expired leaf became valid for a new TLS handshake")
+	}
+}

@@ -15,7 +15,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatal("usage: qwacamole demo|browser|browser-suite|integration-test|pki|fixture|lifecycle|refresh-test|failure-test|clean")
+		log.Fatal("usage: qwacamole browser-demo|demo|browser|browser-suite|integration-test|pki|fixture|lifecycle|refresh-test|failure-test|clean")
 	}
 	f := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
 	dir := f.String("state", ".local", "state directory")
@@ -28,6 +28,7 @@ func main() {
 	qwacTrust := f.Bool("qwac-trust", true, "inject QWAC root")
 	url := f.String("url", "https://qwac.example.com:8443/", "navigation URL")
 	screenshot := f.Bool("screenshot", false, "capture the rendered diagnostic page")
+	throughExpiry := f.Bool("through-tls-expiry", false, "keep the same browser connection active past its TLS leaf expiry (up to ten minutes)")
 	expect := f.String("expect", "positive", "required native browser result")
 	name := f.String("name", "positive", "evidence case name")
 	tlsRootPath := f.String("tls-root", "", "override TLS trust root PEM")
@@ -38,6 +39,8 @@ func main() {
 	_ = f.Parse(os.Args[2:])
 	var e error
 	switch os.Args[1] {
+	case "browser-demo":
+		e = browserDemo(*dir, *bin, *metadata, pki.Identity{Host: "qwac.example.com", Organization: *org, Country: *country, Locality: *locality, Registration: *registration})
 	case "clean":
 		e = clean(*dir)
 	case "integration-test":
@@ -95,14 +98,15 @@ func main() {
 			log.Fatal(err)
 		}
 		var result browser.Result
-		result, e = browser.Run(browser.Options{Binary: *bin, Profile: *profile, NetLog: filepath.Join(*dir, "evidence", *name+"-netlog.json"), URL: *url, InitURL: initURL, CTException: *ct, Screenshot: *screenshot})
+		result, e = browser.Run(browser.Options{Binary: *bin, Profile: *profile, NetLog: filepath.Join(*dir, "evidence", *name+"-netlog.json"), URL: *url, InitURL: initURL, CTException: *ct, Screenshot: *screenshot, ThroughTLSExpiry: *throughExpiry})
+		d, _ := json.MarshalIndent(result, "", "  ")
+		writeErr := os.WriteFile(filepath.Join(*dir, "evidence", *name+"-result.json"), d, 0600)
+		fmt.Println(string(d))
 		if e == nil {
-			d, _ := json.MarshalIndent(result, "", "  ")
-			e = os.WriteFile(filepath.Join(*dir, "evidence", *name+"-result.json"), d, 0600)
-			fmt.Println(string(d))
-			if e == nil {
-				e = browser.Assert(result, *expect, qr)
-			}
+			e = writeErr
+		}
+		if e == nil {
+			e = browser.Assert(result, *expect, qr)
 		}
 	default:
 		log.Fatal("unknown command")

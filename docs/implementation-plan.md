@@ -52,3 +52,34 @@ trusted HTTPS, native initial/renewed/restarted verification, independent refres
 and individual trust-separation controls were exercised successfully. The source,
 config examples, and documentation are ready for the requested commit and push;
 generated keys, profiles, and raw logs stay ignored and local.
+
+## Visible browser extension
+
+The follow-up goal is a visible stock-browser quickstart with configurable signed
+owner data and observed native EU Qualified Status, matching the supplied
+Security-panel reference. The implementation adds `make browser-demo`, creating
+fresh marked state, generating the selected QWAC identity, starting real Pebble /
+Caddy / DNS, preparing isolated trust, and keeping Chrome open for inspection.
+The page and README explain how to inspect Chrome's native panel.
+
+Native UI proof was supplied by the user: Chrome shows the expected synthetic
+organization and HU country, and its QWAC certificate viewer fingerprint matches
+the generated leaf exactly. Screenshots are preserved in `docs/images/`.
+Race tests and the complete native rejection-control suite pass except for the
+previously accepted Chromium expiry gap. Shutdown was exercised. A later user
+session exposed a separate retention bug: Chrome kept its initial TLS connection
+beyond leaf expiry, but refresh pruned that leaf from the current binding.
+
+The binding manager now retains previously served TLS hashes for the lifetime of
+the local demo state. Effective binding expiry remains bounded by the latest TLS
+expiry and QWAC expiry; new TLS handshakes still reject expired certificates.
+Unit coverage checks expired-leaf overlap through publication, refresh, and
+restart. Browser positive assertions now reject later failures after earlier
+success. A documented `-through-tls-expiry` check keeps one browser connection
+active past the original certificate's expiry and fails if it reconnects.
+The exact Make quickstart passed. The real Chrome regression retained the same
+TLS leaf through expiry and a complete subsequent binding lifetime, with 19
+successful native binding checks and no errors. The final native acceptance was
+45 seconds after the original leaf's expiry. The race suite and all other native
+controls passed; the previously accepted `exp` gap remains explicit. Raw evidence
+remains in `.local/`.

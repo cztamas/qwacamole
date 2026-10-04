@@ -264,3 +264,80 @@ trust caused `ERR_CERT_AUTHORITY_INVALID`. Evidence is in
 `.local/manual/evidence/`. The demo and fixture were stopped afterward. Failure
 recovery and the entire native suite remain covered by the preceding full and
 failure-stage runs; the accepted expiry gap remains a visible failing assertion.
+
+## Visible Chrome quickstart and expired-connection regression
+
+The visible launcher was exercised with configurable signed owner data, fresh
+local state, real Pebble HTTP-01 issuance, and isolated Chrome trust. The user
+inspected the native Security panel and supplied the unmodified captures in
+`docs/images/`: `EU Qualified Status`, `Issued to: Qwacamole Browser Demo TEST
+[HU]`, and a separate QWAC certificate viewer. The viewer's leaf SHA-256,
+`0dc96de753f6ac0530aff2c3ed22a9b85ea681aaf9f5eccd8817c92a3f722a85`,
+matches `.local/browser-demo-3976375600/pki/qwac-leaf.pem` exactly. Computer Use
+permissions were unavailable; this native UI evidence was supplied by the user,
+not observed through automated UI access. The launcher stayed open beyond its
+startup timeout and exited successfully on Ctrl-C with native NetLog acceptance.
+
+The user's subsequent `Giant Hairy Horses Zrt` session exposed a separate bug,
+unrelated to Chrome's ignored binding `exp` header. The browser retained the
+TLS leaf with ID
+`5c2f22f3b0592f252f215b6d6b61d4b4323ce47a1e9dc33bc273fbb6fd3bb55b`,
+issued at 19:13:36 UTC and expiring at 19:19:35 UTC. Caddy's log contains repeated
+successful automatic renewals and cache replacements through 19:22:01 UTC.
+Nevertheless, refresh pruned that original leaf from the advertised binding
+once it expired. The saved interactive NetLog contains five successful native
+binding verifications followed by two exact `TLS cert not bound` errors.
+Evidence is in `.local/browser-demo-2850885269/evidence/`. The screenshots of the
+missing status and old TLS viewer therefore identify a real overlap-retention
+bug; successful fresh-browser renewal checks did not cover this connection.
+
+The manager now retains all previously published TLS certificates for the life
+of the short-lived local state, including across refresh and restart. It still
+caps binding expiry by the longest-lived TLS leaf and QWAC leaf, as defined in
+[ETSI Annex B](https://www.etsi.org/deliver/etsi_ts/119400_119499/11941105/02.01.01_60/ts_11941105v020101p.pdf).
+An all-expired TLS set cannot extend binding lifetime, and new TLS connections
+still enforce certificate expiry. Positive browser assertions also reject any
+later native binding failure instead of letting an earlier success hide it.
+
+Commands executed for the fix:
+
+```sh
+make build
+make test
+make browser-demo DEMO_ARGS='-organization "Example Synthetic Owner TEST" -country HU -locality Budapest -registration NTRHU-TEST-0001'
+bin/qwacamole browser -state .local/browser-demo-4114156420 \
+  -name through-expiry-refresh -ct-exception \
+  -tls-root .local/browser-demo-4114156420/pki/pebble-root.pem \
+  -through-tls-expiry
+bin/qwacamole fixture -state .local/browser-demo-4114156420
+bin/qwacamole browser-suite -state .local/browser-demo-4114156420
+```
+
+Console output was redirected to evidence files. The exact Make quickstart
+opened visible Chrome successfully with the selected signed owner. A separate
+second launch failed immediately on occupied TCP 8443 before creating state;
+real socket unit tests also verify port reservations are released on success
+and failure. Go race tests passed, including expired-leaf publication/refresh/
+restart and later-failure assertion regressions. The native suite passed all ten
+other cases; only the previously accepted expired-binding `exp` case failed.
+Raw evidence is in `.local/browser-demo-4114156420/evidence/` and
+`.local/evidence/expiry-fix-*.log`. The through-expiry check keeps one browser
+connection active and waits through a full 45-second binding lifetime after its
+original leaf expires; it explicitly fails if Chrome reconnects.
+
+The complete regression passed. Chrome retained TLS ID
+`67a26055a1951cd741ef61535a34032460a1892281922b302b3b52312593475a`
+before and after its 19:42:30 UTC expiry. The final native binding success was
+recorded at 19:43:15.024 UTC, 45 seconds after expiry; the browser certificate
+comparison completed at 19:43:17 UTC. All 19 native binding completions were
+successful, with no binding errors. Caddy renewed repeatedly without a restart
+or profile modification. This specifically covers the previously failing
+existing connection, rather than substituting a new connection with a new leaf.
+
+A subsequent fresh-browser check (`-name fresh-after-expiry`, same state and
+Pebble root) also passed native verification with replacement TLS ID
+`a36838473a6e3a39ef9b9bc0061c3b8a1830776ef7fb7cbf8e4d16a4a9e2045a`.
+The owned visible demo then printed `PASS native Chrome QWAC verification` on
+Ctrl-C, Caddy shut down normally, and its HTTPS listener was gone. The fixture
+and both headless checks were stopped; generated state and raw evidence were
+preserved. The outer Make invocation reported its expected interrupted status.
