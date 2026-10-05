@@ -87,9 +87,10 @@ exactly ten passes and the unchanged ignored-exp failure. Services and fixture
 were held in persistent owned sessions and stopped before starting Firefox.
 The visible Chrome supervisor also printed `PASS native Chrome QWAC verification`
 on shutdown; its native NetLog verifies the injected QWAC authority and binding.
-Final visible native-panel inspection is pending: Computer Use reported a locked
-Mac. Automated native verification is complete; a visible process/page is not
-being substituted for the panel confirmation.
+Final visible native-panel inspection is pending. Computer Use first reported a
+locked Mac; after the owner unlocked it, it reported “permissions are not granted.”
+Manual native-panel confirmation is requested. Automated native verification is
+complete; a visible process/page is not being substituted for panel confirmation.
 
 Initial native TLS SHA-256:
 `a2d5a7a2c011103bd433f1f9416e69ccd69dd9e56057408dc1f8154d8ca1c775`.
@@ -142,7 +143,8 @@ bin/qwacamole firefox-check -state "$F" -profile "$F/profiles/renewal" -reuse-pr
 The visible native panel reports `Monorepo Firefox TEST`, HU, `secure-etsi`,
 matching generated QWAC fingerprint and visible qualified text, with
 `acceptInsecureCerts=false`. Human confirmation of the final panel is pending
-while the Mac is locked; the native UI assertions are recorded independently.
+because Computer Use permissions are unavailable after unlocking the Mac; the
+native UI assertions are recorded independently.
 
 Old TLS SHA-256:
 `1394dfab0e563b4842a3f2ca08188f8b1bfb7158d5d4f08c89d94800d2075d8e`.

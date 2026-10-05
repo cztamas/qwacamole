@@ -49,6 +49,7 @@ load through the extracted core without an identity/coverage migration. Fresh
 Chrome lifecycle/expiry/failure/recovery checks passed; its negative suite keeps
 exactly the known exp failure and exit 1. Fresh Firefox renewal with unchanged
 trust and all eleven native fixture checks passed. Final visible-panel inspection
-is pending because Computer Use reported the Mac locked. See
+is pending: the Mac was unlocked, but Computer Use then reported that its permissions
+are not granted. Manual confirmation is requested. See
 [the separate dated execution report](evidence-monorepo-20261005.md) for exact
 commands, fingerprints, raw evidence paths and limits.
