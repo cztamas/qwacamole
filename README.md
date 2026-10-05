@@ -17,6 +17,7 @@ parser explicitly ignores that field. The browser suite retains the failing
 assertion so this limitation stays visible. Native verification before and after
 automatic renewal, real TLS validation, existing connections, trust separation,
 restart, refresh, and signing/publication failure recovery have been observed.
+The three-module extraction and new native browser runs are recorded in [the dated refactor report](docs/evidence-monorepo-20261005.md).
 The repository owner accepted the expiry gap on 4 October 2026; see
 [the evidence report](docs/evidence.md) for results and attempted browser alternatives.
 
@@ -204,7 +205,7 @@ Firefox needs three explicit differences from Chrome:
   The isolated profile enables its built-in test-authority list. The demo issues
   fresh synthetic intermediate/leaf certificates under Mozilla's **already-public
   test CA and publicly distributed key**, whose provenance is pinned in
-  [the fixture notice](internal/pki/firefox-fixtures/README.md). This is publicly
+  [the fixture notice](devtools/internal/pki/firefox-fixtures/README.md). This is publicly
   forgeable test PKI. The bundled root expires **5 February 2027**; a future
   compatible Firefox/root fixture will be needed after that date.
 - **Binding compatibility:** Firefox 157 rejects the standard `crit` declaration,
@@ -544,12 +545,14 @@ NetLog chain and binding result supply browser verification evidence.
 
 | File / directory | Purpose |
 |---|---|
-| `modules.go` | Caddy issuer wrapper and HTTP handler |
-| `internal/pki/` | Synthetic certificate/CRL generation and loading |
-| `internal/binding/` | Annex B RS256 signing, profile checks and local verifier |
-| `internal/store/` | Atomic publication, shared snapshots, overlap, refresh, recovery |
-| `internal/browser/` | Lossless protobuf patching, stock browser launch and native assertions |
-| `cmd/qwacamole/` | Visible browser-demo supervisor, local services, fixtures and test orchestration |
+| `binding/`, `profile/`, `credentials/`, `store/` | Reusable core; standard library only |
+| `caddy/modules.go` | Production ACME issuer gate and binding middleware |
+| `devtools/modules.go`, `page.go` | Development fault adapters and diagnostic HTTP components |
+| `devtools/internal/pki/` | Synthetic issuance and Mozilla's public test fixture |
+| `devtools/internal/browser/` | Isolated browser trust, native execution and assertions |
+| `devtools/internal/coretest/` | PKI-dependent binding/lifecycle/middleware integration tests |
+| `devtools/cmd/qwacamole/` | CLI, service supervisor, fixture and browser orchestration |
+| `go.work`, nested `go.mod` / `go.sum` | Local workspace and pinned module dependencies |
 | `scripts/bootstrap.sh`, `Makefile` | Pinned local toolchain and entry points |
 | `config/*.example` | Config shapes from tested runs; replace `{STATE}` with an absolute path if using directly |
 | `docs/` | Implementation plan and execution evidence |
@@ -560,7 +563,7 @@ Firefox demo, and `make firefox-test` runs its separately started fixture suite
 `make build` builds both binaries; `make browser-demo` builds, starts fresh local
 services, and opens visible Chrome with the selected owner data; `make demo`
 builds and starts services without a browser;
-`make test` runs Go race tests after bootstrap/build; `make browser-check` checks
+`make test` runs Go race tests in all three modules and checks dependency boundaries (run `make build` first to install the pinned runtime); `make browser-check` checks
 an already running demo; `make browser-test` (also `make integration-test`) runs
 the complete fresh-state demonstration. `make fixture` starts the negative
 fixtures for an existing state's PKI. `make clean` and `make clean-all` use the
@@ -571,15 +574,99 @@ command accepts `-state DIRECTORY`; browser commands accept explicit binary and
 metadata paths. The bootstrap and supervisor depend on repository-relative
 `.tools/` and `bin/` paths, so invoke them from this repository's root.
 
+## Modules, APIs and local builds
+
+The versioned `go.work` connects three Go modules:
+
+| Module | Packages and responsibility | Allowed dependencies |
+|---|---|---|
+| `github.com/cztamas/qwacamole` (root) | `credentials`, `profile`, `binding`, `store`: RS256 material loading, certificate profile, signing/verification, durable publication/recovery | Standard library |
+| `github.com/cztamas/qwacamole/caddy` | `Issuer`, `Handler`, `BindingConfig`: ACME gate and HTTP middleware | Core and Caddy/CertMagic |
+| `github.com/cztamas/qwacamole/devtools` | Development Caddy adapters, `cmd/qwacamole`, `internal/pki`, `internal/browser`, PKI-dependent integration tests | Core, plugin and test tools |
+
+Core consumers call `credentials.Load(chainFiles, keyFile)` with an explicit
+leaf-first certificate chain including its trust anchor and a PEM PKCS#1 RSA
+key, then `binding.Sign` / `binding.Verify`. `profile.Validate` checks the
+supported certificate profile. `store.Open(config, credentials, store.Operations{})`
+opens/revalidates existing state; `Publish`, `Refresh`, and `Snapshot` manage its
+lifecycle. Zero operations select real signing and atomic manifest commits.
+`SignFirefox` / `VerifyFirefox` and `Config.FirefoxCompatibility` are explicit
+compatibility choices. The default retains `crit:["sigD"]`; no User-Agent picks
+a profile. The core does not issue certificates or enroll authorities.
+
+The production plugin registers `tls.issuance.qwac` and `http.handlers.qwac`.
+`BindingConfig` embeds the core config and adds `chain_files` and `key_file`.
+The integration shares one manager per directory; issuer and middleware must use
+identical configuration. `Shared` and `ProvisionWithOperations` let the explicitly
+development-only adapters use the same gate with signing/commit failure injection.
+
+`make build` creates `bin/qwacamole` and the **development** `bin/caddy`.
+The latter additionally registers `tls.issuance.qwac_demo`,
+`http.handlers.qwac_demo_binding` and `http.handlers.qwac_demo`. Generated configs
+chain binding middleware with diagnostic HTML/JSON and public test certificate/
+CRL serving. `/init` has its own route for TLS-only browser initialization.
+The development config example is [config/caddy.json.example](config/caddy.json.example).
+
+For the production plugin alone:
+
+```sh
+make plugin-build
+bin/caddy-plugin list-modules | grep qwac
+```
+
+This build uses the new xcaddy import path and explicitly replaces the local core
+inside xcaddy's temporary module; it does not rely on inheriting `go.work`:
+
+```sh
+GOWORK=off .tools/bin/xcaddy build v2.10.2 \
+  --with github.com/cztamas/qwacamole/caddy="$PWD/caddy" \
+  --replace github.com/cztamas/qwacamole="$PWD" --output bin/caddy-plugin
+```
+
+Run this with the same `PATH`, `GOPATH`, `GOCACHE`, and `GOEXPERIMENT=nojsonv2`
+settings exported by the Makefile. The development build adds
+`--with github.com/cztamas/qwacamole/devtools="$PWD/devtools"`.
+[config/plugin.json.example](config/plugin.json.example) shows the production
+module IDs followed by an ordinary application handler. It still uses a local
+Pebble example; it is not a production CA configuration.
+
+**Configuration migration:** replace the old binding `pki` directory field with
+`chain_files` (leaf, intermediates, root) and `key_file`. The plugin no longer has
+`public_pki_only`; public certificate/CRL routes belong to the devtools diagnostic
+handler. Old demo configs must be regenerated or migrated to the explicit demo
+IDs above. CLI commands/flags and `bin/qwacamole` are unchanged. Existing
+`current.json` fields, immutable URLs, profile marker, signed documents and
+certificate IDs are preserved; no manifest migration is needed. Continue to use
+matching, unexpired credentials for an existing state. A full Pebble restart
+still creates a new TLS root and requires fresh browser trust.
+
+No new module versions or tags are published. A consumer outside this workspace
+must use local replacements until the modules are released, for example:
+
+```go
+require (
+    github.com/cztamas/qwacamole v0.0.0
+    github.com/cztamas/qwacamole/caddy v0.0.0
+)
+replace github.com/cztamas/qwacamole => /absolute/path/to/qwacamole
+replace github.com/cztamas/qwacamole/caddy => /absolute/path/to/qwacamole/caddy
+```
+
+Import the core packages and `github.com/cztamas/qwacamole/caddy` (blank import
+for registration alone). `scripts/check-consumer.sh` builds and runs exactly
+this arrangement with `GOWORK=off` in a temporary directory outside the repo.
+`make test` runs race tests in every module and `scripts/check-boundaries.sh`;
+root `go test ./...` alone does not cover the nested modules.
+
 ## Architecture and lifecycle
 
 Pinned: Go 1.27.1; xcaddy 0.4.5; Caddy 2.10.2; CertMagic 0.24.0; Pebble 2.8.0;
-chromedp 0.14.2; protobuf 1.36.10. `go.mod` and `go.sum` pin transitive modules.
+chromedp 0.14.2; protobuf 1.36.10. The nested modules’ `go.mod` and `go.sum` files pin transitive modules; the core uses only the standard library.
 The bootstrap downloads a checksum-verified, project-local Go runtime. Builds
 set `GOEXPERIMENT=nojsonv2`: Caddy 2.10.2's reflected RawMessage type detection is
 incompatible with Go 1.27's JSON-v2 alias. No upstream source is patched.
 
-The issuer `tls.issuance.qwac` embeds the normal Caddy ACME issuer, retaining its
+The production issuer `tls.issuance.qwac` embeds the normal Caddy ACME issuer, retaining its
 configuration, account/challenges, revocation, `SetConfig`, `GetACMEIssuer`, and
 ARI getter. It parses each new certificate, signs and independently verifies a
 binding, and atomically persists it **before returning** the issued certificate.
@@ -609,7 +696,7 @@ certificate when no binding manifest exists.
 
 `http.handlers.qwac` advertises a relative `Link` with
 `rel="tls-certificate-binding"`, serves `application/jose`, and runs independent
-binding refresh. Bindings live for at most 45 seconds; refresh starts with 15
+binding refresh and cleanup. Ordinary application requests pass to the next Caddy handler; the plugin supplies no HTML, `/state`, `/init`, or `/test-pki` routes. Bindings live for at most 45 seconds; refresh starts with 15
 seconds remaining. Effective expiry is capped by the longest-lived bound TLS
 certificate and QWAC leaf. HTTP responses use `Cache-Control: no-store`.
 
@@ -624,11 +711,11 @@ configuration are isolated inside the state directory.
 While `make demo` is running, creating `STATE/restart-request` makes its Go
 supervisor restart only Caddy; it records process IDs in `evidence/restart.json`.
 The integration runner does this automatically. `failure-test` temporarily
-creates `bindings/fail-sign` and `bindings/fail-publish` to reject new-certificate
+creates `bindings/fail-sign` and `bindings/fail-publish` in the **development adapters** to reject new-certificate
 publication while leaving the existing binding's independent refresh available.
 The signing injection occurs before signing; the publication injection occurs
 after writing the immutable candidate but before switching the current manifest.
-An unadvertised candidate cannot activate a replacement TLS certificate.
+An unadvertised candidate cannot activate a replacement TLS certificate. Normal core and plugin operations ignore these marker files; only explicitly registered development modules provide this injection.
 It observes an actual automatic renewal attempt for each failure, checks fresh
 trusted handshakes stay on the old certificate, then waits for automatic retry.
 

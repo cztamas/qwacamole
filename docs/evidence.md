@@ -1,5 +1,7 @@
 # Execution evidence — 4 October 2026
 
+New monorepo execution is recorded separately in [the 5 October report](evidence-monorepo-20261005.md). Results below remain historical.
+
 The repository owner accepted the demonstration on **4 October 2026**, with
 Chrome's native acceptance of expired binding `exp` as a documented implementation
 gap. The strict expiry assertion remains failing; it has not been removed,

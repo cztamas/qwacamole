@@ -12,8 +12,8 @@ DEMO_ARGS ?=
 bootstrap:
 	./scripts/bootstrap.sh
 build: bootstrap
-	$(GO) build -o bin/qwacamole ./cmd/qwacamole
-	.tools/bin/xcaddy build v2.10.2 --with github.com/cztamas/qwacamole=$(CURDIR) --output bin/caddy > .local/evidence/xcaddy-build.log 2>&1
+	cd devtools && $(GO) build -o ../bin/qwacamole ./cmd/qwacamole
+	GOWORK=off .tools/bin/xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy=$(CURDIR)/caddy --with github.com/cztamas/qwacamole/devtools=$(CURDIR)/devtools --replace github.com/cztamas/qwacamole=$(CURDIR) --output bin/caddy > .local/evidence/xcaddy-build.log 2>&1
 demo: build
 	bin/qwacamole demo -state $(STATE)
 browser-demo: build
@@ -29,6 +29,9 @@ firefox-test:
 	bin/qwacamole firefox-suite -state $(STATE) $(BROWSER_ARGS)
 test:
 	$(GO) test -race ./...
+	cd caddy && $(GO) test -race ./...
+	cd devtools && $(GO) test -race ./...
+	./scripts/check-boundaries.sh
 # Full browser acceptance remains nonzero while stock Chrome ignores exp.
 browser-test: build
 	bin/qwacamole integration-test -state $(STATE) $(BROWSER_ARGS)
@@ -42,3 +45,7 @@ clean:
 	bin/qwacamole clean -state $(STATE)
 clean-all: clean
 	rm -rf bin .tools
+
+.PHONY: plugin-build
+plugin-build: bootstrap
+	GOWORK=off .tools/bin/xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy=$(CURDIR)/caddy --replace github.com/cztamas/qwacamole=$(CURDIR) --output bin/caddy-plugin > .local/evidence/xcaddy-plugin-build.log 2>&1

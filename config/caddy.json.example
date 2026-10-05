@@ -15,13 +15,8 @@
             {
               "handle": [
                 {
-                  "binding": {
-                    "directory": "{STATE}/bindings",
-                    "hostname": "qwac.example.com",
-                    "lifetime": 45000000000,
-                    "pki": "{STATE}/pki"
-                  },
-                  "handler": "qwac",
+                  "handler": "qwac_demo",
+                  "pki": "{STATE}/pki",
                   "public_pki_only": true
                 }
               ]
@@ -44,12 +39,58 @@
               "handle": [
                 {
                   "binding": {
+                    "chain_files": [
+                      "{STATE}/pki/qwac-leaf.pem",
+                      "{STATE}/pki/qwac-intermediate.pem",
+                      "{STATE}/pki/qwac-root.pem"
+                    ],
                     "directory": "{STATE}/bindings",
                     "hostname": "qwac.example.com",
-                    "lifetime": 45000000000,
-                    "pki": "{STATE}/pki"
+                    "key_file": "{STATE}/pki/qwac-leaf-key.pem",
+                    "lifetime": 45000000000
                   },
-                  "handler": "qwac"
+                  "handler": "qwac_demo",
+                  "pki": "{STATE}/pki"
+                }
+              ],
+              "match": [
+                {
+                  "path": [
+                    "/init"
+                  ]
+                }
+              ]
+            },
+            {
+              "handle": [
+                {
+                  "binding": {
+                    "chain_files": [
+                      "{STATE}/pki/qwac-leaf.pem",
+                      "{STATE}/pki/qwac-intermediate.pem",
+                      "{STATE}/pki/qwac-root.pem"
+                    ],
+                    "directory": "{STATE}/bindings",
+                    "hostname": "qwac.example.com",
+                    "key_file": "{STATE}/pki/qwac-leaf-key.pem",
+                    "lifetime": 45000000000
+                  },
+                  "handler": "qwac_demo_binding"
+                },
+                {
+                  "binding": {
+                    "chain_files": [
+                      "{STATE}/pki/qwac-leaf.pem",
+                      "{STATE}/pki/qwac-intermediate.pem",
+                      "{STATE}/pki/qwac-root.pem"
+                    ],
+                    "directory": "{STATE}/bindings",
+                    "hostname": "qwac.example.com",
+                    "key_file": "{STATE}/pki/qwac-leaf-key.pem",
+                    "lifetime": 45000000000
+                  },
+                  "handler": "qwac_demo",
+                  "pki": "{STATE}/pki"
                 }
               ],
               "match": [
@@ -89,12 +130,17 @@
                   ]
                 },
                 "binding": {
+                  "chain_files": [
+                    "{STATE}/pki/qwac-leaf.pem",
+                    "{STATE}/pki/qwac-intermediate.pem",
+                    "{STATE}/pki/qwac-root.pem"
+                  ],
                   "directory": "{STATE}/bindings",
                   "hostname": "qwac.example.com",
-                  "lifetime": 45000000000,
-                  "pki": "{STATE}/pki"
+                  "key_file": "{STATE}/pki/qwac-leaf-key.pem",
+                  "lifetime": 45000000000
                 },
-                "module": "qwac"
+                "module": "qwac_demo"
               }
             ],
             "renewal_window_ratio": 0.8,

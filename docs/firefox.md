@@ -1,5 +1,7 @@
 # Firefox research and implementation
 
+The source now lives under `devtools/`; [the dated monorepo report](evidence-monorepo-20261005.md) records refactor validation separately from the initial execution below. Commands still run from the repository root.
+
 Research date: 5 October 2026. Installed stock Firefox: **157.0**, build
 `20260924084938`, Mozilla release revision
 `8eb25af4acf031ab1e06abf1a912275083c820ed`.

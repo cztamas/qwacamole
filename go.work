@@ -1,0 +1,11 @@
+go 1.27.1
+
+use (
+	.
+	./caddy
+	./devtools
+)
+
+// Resolve unpublished cross-module placeholder versions when loading dependency graphs.
+replace github.com/cztamas/qwacamole v0.0.0 => .
+replace github.com/cztamas/qwacamole/caddy v0.0.0 => ./caddy
