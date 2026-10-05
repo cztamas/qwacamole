@@ -83,3 +83,25 @@ successful native binding checks and no errors. The final native acceptance was
 45 seconds after the original leaf's expiry. The race suite and all other native
 controls passed; the previously accepted `exp` gap remains explicit. Raw evidence
 remains in `.local/`.
+
+
+## Firefox extension
+
+Implemented `make firefox-demo`, sharing the owned Pebble/Caddy/DNS supervisor
+and synthetic owner flags with the visible Chrome command. Firefox 157.0 accepts
+real TLS through an NSS root imported only into a new profile. QWAC trust uses
+Mozilla's independent compiled test-authority list; fresh intermediate/leaf
+certificates descend from its pinned, already-public test CA/key. Binding signing,
+verification, refresh and recovery select an explicit Firefox compatibility
+variant without `crit`; the strict Chrome path is preserved.
+
+Native Firefox returns the exact generated QWAC fingerprint, matching owner and
+country, `secure-etsi`, and visible qualified text. The user confirmed the panel
+and supplied its screenshot. Automatic TLS renewal was accepted using the exact
+same NSS profile with distinct old/new TLS IDs. All eleven native rejection
+controls passed, including both trust domains, cryptographic/hash/profile/hostname
+failures, binding expiry and ordinary TLS hostname/expiry. Race tests exercise
+both profiles through atomic rotation, injected failure and restart recovery.
+The README includes setup, manual native inspection, renewal checks, fixtures,
+evidence and cleanup. [Firefox details](firefox.md) document the public test CA,
+its expiry, the `crit` incompatibility, and the stock-panel preference workaround.

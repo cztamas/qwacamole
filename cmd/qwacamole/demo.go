@@ -124,6 +124,9 @@ func demo(dir string) error {
 		return e
 	}
 	binding := map[string]any{"directory": filepath.Join(dir, "bindings"), "pki": pkidir, "hostname": "qwac.example.com", "lifetime": int64(45 * time.Second)}
+	if _, err := os.Stat(filepath.Join(dir, "firefox-compatibility")); err == nil {
+		binding["firefox_compatibility"] = true
+	}
 	caddyConfig := map[string]any{"admin": map[string]any{"listen": "127.0.0.1:2019"}, "storage": map[string]any{"module": "file_system", "root": filepath.Join(dir, "caddy-storage")}, "apps": map[string]any{"tls": map[string]any{"automation": map[string]any{"renew_interval": "2s", "policies": []any{map[string]any{"subjects": []string{"qwac.example.com"}, "renewal_window_ratio": 0.8, "issuers": []any{map[string]any{"module": "qwac", "binding": binding, "acme": map[string]any{"ca": "https://localhost:14000/dir", "test_ca": "https://localhost:14000/dir", "trusted_roots_pem_files": []string{filepath.Join(pkidir, "acme-root.pem")}, "challenges": map[string]any{"http": map[string]any{"alternate_port": 5002}, "tls-alpn": map[string]any{"disabled": true}}}}}}}}}, "http": map[string]any{"http_port": 5002, "https_port": 8443, "servers": map[string]any{"demo": map[string]any{"listen": []string{"127.0.0.1:8443"}, "automatic_https": map[string]any{"disable_redirects": true}, "tls_connection_policies": []any{map[string]any{}}, "protocols": []string{"h1", "h2"}, "routes": []any{map[string]any{"match": []any{map[string]any{"host": []string{"qwac.example.com"}}}, "handle": []any{map[string]any{"handler": "qwac", "binding": binding}}}}}, "challenge": map[string]any{"listen": []string{"127.0.0.1:5002"}, "routes": []any{map[string]any{"handle": []any{map[string]any{"handler": "qwac", "binding": binding, "public_pki_only": true}}}}}}}}}
 	if e = writeJSON(filepath.Join(dir, "caddy.json"), caddyConfig); e != nil {
 		return e

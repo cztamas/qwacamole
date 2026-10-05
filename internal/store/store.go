@@ -19,18 +19,20 @@ import (
 )
 
 type Config struct {
-	Dir      string        `json:"directory"`
-	PKI      string        `json:"pki"`
-	Host     string        `json:"hostname"`
-	Lifetime time.Duration `json:"lifetime"`
+	Dir                  string        `json:"directory"`
+	PKI                  string        `json:"pki"`
+	Host                 string        `json:"hostname"`
+	Lifetime             time.Duration `json:"lifetime"`
+	FirefoxCompatibility bool          `json:"firefox_compatibility,omitempty"`
 }
 type State struct {
-	Owner     pki.Identity `json:"synthetic_owner"`
-	URL       string       `json:"url"`
-	Certs     []string     `json:"certificates_der"`
-	IDs       []string     `json:"tls_ids"`
-	Expires   int64        `json:"expires"`
-	Published int64        `json:"published"`
+	Owner          pki.Identity `json:"synthetic_owner"`
+	URL            string       `json:"url"`
+	Certs          []string     `json:"certificates_der"`
+	IDs            []string     `json:"tls_ids"`
+	Expires        int64        `json:"expires"`
+	Published      int64        `json:"published"`
+	BindingProfile string       `json:"binding_profile,omitempty"`
 }
 type Manager struct {
 	mu       sync.RWMutex
@@ -116,7 +118,7 @@ func Open(cfg Config) (*Manager, error) {
 		}
 		all = append(all, c)
 	}
-	if err := binding.Verify(string(doc), cfg.Host, all, mat.Chain[len(mat.Chain)-1], time.Unix(h.Iat, 0)); err != nil {
+	if err := m.verify(string(doc), all, time.Unix(h.Iat, 0)); err != nil {
 		return nil, fmt.Errorf("recovery binding: %w", err)
 	}
 
@@ -210,11 +212,15 @@ func (m *Manager) publishCandidateLocked(cs []*x509.Certificate, now time.Time, 
 			return fmt.Errorf("injected binding fail-sign failure for new TLS certificate")
 		}
 	}
-	doc, h, e := binding.Sign(m.material, cs, now, m.cfg.Lifetime)
+	sign := binding.Sign
+	if m.cfg.FirefoxCompatibility {
+		sign = binding.SignFirefox
+	}
+	doc, h, e := sign(m.material, cs, now, m.cfg.Lifetime)
 	if e != nil {
 		return e
 	}
-	if e = binding.Verify(doc, m.cfg.Host, cs, m.material.Chain[len(m.material.Chain)-1], now); e != nil {
+	if e = m.verify(doc, cs, now); e != nil {
 		return e
 	}
 	sum := sha256.Sum256([]byte(doc))
@@ -236,6 +242,9 @@ func (m *Manager) publishCandidateLocked(cs []*x509.Certificate, now time.Time, 
 		}
 	}
 	state := State{Owner: owner, URL: "/bindings/" + name, Expires: h.Exp, Published: now.Unix()}
+	if m.cfg.FirefoxCompatibility {
+		state.BindingProfile = "firefox-compatibility-without-crit"
+	}
 	for _, c := range cs {
 		state.Certs = append(state.Certs, base64.StdEncoding.EncodeToString(c.Raw))
 		state.IDs = append(state.IDs, binding.ID(c))
@@ -259,6 +268,14 @@ func (m *Manager) publishCandidateLocked(cs []*x509.Certificate, now time.Time, 
 	}
 	m.current = state
 	return nil
+}
+
+func (m *Manager) verify(doc string, cs []*x509.Certificate, now time.Time) error {
+	verify := binding.Verify
+	if m.cfg.FirefoxCompatibility {
+		verify = binding.VerifyFirefox
+	}
+	return verify(doc, m.cfg.Host, cs, m.material.Chain[len(m.material.Chain)-1], now)
 }
 func Atomic(path string, data []byte) error {
 	f, e := os.CreateTemp(filepath.Dir(path), ".atomic-*")

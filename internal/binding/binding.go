@@ -33,7 +33,7 @@ type Header struct {
 	Iat        int64    `json:"iat"`
 	Exp        int64    `json:"exp"`
 	SigD       SigD     `json:"sigD"`
-	Crit       []string `json:"crit"`
+	Crit       []string `json:"crit,omitempty"`
 }
 
 func ID(c *x509.Certificate) string { s := sha256.Sum256(c.Raw); return hex.EncodeToString(s[:]) }
@@ -42,10 +42,23 @@ func TLSHash(c *x509.Certificate) string {
 	return base64.RawURLEncoding.EncodeToString(s[:])
 }
 func Sign(m *pki.Material, certs []*x509.Certificate, now time.Time, lifetime time.Duration) (string, Header, error) {
+	return sign(m, certs, now, lifetime, false)
+}
+
+// SignFirefox is an explicit compatibility variant: Firefox 157 rejects crit.
+// The standard Chrome/JAdES path continues to mark sigD critical.
+func SignFirefox(m *pki.Material, certs []*x509.Certificate, now time.Time, lifetime time.Duration) (string, Header, error) {
+	return sign(m, certs, now, lifetime, true)
+}
+
+func sign(m *pki.Material, certs []*x509.Certificate, now time.Time, lifetime time.Duration, firefox bool) (string, Header, error) {
 	if len(certs) == 0 {
 		return "", Header{}, errors.New("empty TLS certificate set")
 	}
 	h := Header{Alg: "RS256", Kid: ID(m.Chain[0]), Cty: "TLS-Certificate-Binding-v1", Iat: now.Unix(), Exp: now.Add(lifetime).Unix(), Crit: []string{"sigD"}, SigD: SigD{MID: "http://uri.etsi.org/19182/ObjectIdByURIHash", HashM: "S256"}}
+	if firefox {
+		h.Crit = nil
+	}
 	s := sha256.Sum256(m.Chain[0].Raw)
 	h.Thumbprint = base64.RawURLEncoding.EncodeToString(s[:])
 	for _, c := range m.Chain {
@@ -112,6 +125,14 @@ func Decode(doc string) (Header, []*x509.Certificate, []byte, string, error) {
 	return h, cs, sig, p[0] + ".", e
 }
 func Verify(doc, host string, certs []*x509.Certificate, root *x509.Certificate, now time.Time) error {
+	return verify(doc, host, certs, root, now, false)
+}
+
+func VerifyFirefox(doc, host string, certs []*x509.Certificate, root *x509.Certificate, now time.Time) error {
+	return verify(doc, host, certs, root, now, true)
+}
+
+func verify(doc, host string, certs []*x509.Certificate, root *x509.Certificate, now time.Time, firefox bool) error {
 	h, cs, sig, input, e := Decode(doc)
 	if e != nil {
 		return e
@@ -119,7 +140,11 @@ func Verify(doc, host string, certs []*x509.Certificate, root *x509.Certificate,
 	if len(cs) < 2 {
 		return errors.New("missing QWAC chain")
 	}
-	if h.Alg != "RS256" || h.Cty != "TLS-Certificate-Binding-v1" || len(h.Crit) != 1 || h.Crit[0] != "sigD" {
+	critOK := len(h.Crit) == 1 && h.Crit[0] == "sigD"
+	if firefox {
+		critOK = len(h.Crit) == 0
+	}
+	if h.Alg != "RS256" || h.Cty != "TLS-Certificate-Binding-v1" || !critOK {
 		return errors.New("invalid JAdES header")
 	}
 	if h.Iat > now.Unix() || h.Exp <= now.Unix() {

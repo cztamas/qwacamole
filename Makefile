@@ -8,7 +8,7 @@ export XDG_CONFIG_HOME := $(CURDIR)/.local/xdg-config
 STATE ?= .local
 BROWSER_ARGS ?=
 DEMO_ARGS ?=
-.PHONY: bootstrap build browser-demo demo test browser-test browser-check integration-test fixture clean clean-all
+.PHONY: bootstrap bootstrap-firefox build browser-demo firefox-demo firefox-check firefox-test demo test browser-test browser-check integration-test fixture clean clean-all
 bootstrap:
 	./scripts/bootstrap.sh
 build: bootstrap
@@ -18,6 +18,15 @@ demo: build
 	bin/qwacamole demo -state $(STATE)
 browser-demo: build
 	bin/qwacamole browser-demo -state $(STATE) $(DEMO_ARGS) $(BROWSER_ARGS)
+bootstrap-firefox:
+	./scripts/bootstrap-firefox.sh
+firefox-demo: bootstrap-firefox build
+	bin/qwacamole firefox-demo -state $(STATE) $(DEMO_ARGS) $(BROWSER_ARGS)
+firefox-check:
+	bin/qwacamole firefox-check -state $(STATE) $(BROWSER_ARGS)
+# Requires a Firefox demo state and its fixture server; see docs/firefox.md.
+firefox-test:
+	bin/qwacamole firefox-suite -state $(STATE) $(BROWSER_ARGS)
 test:
 	$(GO) test -race ./...
 # Full browser acceptance remains nonzero while stock Chrome ignores exp.

@@ -8,6 +8,7 @@ import (
 	"github.com/cztamas/qwacamole/internal/binding"
 	"github.com/cztamas/qwacamole/internal/pki"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -53,7 +54,7 @@ func fixture(dir string) error {
 		return e
 	}
 	docs := map[string]string{}
-	for _, mode := range []string{"positive", "signature", "wrong-tls", "qwac-hostname", "expired-binding", "qwac-profile"} {
+	for _, mode := range []string{"positive", "signature", "wrong-tls", "qwac-hostname", "expired-binding", "qwac-profile", "critical-header"} {
 		mat := m
 		if strings.HasPrefix(mode, "qwac-") {
 			mat, e = alteredQWAC(m, dir, mode)
@@ -65,9 +66,20 @@ func fixture(dir string) error {
 		if mode == "wrong-tls" {
 			bound = m.Chain[1]
 		}
-		doc, h, e := binding.Sign(mat, []*x509.Certificate{bound}, time.Now(), time.Hour)
+		sign := binding.Sign
+		if _, err := os.Stat(filepath.Join(dir, "firefox-compatibility")); err == nil {
+			sign = binding.SignFirefox
+		}
+		doc, h, e := sign(mat, []*x509.Certificate{bound}, time.Now(), time.Hour)
 		if e != nil {
 			return e
+		}
+		if mode == "critical-header" {
+			h.Crit = []string{"sigD"}
+			doc, _, e = binding.SignHeader(mat, h)
+			if e != nil {
+				return e
+			}
 		}
 		if mode == "expired-binding" {
 			h.Exp = time.Now().Add(-time.Minute).Unix()

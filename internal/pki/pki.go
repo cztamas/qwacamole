@@ -4,6 +4,7 @@ package pki
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -98,6 +99,10 @@ func Load(dir string) (*Material, error) {
 	return m, e
 }
 func Generate(dir string, id Identity) error {
+	return generate(dir, id, nil, nil)
+}
+
+func generate(dir string, id Identity, qwacRoot *x509.Certificate, qwacRootKey *rsa.PrivateKey) error {
 	if _, e := os.Stat(filepath.Join(dir, "qwac-root.pem")); e == nil {
 		return fmt.Errorf("test PKI exists; use scoped clean before regeneration")
 	}
@@ -105,14 +110,18 @@ func Generate(dir string, id Identity) error {
 		return e
 	}
 	for _, group := range []string{"qwac", "tls", "acme"} {
-		rk, e := rsa.GenerateKey(rand.Reader, 3072)
-		if e != nil {
-			return e
-		}
-		rt := Template(group+" Qwacamole TEST Root", true)
-		root, e := Issue(rt, rt, &rk.PublicKey, rk)
-		if e != nil {
-			return e
+		root, rk := qwacRoot, qwacRootKey
+		var e error
+		if group != "qwac" || root == nil {
+			rk, e = rsa.GenerateKey(rand.Reader, 3072)
+			if e != nil {
+				return e
+			}
+			rt := Template(group+" Qwacamole TEST Root", true)
+			root, e = Issue(rt, rt, &rk.PublicKey, rk)
+			if e != nil {
+				return e
+			}
 		}
 		if e = WriteCert(filepath.Join(dir, group+"-root.pem"), root); e != nil {
 			return e
@@ -150,7 +159,14 @@ func Generate(dir string, id Identity) error {
 				if e = os.WriteFile(filepath.Join(dir, name+".cer"), authority.cert.Raw, 0600); e != nil {
 					return e
 				}
-				crl, e := x509.CreateRevocationList(rand.Reader, &x509.RevocationList{Number: big.NewInt(1), ThisUpdate: time.Now().Add(-time.Minute), NextUpdate: time.Now().Add(23 * time.Hour)}, authority.cert, authority.key)
+				crlIssuer := *authority.cert
+				if len(crlIssuer.SubjectKeyId) == 0 {
+					// The Mozilla fixture omits SKI. Derive the conventional key
+					// identifier for CRL AKI without changing the root's DER.
+					identifier := sha1.Sum(x509.MarshalPKCS1PublicKey(&authority.key.PublicKey))
+					crlIssuer.SubjectKeyId = identifier[:]
+				}
+				crl, e := x509.CreateRevocationList(rand.Reader, &x509.RevocationList{Number: big.NewInt(1), ThisUpdate: time.Now().Add(-time.Minute), NextUpdate: time.Now().Add(23 * time.Hour)}, &crlIssuer, authority.key)
 				if e != nil {
 					return e
 				}

@@ -341,3 +341,34 @@ The owned visible demo then printed `PASS native Chrome QWAC verification` on
 Ctrl-C, Caddy shut down normally, and its HTTPS listener was gone. The fixture
 and both headless checks were stopped; generated state and raw evidence were
 preserved. The outer Make invocation reported its expected interrupted status.
+
+
+## Firefox extension, 5 October 2026
+
+Stock **Firefox 157.0**, build `20260924084938`, was tested with geckodriver
+0.37.1, an isolated NSS profile and real TLS verification
+(`acceptInsecureCerts=false`). See [Firefox research and executed checks](firefox.md)
+for pinned upstream findings, commands, certificate IDs, all native rejection
+controls and manual reproduction. The user supplied
+[the native qualified panel screenshot](images/firefox-qualified-status.png)
+and confirmed that the selected organization and qualified label are visible.
+
+Executed `make firefox-demo` with `Firefox Synthetic Owner TEST`, HU, Budapest,
+NTRHU-TEST-0001. The real native panel returned `secure-etsi`, visible qualified
+text, matching signed organization/country, and the generated QWAC fingerprint.
+Fresh native checks before and after automatic TLS renewal used the exact same
+NSS profile without patching trust; distinct TLS fingerprints were observed,
+with unchanged accepted QWAC identity. `make firefox-test` passed all **eleven**
+controls, requiring exact native verifier messages or TLS error codes. Firefox
+rejects expired bindings; the accepted Chromium `exp` gap remains Chrome-specific.
+The Go race suite passed with strict and Firefox-compatible persistence tests.
+
+This uses Mozilla's compiled public test QWAC authority, enabled only in the
+isolated profile. Its already-public fixture key is intentionally versioned with
+pinned attribution and MPL notice. Generated intermediate/leaf keys remain ignored.
+Firefox's explicit compatibility binding omits `crit` because the stock parser
+rejects it; this does not claim the strict JAdES profile used by Chrome. The
+profile selects the stock legacy identity panel because the tested new Trust
+Panel has a failing subview call. Neither verifier nor native UI is modified.
+Raw evidence remains in `.local/browser-demo-1558749535/` and
+`.local/firefox-research/`.

@@ -2,7 +2,8 @@
 
 A Go / Caddy-native local 2-QWAC experiment. It uses separate test QWAC and
 ordinary TLS authorities, a real Pebble ACME server, Annex B JAdES bindings, and
-an unmodified browser's native verifier.
+an unmodified browser's native verifier. The visible demo supports stock Chrome
+and Firefox; each has a separate isolated trust setup.
 
 The ordinary TLS certificate secures HTTPS. A separate QWAC certificate carries
 the synthetic owner's details; its key signs a binding to the TLS certificate.
@@ -23,7 +24,8 @@ This is synthetic **TEST PKI**, without legal qualification, EU Trusted List
 registration, production CA enrollment, or operational QTSP practices.
 
 Start with [Prerequisites](#prerequisites) and [Quickstart](#quickstart). For the
-individual checks, use [Manual validation](#manual-validation-step-by-step).
+individual Chrome checks, use [Manual validation](#manual-validation-step-by-step).
+For Firefox, start with [Firefox quickstart](#firefox-quickstart).
 [Troubleshooting and evidence](#troubleshooting-and-evidence),
 [Architecture](#architecture-and-lifecycle), and
 [Browser trust and CT](#isolated-browser-trust-and-ct) explain the setup in detail.
@@ -155,6 +157,83 @@ normal browser or system trust or bypass ordinary certificate errors.
 The diagnostic page is `https://qwac.example.com:8443/`. The launcher maps this
 reserved example hostname to `127.0.0.1` in its isolated process. Opening that
 URL in an ordinary browser does not reproduce the required routing or trust.
+
+## Firefox quickstart
+
+Tested with **stock Firefox 157.0** on macOS Apple Silicon. Firefox has desktop
+native QWAC support enabled by default since version 153. Install Firefox and
+NSS's `certutil` first (Homebrew supplies the latter):
+
+```sh
+brew install nss
+"/Applications/Firefox.app/Contents/MacOS/firefox" --version
+make firefox-demo DEMO_ARGS='-organization "Firefox Synthetic Owner TEST" -country HU -locality Budapest -registration NTRHU-TEST-0001'
+```
+
+Run this from the cloned repository. Close any earlier demo first: Chrome and
+Firefox use the same local service ports. This command builds the Go/Caddy
+binaries, downloads checksum-verified **geckodriver 0.37.1**, creates fresh
+`.local/browser-demo-*/` state, starts Pebble/Caddy/DNS, and opens a **visible
+isolated Firefox window** with its native connection-security panel expanded.
+Leave the terminal running; close the demo window or press **Ctrl-C** to stop
+its owned browser and services. Generated state and evidence remain local.
+If Firefox is installed elsewhere, pass
+`BROWSER_ARGS='-browser /absolute/path/to/firefox -certutil /absolute/path/to/certutil'`.
+`-geckodriver /absolute/path/to/geckodriver` is also supported.
+
+If the panel closes, click the **padlock** beside the address, then
+**Connection secure**. Confirm the selected organization, locality and country,
+the EU trust-mark image, and **Qualified as specified in Regulation (EU)
+2024/1183.** Reload after renewal and reopen the panel to repeat the check.
+The owner confirmed this native panel, captured below:
+
+![Firefox's native connection-security panel with the synthetic qualified owner](docs/images/firefox-qualified-status.png)
+
+The custom-issuer warning in this panel is expected: Pebble's ordinary TLS root
+is trusted only in the test profile. Firefox displays that TLS issuer on its
+“Verified by” line; the signed organization comes from the separate verified
+QWAC certificate. The native certificate fingerprint is recorded separately.
+The robot icon and colored address bar identify the WebDriver test browser.
+
+Firefox needs three explicit differences from Chrome:
+
+- **TLS trust:** NSS `certutil` imports only the current Pebble root into the new
+  profile's `cert9.db`. System and regular-profile trust stores are untouched.
+  `acceptInsecureCerts` is **false**; there is no certificate-error or CT bypass.
+- **QWAC trust:** Firefox uses a compiled authority list, independent of NSS.
+  The isolated profile enables its built-in test-authority list. The demo issues
+  fresh synthetic intermediate/leaf certificates under Mozilla's **already-public
+  test CA and publicly distributed key**, whose provenance is pinned in
+  [the fixture notice](internal/pki/firefox-fixtures/README.md). This is publicly
+  forgeable test PKI. The bundled root expires **5 February 2027**; a future
+  compatible Firefox/root fixture will be needed after that date.
+- **Binding compatibility:** Firefox 157 rejects the standard `crit` declaration,
+  so its explicit `firefox_compatibility` binding mode omits that declaration.
+  Chain, signature, TLS hashes, certificate profile and expiry remain checked.
+  This variant does not establish conformance to the strict JAdES profile used
+  by the Chrome path. Chrome's default signing and strict verifier are unchanged.
+
+The profile also pins Firefox's stock legacy identity panel with
+`browser.urlbar.trustPanel.featureGate=false`: the new panel in the tested build
+throws a `showSubView is not a function` error. Both use Firefox's native QWAC
+verifier. [Firefox research, manual checks and execution evidence](docs/firefox.md)
+record the upstream sources and limitations.
+
+To repeat native verification while the visible demo runs, copy its printed
+absolute state path into `STATE`:
+
+```sh
+make firefox-check STATE=/absolute/path/to/.local/browser-demo-123456
+```
+
+This opens a separate headless Firefox profile, opens its native panel, verifies
+that the qualified owner and QWAC fingerprint match, writes JSON evidence, and
+closes that browser. A timeout or unrelated TLS error fails the command.
+The result is under `STATE/evidence/firefox-positive/firefox-result.json`.
+The visible launch records `STATE/evidence/firefox-result.json` at startup.
+Gecko's screenshots omit macOS native popup windows; the supplied screenshot
+above and native UI visibility/owner/fingerprint assertions provide panel proof.
+Use `make clean STATE=/absolute/path/to/state` only after stopping that demo.
 
 ## Automated browser checks
 
@@ -475,6 +554,9 @@ NetLog chain and binding result supply browser verification evidence.
 | `config/*.example` | Config shapes from tested runs; replace `{STATE}` with an absolute path if using directly |
 | `docs/` | Implementation plan and execution evidence |
 
+`make firefox-demo` opens visible Firefox; `make firefox-check` checks a running
+Firefox demo, and `make firefox-test` runs its separately started fixture suite
+(see [Firefox instructions](docs/firefox.md)).
 `make build` builds both binaries; `make browser-demo` builds, starts fresh local
 services, and opens visible Chrome with the selected owner data; `make demo`
 builds and starts services without a browser;

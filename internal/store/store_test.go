@@ -14,12 +14,22 @@ import (
 )
 
 func TestAtomicRotationFailureRecoveryAndReaders(t *testing.T) {
+	t.Run("strict", func(t *testing.T) { testAtomicRotationFailureRecoveryAndReaders(t, false) })
+	t.Run("firefox", func(t *testing.T) { testAtomicRotationFailureRecoveryAndReaders(t, true) })
+}
+func testAtomicRotationFailureRecoveryAndReaders(t *testing.T, firefox bool) {
 	dir := t.TempDir()
 	pkidir := filepath.Join(dir, "pki")
-	if e := pki.Generate(pkidir, pki.Identity{Host: "qwac.example.com", Organization: "Synthetic TEST", Country: "HU", Locality: "Budapest", Registration: "NTRHU-TEST"}); e != nil {
+	generate := pki.Generate
+	verify := binding.Verify
+	if firefox {
+		generate = pki.GenerateFirefox
+		verify = binding.VerifyFirefox
+	}
+	if e := generate(pkidir, pki.Identity{Host: "qwac.example.com", Organization: "Synthetic TEST", Country: "HU", Locality: "Budapest", Registration: "NTRHU-TEST"}); e != nil {
 		t.Fatal(e)
 	}
-	cfg := Config{Dir: filepath.Join(dir, "bindings"), PKI: pkidir, Host: "qwac.example.com", Lifetime: 45 * time.Second}
+	cfg := Config{Dir: filepath.Join(dir, "bindings"), PKI: pkidir, Host: "qwac.example.com", Lifetime: 45 * time.Second, FirefoxCompatibility: firefox}
 	m, e := Open(cfg)
 	if e != nil {
 		t.Fatal(e)
@@ -79,7 +89,7 @@ func TestAtomicRotationFailureRecoveryAndReaders(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				if err = binding.Verify(string(doc), cfg.Host, []*x509.Certificate{old, next}, qwac, time.Now()); err != nil {
+				if err = verify(string(doc), cfg.Host, []*x509.Certificate{old, next}, qwac, time.Now()); err != nil {
 					t.Fatal("partially published candidate is not valid", err)
 				}
 			}
@@ -117,7 +127,7 @@ func TestAtomicRotationFailureRecoveryAndReaders(t *testing.T) {
 		t.Fatal(e)
 	}
 	qwac, _ := pki.ReadCert(filepath.Join(pkidir, "qwac-root.pem"))
-	if e = binding.Verify(string(doc), cfg.Host, []*x509.Certificate{old, next}, qwac, time.Now()); e != nil {
+	if e = verify(string(doc), cfg.Host, []*x509.Certificate{old, next}, qwac, time.Now()); e != nil {
 		t.Fatal(e)
 	}
 	if _, e = os.Stat(filepath.Join(cfg.Dir, filepath.Base(first.URL))); e != nil {

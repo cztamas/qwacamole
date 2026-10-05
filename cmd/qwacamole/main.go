@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"crypto/x509"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -9,18 +11,21 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatal("usage: qwacamole browser-demo|demo|browser|browser-suite|integration-test|pki|fixture|lifecycle|refresh-test|failure-test|clean")
+		log.Fatal("usage: qwacamole browser-demo|firefox-demo|firefox-check|firefox-suite|demo|browser|browser-suite|integration-test|pki|fixture|lifecycle|refresh-test|failure-test|clean")
 	}
 	f := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
 	dir := f.String("state", ".local", "state directory")
 	bin := f.String("browser", "", "stock browser executable")
 	metadata := f.String("metadata", "", "genuine PKIMetadata version directory")
+	driver := f.String("geckodriver", "", "Firefox geckodriver executable")
+	certutil := f.String("certutil", "", "NSS certutil executable for isolated Firefox TLS trust")
 	profile := f.String("profile", "", "new isolated profile path")
 	ct := f.Bool("ct-exception", false, "disable only CT enforcement in this test process")
 	tlsTrust := f.Bool("tls-trust", true, "inject TLS root")
@@ -39,6 +44,67 @@ func main() {
 	_ = f.Parse(os.Args[2:])
 	var e error
 	switch os.Args[1] {
+	case "firefox-suite":
+		e = firefoxSuite(*dir, *bin, *driver, *certutil)
+	case "firefox-check":
+		if *bin == "" {
+			*bin, e = browser.DetectFirefox()
+			if e != nil {
+				break
+			}
+		}
+		if *driver == "" {
+			*driver = ".tools/bin/geckodriver"
+		}
+		if *certutil == "" {
+			*certutil, e = exec.LookPath("certutil")
+			if e != nil {
+				break
+			}
+		}
+		rootPath := *tlsRootPath
+		if rootPath == "" {
+			rootPath = filepath.Join(*dir, "pki/pebble-root.pem")
+		}
+		var tr, qr *x509.Certificate
+		tr, e = pki.ReadCert(rootPath)
+		if e != nil {
+			break
+		}
+		qr, e = pki.ReadCert(filepath.Join(*dir, "pki/qwac-leaf.pem"))
+		if e != nil {
+			break
+		}
+		if *profile == "" {
+			*profile = filepath.Join(*dir, "profiles", "firefox-"+fmt.Sprint(time.Now().UnixNano()))
+		}
+		if !*reuse {
+			e = browser.PrepareFirefox(*profile, *certutil, tr, *tlsTrust, *qwacTrust)
+			if e != nil {
+				break
+			}
+		}
+		if filepath.Base(*name) != *name || *name == "." || *name == ".." {
+			e = fmt.Errorf("name must be one filename component")
+			break
+		}
+		evidence := filepath.Join(*dir, "evidence", "firefox-"+*name)
+		e = os.MkdirAll(evidence, 0700)
+		if e != nil {
+			break
+		}
+		var result browser.FirefoxResult
+		result, e = browser.RunFirefox(context.Background(), browser.FirefoxOptions{Binary: *bin, Driver: *driver, Profile: *profile, URL: *url, Evidence: evidence})
+		if writeErr := writeJSON(filepath.Join(evidence, "firefox-result.json"), result); e == nil {
+			e = writeErr
+		}
+		d, _ := json.MarshalIndent(result, "", "  ")
+		fmt.Println(string(d))
+		if e == nil {
+			e = browser.AssertFirefox(result, *expect, qr)
+		}
+	case "firefox-demo":
+		e = firefoxDemo(*dir, *bin, *driver, *certutil, pki.Identity{Host: "qwac.example.com", Organization: *org, Country: *country, Locality: *locality, Registration: *registration})
 	case "browser-demo":
 		e = browserDemo(*dir, *bin, *metadata, pki.Identity{Host: "qwac.example.com", Organization: *org, Country: *country, Locality: *locality, Registration: *registration})
 	case "clean":

@@ -18,7 +18,36 @@ import (
 // browserDemo owns one fresh state, one service supervisor, and one visible
 // browser. Every invocation starts with a matching Pebble root and browser copy.
 func browserDemo(base, binary, metadata string, owner pki.Identity) error {
-	if binary == "" || metadata == "" {
+	return visibleDemo(base, binary, metadata, "", "", owner, false)
+}
+
+func firefoxDemo(base, binary, driver, certutil string, owner pki.Identity) error {
+	return visibleDemo(base, binary, "", driver, certutil, owner, true)
+}
+
+func visibleDemo(base, binary, metadata, driver, certutil string, owner pki.Identity, firefox bool) error {
+	if firefox {
+		if binary == "" {
+			var err error
+			binary, err = browser.DetectFirefox()
+			if err != nil {
+				return err
+			}
+		}
+		if driver == "" {
+			driver = ".tools/bin/geckodriver"
+		}
+		if _, err := os.Stat(driver); err != nil {
+			return fmt.Errorf("install geckodriver with scripts/bootstrap-firefox.sh or pass -geckodriver: %w", err)
+		}
+		if certutil == "" {
+			var err error
+			certutil, err = exec.LookPath("certutil")
+			if err != nil {
+				return fmt.Errorf("install NSS certutil (brew install nss) or pass -certutil: %w", err)
+			}
+		}
+	} else if binary == "" || metadata == "" {
 		b, m, err := browser.Detect()
 		if err != nil {
 			return err
@@ -48,8 +77,17 @@ func browserDemo(base, binary, metadata string, owner pki.Identity) error {
 		return err
 	}
 	fmt.Println("Demo state and evidence:", dir)
-	if err = pki.Generate(filepath.Join(dir, "pki"), owner); err != nil {
+	generate := pki.Generate
+	if firefox {
+		generate = pki.GenerateFirefox
+	}
+	if err = generate(filepath.Join(dir, "pki"), owner); err != nil {
 		return err
+	}
+	if firefox {
+		if err = os.WriteFile(filepath.Join(dir, "firefox-compatibility"), []byte("Firefox 157 compatibility: omit crit; use Mozilla public test QWAC authority\n"), 0600); err != nil {
+			return err
+		}
 	}
 	if err = os.MkdirAll(filepath.Join(dir, "evidence"), 0700); err != nil {
 		return err
@@ -111,7 +149,12 @@ func browserDemo(base, binary, metadata string, owner pki.Identity) error {
 		return err
 	}
 	profile := filepath.Join(dir, "profiles/interactive")
-	if err = browser.Prepare(profile, metadata, tlsRoot, qwacRoot, true, true); err != nil {
+	if firefox {
+		err = browser.PrepareFirefox(profile, certutil, tlsRoot, true, true)
+	} else {
+		err = browser.Prepare(profile, metadata, tlsRoot, qwacRoot, true, true)
+	}
+	if err != nil {
 		return err
 	}
 	// A service supervisor exit also closes its browser; no unrelated process
@@ -125,6 +168,33 @@ func browserDemo(base, binary, metadata string, owner pki.Identity) error {
 		case <-browserStop.Done():
 		}
 	}()
+	if firefox {
+		fmt.Printf("Expected native Firefox owner: %s [%s]; Qualified as specified in Regulation (EU) 2024/1183.\n", owner.Organization, owner.Country)
+		fmt.Println("Firefox compatibility binding omits crit and uses Mozilla's public test QWAC authority in this isolated profile.")
+		qwacLeaf, err := pki.ReadCert(filepath.Join(dir, "pki/qwac-leaf.pem"))
+		if err != nil {
+			return err
+		}
+		result, runErr := browser.RunFirefox(browserStop, browser.FirefoxOptions{Binary: binary, Driver: driver, Profile: profile, URL: "https://qwac.example.com:8443/", Evidence: filepath.Join(dir, "evidence"), Visible: true, ExpectedQWAC: qwacLeaf})
+		if err = writeJSON(filepath.Join(dir, "evidence/firefox-result.json"), result); err != nil {
+			return err
+		}
+		if runErr != nil {
+			return runErr
+		}
+		select {
+		case <-done:
+			if ctx.Err() == nil {
+				return fmt.Errorf("demo services stopped while Firefox was open: %v", serviceErr)
+			}
+		default:
+		}
+		if err = browser.AssertFirefox(result, "positive", qwacLeaf); err != nil {
+			return err
+		}
+		fmt.Println("PASS native Firefox QWAC verification; evidence:", filepath.Join(dir, "evidence"))
+		return nil
+	}
 	fmt.Printf("Expected native status: EU Qualified Status — Issued to: %s [%s]\n", owner.Organization, owner.Country)
 	chromeLog, err := os.OpenFile(filepath.Join(dir, "evidence/chrome-console.log"), os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
