@@ -87,10 +87,28 @@ exactly ten passes and the unchanged ignored-exp failure. Services and fixture
 were held in persistent owned sessions and stopped before starting Firefox.
 The visible Chrome supervisor also printed `PASS native Chrome QWAC verification`
 on shutdown; its native NetLog verifies the injected QWAC authority and binding.
-Final visible native-panel inspection is pending. Computer Use first reported a
-locked Mac; after the owner unlocked it, it reported “permissions are not granted.”
-Manual native-panel confirmation is requested. Automated native verification is
-complete; a visible process/page is not being substituted for panel confirmation.
+Final visible native-panel inspection passed. Computer Use first reported a
+locked Mac, then unavailable permissions after unlocking; the owner instead
+supplied [the final native Chrome Security panel screenshot](images/monorepo-final-chrome-20261005.png)
+at 15:35 on 5 October. It shows secure HTTPS, EU Qualified Status and exactly
+`Monorepo Chrome TEST [HU]`. This is the native panel, not the demo page.
+
+For this final visual check, the unchanged refactored binary was launched again
+with fresh isolated state after stopping Firefox:
+
+```sh
+bin/qwacamole browser-demo -state .local/refactor-20261005/final-ui -organization 'Monorepo Chrome TEST'
+```
+
+Its separate state is `.local/refactor-20261005/final-ui/browser-demo-526978856/`.
+The full lifecycle/negative/expiry evidence remains in the original final Chrome
+state above; the second run provides the newly inspected native panel. Its
+supervisor exited **0** and printed `PASS native Chrome QWAC verification` after
+owned shutdown. `evidence/interactive-result.json` and the flushed raw NetLog
+again prove native binding success, root-store version 1000000 and the exact
+injected QWAC root. The owner also explicitly confirmed that qualified status
+and owner matched. Both final demo supervisors and fixtures were stopped; raw
+keys, profiles and evidence are preserved locally, outside version control.
 
 Initial native TLS SHA-256:
 `a2d5a7a2c011103bd433f1f9416e69ccd69dd9e56057408dc1f8154d8ca1c775`.
@@ -129,7 +147,7 @@ refactor directory.
 ## Fresh Firefox execution
 
 Fresh state: `.local/refactor-20261005/final/browser-demo-3419361122/`.
-The native checks, renewal runner and suite passed (exit **0**); the visible supervisor remains open after passing its startup native assertions. `F` denotes that absolute state path:
+The native checks, renewal runner, suite and visible supervisor passed (exit **0**). After the owner supplied its final panel screenshot, the owned Firefox supervisor was stopped; it printed `PASS native Firefox QWAC verification` and cleaned up its children. `F` denotes that absolute state path:
 
 ```sh
 bin/qwacamole firefox-demo -state .local/refactor-20261005/final -organization 'Monorepo Firefox TEST'
@@ -142,9 +160,7 @@ bin/qwacamole firefox-check -state "$F" -profile "$F/profiles/renewal" -reuse-pr
 
 The visible native panel reports `Monorepo Firefox TEST`, HU, `secure-etsi`,
 matching generated QWAC fingerprint and visible qualified text, with
-`acceptInsecureCerts=false`. Human confirmation of the final panel is pending
-because Computer Use permissions are unavailable after unlocking the Mac; the
-native UI assertions are recorded independently.
+`acceptInsecureCerts=false`. The owner supplied [the final native Firefox panel screenshot](images/monorepo-final-firefox-20261005.png) at 15:33 on 5 October. It confirms the expected organization, HU, EU trust mark and qualified label. This is final refactor evidence, separate from the baseline screenshot; the native UI assertions are also recorded independently.
 
 Old TLS SHA-256:
 `1394dfab0e563b4842a3f2ca08188f8b1bfb7158d5d4f08c89d94800d2075d8e`.
