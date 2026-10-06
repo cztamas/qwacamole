@@ -76,6 +76,7 @@ type Demo struct {
 	PKI           string               `json:"pki"`
 	PublicPKIOnly bool                 `json:"public_pki_only,omitempty"`
 	manager       *store.Manager
+	lease         *plugin.Lease
 }
 
 func (Demo) CaddyModule() caddy.ModuleInfo {
@@ -85,10 +86,15 @@ func (h *Demo) Provision(ctx caddy.Context) error {
 	if h.PublicPKIOnly {
 		return nil
 	}
-	m, e := plugin.Shared(h.Binding, FaultOperations(h.Binding))
-	h.manager = m
-	return e
+	l, e := plugin.Acquire(ctx, h.Binding, FaultOperations(h.Binding))
+	if e != nil {
+		return e
+	}
+	h.lease = l
+	h.manager = l.Manager()
+	return nil
 }
+func (h *Demo) Cleanup() error { h.lease.Release(); return nil }
 func (h *Demo) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
 	if strings.HasPrefix(r.URL.Path, "/test-pki/") {
 		name := strings.TrimPrefix(r.URL.Path, "/test-pki/")

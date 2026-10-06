@@ -1,0 +1,41 @@
+name: Portable Go and plugin integration
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GOEXPERIMENT: nojsonv2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: |
+            caddy/go.sum
+            devtools/go.sum
+      - name: All module race tests
+        run: |
+          go test -race ./...
+          (cd caddy && go test -race ./...)
+          (cd devtools && go test -race ./...)
+      - name: Dependency boundaries
+        run: GO=go scripts/check-boundaries.sh
+      - name: Pinned portable tools and plugin-only binary
+        run: |
+          go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
+          go install github.com/letsencrypt/pebble/v2/cmd/pebble@v2.8.0
+          mkdir -p bin .tools/bin
+          cp "$(go env GOPATH)/bin/pebble" .tools/bin/pebble
+          GOWORK=off xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@v0.0.0="$PWD/caddy" --replace github.com/cztamas/qwacamole="$PWD" --output bin/caddy-plugin
+          (cd devtools && go build -o ../bin/qwacamole ./cmd/qwacamole)
+      - name: Real ACME application and reload checks (no browser bootstrap)
+        run: bin/qwacamole plugin-smoke -state .local/ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plugin-smoke-evidence
+          path: .local/ci/**/evidence/

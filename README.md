@@ -31,6 +31,15 @@ For Firefox, start with [Firefox quickstart](#firefox-quickstart).
 [Architecture](#architecture-and-lifecycle), and
 [Browser trust and CT](#isolated-browser-trust-and-ct) explain the setup in detail.
 
+## Installable Caddy plugin
+
+For supplied QWAC credentials and a normal single-host ACME-managed Caddy site,
+use the [installation and operations guide](docs/caddy-plugin.md). It includes
+authenticated private-GitHub installation, complete Caddyfile proxy/file/Pebble
+examples, JSON migration, explicit local QWAC trust, reload/credential replacement
+and portable checks. The development browser quickstarts below remain supported.
+New integration verification is recorded separately from historical results.
+
 ## Prerequisites
 
 The tested platform is **macOS on Apple Silicon**, with stock Google Chrome
@@ -585,7 +594,7 @@ The versioned `go.work` connects three Go modules:
 | `github.com/cztamas/qwacamole/devtools` | Development Caddy adapters, `cmd/qwacamole`, `internal/pki`, `internal/browser`, PKI-dependent integration tests | Core, plugin and test tools |
 
 Core consumers call `credentials.Load(chainFiles, keyFile)` with an explicit
-leaf-first certificate chain including its trust anchor and a PEM PKCS#1 RSA
+leaf-first certificate chain including its trust anchor and an unencrypted PEM PKCS#1 or PKCS#8 RSA
 key, then `binding.Sign` / `binding.Verify`. `profile.Validate` checks the
 supported certificate profile. `store.Open(config, credentials, store.Operations{})`
 opens/revalidates existing state; `Publish`, `Refresh`, and `Snapshot` manage its
@@ -595,10 +604,13 @@ compatibility choices. The default retains `crit:["sigD"]`; no User-Agent picks
 a profile. The core does not issue certificates or enroll authorities.
 
 The production plugin registers `tls.issuance.qwac` and `http.handlers.qwac`.
-`BindingConfig` embeds the core config and adds `chain_files` and `key_file`.
-The integration shares one manager per directory; issuer and middleware must use
-identical configuration. `Shared` and `ProvisionWithOperations` let the explicitly
-development-only adapters use the same gate with signing/commit failure injection.
+`BindingConfig` embeds the core config and adds `chain_files`, `key_file` and
+explicit `trust_files`. Configuration leases share a serialized manager/worker
+per state directory across overlapping reloads; issuer and middleware must use
+identical settings/material within each configuration. `Acquire` and
+`ProvisionWithOperations` let development adapters use that gate with fault
+injection. `store.Recover`, `PrepareReplacement`, `Replace` and `Document` support
+staged recovery, same-authority replacement and verified immutable serving.
 
 `make build` creates `bin/qwacamole` and the **development** `bin/caddy`.
 The latter additionally registers `tls.issuance.qwac_demo`,
@@ -619,19 +631,23 @@ inside xcaddy's temporary module; it does not rely on inheriting `go.work`:
 
 ```sh
 GOWORK=off .tools/bin/xcaddy build v2.10.2 \
-  --with github.com/cztamas/qwacamole/caddy="$PWD/caddy" \
+  --with github.com/cztamas/qwacamole/caddy@v0.0.0="$PWD/caddy" \
   --replace github.com/cztamas/qwacamole="$PWD" --output bin/caddy-plugin
 ```
 
 Run this with the same `PATH`, `GOPATH`, `GOCACHE`, and `GOEXPERIMENT=nojsonv2`
 settings exported by the Makefile. The development build adds
-`--with github.com/cztamas/qwacamole/devtools="$PWD/devtools"`.
+`--with github.com/cztamas/qwacamole/devtools@v0.0.0="$PWD/devtools"`.
 [config/plugin.json.example](config/plugin.json.example) shows the production
 module IDs followed by an ordinary application handler. It still uses a local
 Pebble example; it is not a production CA configuration.
 
 **Configuration migration:** replace the old binding `pki` directory field with
-`chain_files` (leaf, intermediates, root) and `key_file`. The plugin no longer has
+`chain_files` (leaf-first bundle or separate files) and `key_file`. This stage
+also requires `trust_files` pointing to a separately supplied QWAC authority;
+add it to both JSON issuer/middleware blocks or use the site-level Caddyfile
+directive to wire them once. Legacy numeric lifetime JSON remains accepted;
+readable duration strings are now supported. The plugin no longer has
 `public_pki_only`; public certificate/CRL routes belong to the devtools diagnostic
 handler. Old demo configs must be regenerated or migrated to the explicit demo
 IDs above. CLI commands/flags and `bin/qwacamole` are unchanged. Existing
@@ -640,8 +656,9 @@ certificate IDs are preserved; no manifest migration is needed. Continue to use
 matching, unexpired credentials for an existing state. A full Pebble restart
 still creates a new TLS root and requires fresh browser trust.
 
-No new module versions or tags are published. A consumer outside this workspace
-must use local replacements until the modules are released, for example:
+The plugin now pins a real immutable core commit. Authorized remote consumers
+use the installation guide without any workspace/replacement requirement. No
+release tags are published. Local consumers can still use replacements, for example:
 
 ```go
 require (

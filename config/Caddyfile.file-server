@@ -1,0 +1,15 @@
+{$QWAC_SITE:qwac.example.com} {
+	qwac {
+		hostname {$QWAC_HOST:qwac.example.com}
+		directory {$QWAC_STATE:/var/lib/caddy/qwac}
+		chain_files {$QWAC_CHAIN:/etc/caddy/qwac-chain.pem}
+		key_file {$QWAC_KEY:/etc/caddy/qwac-key.pem}
+		trust_files {$QWAC_TRUST:/etc/caddy/qwac-authority.pem}
+		acme {
+			dir {$ACME_DIRECTORY:https://acme-v02.api.letsencrypt.org/directory}
+			email {$ACME_EMAIL:admin@example.com}
+		}
+	}
+	root * {$DOCUMENT_ROOT:/srv/www}
+	file_server
+}

@@ -33,13 +33,16 @@
                   "binding": {
                     "directory": "{STATE}/bindings",
                     "hostname": "qwac.example.com",
-                    "lifetime": 45000000000,
+                    "lifetime": "45s",
                     "chain_files": [
                       "{STATE}/credentials/leaf.pem",
                       "{STATE}/credentials/intermediate.pem",
                       "{STATE}/credentials/root.pem"
                     ],
-                    "key_file": "{STATE}/credentials/key.pem"
+                    "key_file": "{STATE}/credentials/key.pem",
+                    "trust_files": [
+                      "{STATE}/credentials/root.pem"
+                    ]
                   }
                 },
                 {
@@ -79,13 +82,16 @@
                 "binding": {
                   "directory": "{STATE}/bindings",
                   "hostname": "qwac.example.com",
-                  "lifetime": 45000000000,
+                  "lifetime": "45s",
                   "chain_files": [
                     "{STATE}/credentials/leaf.pem",
                     "{STATE}/credentials/intermediate.pem",
                     "{STATE}/credentials/root.pem"
                   ],
-                  "key_file": "{STATE}/credentials/key.pem"
+                  "key_file": "{STATE}/credentials/key.pem",
+                  "trust_files": [
+                    "{STATE}/credentials/root.pem"
+                  ]
                 },
                 "module": "qwac"
               }

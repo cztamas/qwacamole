@@ -1,0 +1,31 @@
+{
+	admin 127.0.0.1:2019
+	http_port 5002
+	https_port 8443
+	auto_https disable_redirects
+	storage file_system {
+		root {$STATE}/caddy-storage
+	}
+	servers {
+		protocols h1 h2
+	}
+}
+https://qwac.example.com:8443 {
+	bind 127.0.0.1
+	qwac {
+		hostname qwac.example.com
+		directory {$STATE}/bindings
+		chain_files {$STATE}/pki/qwac-leaf.pem {$STATE}/pki/qwac-intermediate.pem
+		key_file {$STATE}/pki/qwac-leaf-key.pem
+		trust_files {$STATE}/pki/qwac-root.pem
+		lifetime 45s
+		acme {
+			dir https://localhost:14000/dir
+			test_dir https://localhost:14000/dir
+			trusted_roots {$STATE}/pki/acme-root.pem
+			alt_http_port 5002
+			disable_tlsalpn_challenge
+		}
+	}
+	reverse_proxy {$UPSTREAM:127.0.0.1:8080}
+}
