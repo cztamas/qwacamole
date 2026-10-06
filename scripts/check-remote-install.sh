@@ -34,7 +34,7 @@ if grep -q '=>' build-modules.txt; then
 fi
 # Go build metadata is authoritative for both resolved immutable module versions.
 grep 'github.com/cztamas/qwacamole' build-modules.txt > resolved-versions.txt
-mkdir -p "$root/.local/evidence/remote-install"
+mkdir -p "$root/.local/evidence/remote-install" "$root/bin"
 cp toolchain.txt plugin-resolved.json build.log modules.txt build-modules.txt resolved-versions.txt "$root/.local/evidence/remote-install/"
 cp caddy "$root/bin/caddy-remote"
 printf '%s\n' "$scratch" > "$root/.local/evidence/remote-install/scratch-path.txt"

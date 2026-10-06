@@ -50,3 +50,17 @@ ownership needs an OS lock, including a clear error for a live conflicting owner
 Remote install requires authorized private-repository Git authentication and scoped
 GOPRIVATE. Core/plugin immutable refs are sequential because the plugin dependency
 must refer to an already retrievable core commit.
+
+## Execution and final audit
+
+Completed on 6 October 2026; [the new evidence report](evidence-plugin-20261006.md)
+contains the requirement-by-requirement audit, canonical remote versions, exact
+implemented-ref installation, local/Linux/remote runtime checks and fresh native
+Chrome/Firefox proof. All thirteen installed-plugin operational checks passed.
+Chrome kept the exact accepted expired-exp suite failure/exit 1; its verified
+HTTP/2 interval crossed leaf expiry without reconnecting. Firefox passed all
+eleven controls and renewed in the same profile with unchanged trust/QWAC identity.
+The user confirmed both current visible native owner/status panels. Owned demo
+services were stopped and evidence preserved. No goal requirement remains pending.
+Feature-branch commits were pushed; no merge, tags/releases, visibility or license
+choice is part of this delivery.

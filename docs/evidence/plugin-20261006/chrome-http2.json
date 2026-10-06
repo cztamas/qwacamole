@@ -1,0 +1,21 @@
+{
+  "held_http2_session_source_id": 467,
+  "held_tls_socket_source_id": 453,
+  "main_navigations_on_held_session": 18,
+  "continuous_from": "2026-10-06T18:06:46.363000+00:00",
+  "continuous_through": "2026-10-06T18:13:00.011000+00:00",
+  "no_reconnection_during_verified_interval": true,
+  "tls_id": "5ca29bc90098b1c0e2426a142d7e549d4d3c0e9002f09fae85c01c41c84ff270",
+  "expiry_check": {
+    "initial_tls_id": "5ca29bc90098b1c0e2426a142d7e549d4d3c0e9002f09fae85c01c41c84ff270",
+    "final_tls_id": "5ca29bc90098b1c0e2426a142d7e549d4d3c0e9002f09fae85c01c41c84ff270",
+    "initial_not_after": "2026-10-06T18:12:15Z",
+    "checked_at": "2026-10-06T20:13:02.030237+02:00"
+  },
+  "native_binding_acceptance_before_and_after_expiry": true,
+  "startup_main_session_ids": [
+    288
+  ],
+  "startup_transition_excluded": true,
+  "raw_netlog": "through-expiry-final-netlog.json"
+}

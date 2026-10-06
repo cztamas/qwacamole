@@ -1,0 +1,16 @@
+{
+  "version": "157.0",
+  "profile": "/Users/cztamas/dev/personal/qwacamole/.local/plugin-20261006/browsers/browser-demo-69137474/profiles/interactive",
+  "accept_insecure_certs": false,
+  "native_ui": {
+    "url": "https://qwac.example.com:8443/",
+    "connection": "secure-etsi",
+    "organization": "Plugin Firefox TEST",
+    "country": "HU",
+    "qwac_fingerprint": "5B:F5:E6:82:8A:78:42:C2:7E:8B:7E:E2:D1:64:42:C4:4C:95:35:2E:C1:B6:48:73:AD:FD:96:69:BC:CD:95:8B",
+    "tls_fingerprint": "8C:FF:E2:18:C1:80:3F:C7:B6:38:F1:53:2A:2C:08:52:C3:16:59:31:6F:95:82:8B:AB:78:C2:17:9B:08:9C:D6",
+    "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+    "qualified_visible": true,
+    "certificate_overridden": false
+  }
+}

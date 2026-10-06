@@ -15,10 +15,15 @@ export GOPRIVATE=github.com/cztamas/qwacamole
 export GOEXPERIMENT=nojsonv2
 # Preserve other existing GOPRIVATE entries if you already have them.
 go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
-xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@IMMUTABLE_IMPLEMENTED_REF
+xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@2cf938efc50b1d714da67e29b6e9adccdf940f25
 ```
 
-The exact tested ref/command will be recorded in the dated integration evidence.
+The implemented plugin resolves to `v0.0.0-20261006175344-2cf938efc50b`;
+the [dated evidence](evidence-plugin-20261006.md) records the fresh-cache remote
+build and module inventory. Repository examples and checks for this stage are on
+`codex/installable-caddy-plugin`; after an authenticated clone, use
+`git checkout codex/installable-caddy-plugin` to work with them. The immutable
+installation command above does not require a checkout.
 Use Go **1.27.1 or newer compatible toolchain** (tested 1.27.1), xcaddy **0.4.5**,
 Caddy **2.10.2**. The `nojsonv2` workaround preserves the reflected identity of
 `encoding/json.RawMessage` expected by Caddy 2.10.2. No downstream `go.work` or
@@ -210,13 +215,26 @@ lifetime; disk and binding size grow with renewals. No garbage collection or
 distributed/multi-host storage is implemented. Back up and monitor growth, and do
 not delete history while protected connections may depend on it.
 
+## Troubleshooting
+
+| Symptom | Check and recovery |
+|---|---|
+| Private module cannot be fetched | Confirm repository access with your normal Git credentials, scoped `GOPRIVATE`, and the immutable ref above. The repository is private. |
+| Caddy JSON module decoding fails with the tested Go toolchain | Build with `GOEXPERIMENT=nojsonv2` and the documented Caddy/xcaddy pins. |
+| Credentials fail before issuance | Check leaf-first PEM order, unencrypted RSA key match, validity, hostname SAN/profile, and the separately supplied authority. Inspect the complete provisioning error; TLS roots are not QWAC authorities. |
+| State is already owned | Stop the other owner, or use a separate state directory. A standalone validation process also conflicts with a running owner. Do not delete its lock file. |
+| Reload does not pick up new files | Use `caddy reload --force`; unchanged configuration bytes otherwise need not reprovision. Check the reload exit status and the activated signer in structured logs. |
+| Reload is rejected | Repair the supplied files or inconsistent settings and retry. The previous live configuration remains active; no candidate worker is started by validation. |
+| Protected response is 503 | Inspect refresh/publication logs, credential validity, state permissions and disk space. Restore signing/publication so independent refresh or gated issuance can recover. Do not bypass the gate or erase retained history. |
+| HTTPS works but the browser shows no qualified identity | Local plugin validation is separate from the browser's QWAC authority list, feature support and binding profile. Use native browser evidence and the README's isolated development instructions; a page label is insufficient. |
+
 ## Repeatable checks and future releases
 
 ```sh
 make test                 # race tests in core, Caddy and devtools; boundaries
 make plugin-smoke STATE=.local/plugin-smoke
 # Uses a fresh outside-checkout module cache and no replacements/devtools:
-scripts/check-remote-install.sh IMMUTABLE_IMPLEMENTED_REF
+scripts/check-remote-install.sh 2cf938efc50b1d714da67e29b6e9adccdf940f25
 ```
 
 The portable smoke builds no browsers: it supplies synthetic TEST PEMs from

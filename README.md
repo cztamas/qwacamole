@@ -12,9 +12,9 @@ TLS chain. Renewing TLS therefore requires publishing a new binding, while the
 owner's QWAC certificate can stay the same.
 
 The demonstration is accepted with one documented Chromium implementation gap:
-stock Chrome **154.0.8037.95** accepts an expired binding `exp` header. Its native
-parser explicitly ignores that field. The browser suite retains the failing
-assertion so this limitation stays visible. Native verification before and after
+stock Chrome **154.0.8037.95 and 154.0.8037.98** accept an expired binding `exp`
+header. Chrome's native parser explicitly ignores that field. The browser suite
+retains the failing assertion so this limitation stays visible. Native verification before and after
 automatic renewal, real TLS validation, existing connections, trust separation,
 restart, refresh, and signing/publication failure recovery have been observed.
 The three-module extraction and new native browser runs are recorded in [the dated refactor report](docs/evidence-monorepo-20261005.md).
@@ -38,13 +38,16 @@ use the [installation and operations guide](docs/caddy-plugin.md). It includes
 authenticated private-GitHub installation, complete Caddyfile proxy/file/Pebble
 examples, JSON migration, explicit local QWAC trust, reload/credential replacement
 and portable checks. The development browser quickstarts below remain supported.
-New integration verification is recorded separately from historical results.
+New integration verification is recorded separately in
+[the plugin evidence report](docs/evidence-plugin-20261006.md), including the
+remotely tested immutable ref, portable CI, and fresh native browser checks.
 
 ## Prerequisites
 
 The tested platform is **macOS on Apple Silicon**, with stock Google Chrome
-154.0.8037.95 and genuine installed **PKIMetadata 1793**. Other browser/component
-pairs are version-dependent; automatic detection does not establish compatibility.
+154.0.8037.95 / **PKIMetadata 1793** and 154.0.8037.98 / **PKIMetadata 1798**.
+Other browser/component pairs are version-dependent; automatic detection does not
+establish compatibility.
 The bundled bootstrap supports macOS arm64 only. Other platforms have not been
 validated and need a port of the bootstrap and browser discovery.
 

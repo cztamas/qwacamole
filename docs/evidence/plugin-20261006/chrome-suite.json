@@ -1,0 +1,8 @@
+{
+  "exit_code": 1,
+  "passed": 10,
+  "failures": {
+    "expired-binding": "BROWSER INCOMPATIBILITY: native verifier accepted expired exp header"
+  },
+  "version": "Chrome 154.0.8037.98"
+}
