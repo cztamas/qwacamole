@@ -21,6 +21,7 @@ func main() {
 		log.Fatal("usage: qwacamole browser-demo|firefox-demo|firefox-check|firefox-suite|demo|browser|browser-suite|integration-test|pki|fixture|lifecycle|refresh-test|failure-test|clean")
 	}
 	f := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
+	pluginBin := f.String("plugin-binary", "bin/caddy-plugin", "plugin-only Caddy binary for portable smoke")
 	dir := f.String("state", ".local", "state directory")
 	bin := f.String("browser", "", "stock browser executable")
 	metadata := f.String("metadata", "", "genuine PKIMetadata version directory")
@@ -44,6 +45,8 @@ func main() {
 	_ = f.Parse(os.Args[2:])
 	var e error
 	switch os.Args[1] {
+	case "plugin-smoke":
+		e = pluginSmoke(*dir, *pluginBin)
 	case "firefox-suite":
 		e = firefoxSuite(*dir, *bin, *driver, *certutil)
 	case "firefox-check":

@@ -14,6 +14,7 @@ import (
 	"github.com/cztamas/qwacamole/credentials"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -52,6 +53,16 @@ type Operations struct {
 }
 
 func Open(cfg Config, mat *credentials.Credentials, ops Operations) (*Manager, error) {
+	return open(cfg, mat, ops, true)
+}
+
+// Recover validates durable state without publishing or switching credentials.
+// Integrations use this when provisioning a configuration that may be rejected.
+func Recover(cfg Config, mat *credentials.Credentials, ops Operations) (*Manager, error) {
+	return open(cfg, mat, ops, false)
+}
+
+func open(cfg Config, mat *credentials.Credentials, ops Operations, refresh bool) (*Manager, error) {
 	if e := mat.Validate(); e != nil {
 		return nil, e
 	}
@@ -113,12 +124,69 @@ func Open(cfg Config, mat *credentials.Credentials, ops Operations) (*Manager, e
 	if e != nil {
 		return nil, e
 	}
-	if hasLiveCertificate(cs, time.Now()) { // refresh also re-verifies an expired document before it is advertised
+	if refresh && hasLiveCertificate(cs, time.Now()) { // refresh also re-verifies an expired document before it is advertised
 		if e = m.publishLocked(cs, time.Now()); e != nil {
 			return nil, fmt.Errorf("recovery publication: %w", e)
 		}
 	}
 	return m, nil
+}
+
+// PrepareReplacement checks a same-authority candidate without changing files or
+// the live manager. Replacement rebuilds coverage under the same lock at commit.
+func (m *Manager) PrepareReplacement(mat *credentials.Credentials) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.prepareReplacementLocked(mat)
+}
+
+func (m *Manager) prepareReplacementLocked(mat *credentials.Credentials) error {
+	if e := mat.Validate(); e != nil {
+		return e
+	}
+	if !mat.Chain[len(mat.Chain)-1].Equal(m.material.Chain[len(m.material.Chain)-1]) {
+		return errors.New("QWAC authority migration is not supported")
+	}
+	cs, e := m.certsLocked()
+	if e != nil {
+		return e
+	}
+	if !hasLiveCertificate(cs, time.Now()) {
+		return nil
+	}
+	sign := binding.Sign
+	if m.cfg.FirefoxCompatibility {
+		sign = binding.SignFirefox
+	}
+	doc, _, e := sign(mat, cs, time.Now(), m.cfg.Lifetime)
+	if e != nil {
+		return e
+	}
+	candidate := &Manager{cfg: m.cfg, material: mat, operations: m.operations, current: m.current}
+	return candidate.verify(doc, cs, time.Now())
+}
+
+// Replace publishes and independently verifies the candidate binding before
+// switching signing material. Existing TLS coverage is never pruned.
+func (m *Manager) Replace(mat *credentials.Credentials) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if e := m.prepareReplacementLocked(mat); e != nil {
+		return e
+	}
+	cs, e := m.certsLocked()
+	if e != nil {
+		return e
+	}
+	if hasLiveCertificate(cs, time.Now()) {
+		candidate := &Manager{cfg: m.cfg, material: mat, operations: m.operations, current: m.current}
+		if e = candidate.publishLocked(cs, time.Now()); e != nil {
+			return e
+		}
+		m.current = candidate.current
+	}
+	m.material = mat
+	return nil
 }
 func (m *Manager) Snapshot() State {
 	m.mu.RLock()
@@ -127,6 +195,60 @@ func (m *Manager) Snapshot() State {
 	s.Certs = append([]string(nil), s.Certs...)
 	s.IDs = append([]string(nil), s.IDs...)
 	return s
+}
+
+// Document serves only retained, content-addressed, independently verified
+// bindings. Historical documents may be expired; their signed content is immutable.
+func (m *Manager) Document(path string) ([]byte, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	name := strings.TrimPrefix(path, "/bindings/")
+	if path != "/bindings/"+name || len(name) != 69 || !strings.HasSuffix(name, ".jose") {
+		return nil, errors.New("invalid binding path")
+	}
+	if _, e := hex.DecodeString(name[:64]); e != nil || name != strings.ToLower(name) {
+		return nil, errors.New("invalid binding identifier")
+	}
+	p := filepath.Join(m.cfg.Dir, name)
+	info, e := os.Lstat(p)
+	if e != nil {
+		return nil, e
+	}
+	if !info.Mode().IsRegular() {
+		return nil, errors.New("binding must be a regular file")
+	}
+	d, e := os.ReadFile(p)
+	if e != nil {
+		return nil, e
+	}
+	sum := sha256.Sum256(d)
+	if name != hex.EncodeToString(sum[:])+".jose" {
+		return nil, errors.New("binding content hash mismatch")
+	}
+	h, _, _, _, e := binding.Decode(string(d))
+	if e != nil {
+		return nil, e
+	}
+	all, e := m.certsLocked()
+	if e != nil {
+		return nil, e
+	}
+	var cs []*x509.Certificate
+	for _, c := range all {
+		for _, hash := range h.SigD.HashV {
+			if hash == binding.TLSHash(c) {
+				cs = append(cs, c)
+				break
+			}
+		}
+	}
+	if len(cs) != len(h.SigD.HashV) {
+		return nil, errors.New("document contains unretained certificates")
+	}
+	if e = m.verify(string(d), cs, time.Unix(h.Iat, 0)); e != nil {
+		return nil, e
+	}
+	return d, nil
 }
 func (m *Manager) certsLocked() ([]*x509.Certificate, error) {
 	var cs []*x509.Certificate

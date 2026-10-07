@@ -1,0 +1,11 @@
+{
+  "same_profile": "/Users/cztamas/dev/personal/qwacamole/.local/plugin-20261006/browsers/browser-demo-69137474/profiles/renewal",
+  "trust_unchanged": true,
+  "accept_insecure_certs": false,
+  "old_tls_id": "8cffe218c1803fc7b638f1532a2c0852c31659316f95828bab78c2179b089cd6",
+  "new_tls_id": "3fc707d8ff529030ac5a87a4afe7d3168e6d0f660dc57ce9425ec254b8815984",
+  "qwac_fingerprint": "5B:F5:E6:82:8A:78:42:C2:7E:8B:7E:E2:D1:64:42:C4:4C:95:35:2E:C1:B6:48:73:AD:FD:96:69:BC:CD:95:8B",
+  "owner": "Plugin Firefox TEST",
+  "qualified_visible": true,
+  "both_tls_ids_bound": true
+}

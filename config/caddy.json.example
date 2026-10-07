@@ -47,7 +47,10 @@
                     "directory": "{STATE}/bindings",
                     "hostname": "qwac.example.com",
                     "key_file": "{STATE}/pki/qwac-leaf-key.pem",
-                    "lifetime": 45000000000
+                    "lifetime": "45s",
+                    "trust_files": [
+                      "{STATE}/pki/qwac-root.pem"
+                    ]
                   },
                   "handler": "qwac_demo",
                   "pki": "{STATE}/pki"
@@ -73,7 +76,10 @@
                     "directory": "{STATE}/bindings",
                     "hostname": "qwac.example.com",
                     "key_file": "{STATE}/pki/qwac-leaf-key.pem",
-                    "lifetime": 45000000000
+                    "lifetime": "45s",
+                    "trust_files": [
+                      "{STATE}/pki/qwac-root.pem"
+                    ]
                   },
                   "handler": "qwac_demo_binding"
                 },
@@ -87,7 +93,10 @@
                     "directory": "{STATE}/bindings",
                     "hostname": "qwac.example.com",
                     "key_file": "{STATE}/pki/qwac-leaf-key.pem",
-                    "lifetime": 45000000000
+                    "lifetime": "45s",
+                    "trust_files": [
+                      "{STATE}/pki/qwac-root.pem"
+                    ]
                   },
                   "handler": "qwac_demo",
                   "pki": "{STATE}/pki"
@@ -138,7 +147,10 @@
                   "directory": "{STATE}/bindings",
                   "hostname": "qwac.example.com",
                   "key_file": "{STATE}/pki/qwac-leaf-key.pem",
-                  "lifetime": 45000000000
+                  "lifetime": "45s",
+                  "trust_files": [
+                    "{STATE}/pki/qwac-root.pem"
+                  ]
                 },
                 "module": "qwac_demo"
               }

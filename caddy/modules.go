@@ -4,20 +4,20 @@ package qwacamole
 import (
 	"context"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/caddyserver/caddy/v2/modules/caddytls"
 	"github.com/caddyserver/certmagic"
-	"github.com/cztamas/qwacamole/credentials"
 	"github.com/cztamas/qwacamole/store"
+	"go.uber.org/zap"
+	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -27,6 +27,8 @@ type Issuer struct {
 	caddytls.ACMEIssuer `json:"acme"`
 	Binding             BindingConfig `json:"binding"`
 	manager             *store.Manager
+	lease               *Lease
+	ctx                 caddy.Context
 	config              *certmagic.Config
 	startupErr          error
 }
@@ -40,12 +42,59 @@ func (i *Issuer) Provision(ctx caddy.Context) error {
 
 // ProvisionWithOperations supplies narrowly scoped lifecycle operations for development adapters.
 func (i *Issuer) ProvisionWithOperations(ctx caddy.Context, ops store.Operations) error {
+	if ctx.Module() != nil {
+		if e := i.checkPolicy(ctx); e != nil {
+			return e
+		}
+	}
 	if e := i.ACMEIssuer.Provision(ctx); e != nil {
 		return e
 	}
-	m, e := Shared(i.Binding, ops)
-	i.manager = m
-	return e
+	lease, e := Acquire(ctx, i.Binding, ops)
+	if e != nil {
+		return e
+	}
+	i.lease = lease
+	i.manager = lease.Manager()
+	i.ctx = ctx
+	return nil
+}
+
+// Check raw policy shape while it is still available during issuer provisioning.
+// This rejects fallback/external/on-demand configurations even without middleware.
+func (i *Issuer) checkPolicy(ctx caddy.Context) error {
+	app, e := ctx.App("tls")
+	if e != nil {
+		return e
+	}
+	tls := app.(*caddytls.TLS)
+	if tls.Automation != nil {
+		for _, p := range tls.Automation.Policies {
+			matches := len(p.SubjectsRaw) == 0
+			for _, name := range p.SubjectsRaw {
+				if certmagic.MatchWildcard(i.Binding.Host, name) {
+					matches = true
+				}
+			}
+			if !matches {
+				continue
+			}
+			if len(p.SubjectsRaw) != 1 || p.SubjectsRaw[0] != i.Binding.Host || len(p.IssuersRaw) != 1 || len(p.ManagersRaw) > 0 || p.OnDemand {
+				return fmt.Errorf("QWAC issuer requires one explicit hostname, sole issuer and no external/on-demand/fallback policy")
+			}
+			var m struct {
+				Module string `json:"module"`
+			}
+			if e = json.Unmarshal(p.IssuersRaw[0], &m); e != nil {
+				return e
+			}
+			if m.Module != "qwac" && m.Module != "qwac_demo" {
+				return fmt.Errorf("intended QWAC issuer must be explicit")
+			}
+			return nil
+		}
+	}
+	return fmt.Errorf("QWAC issuer requires an explicit hostname automation policy")
 }
 func (i *Issuer) SetConfig(cfg *certmagic.Config) {
 	i.config = cfg
@@ -66,7 +115,9 @@ func (i *Issuer) SetConfig(cfg *certmagic.Config) {
 		}
 		c, e := x509.ParseCertificate(b.Bytes)
 		if e == nil {
-			e = i.manager.Publish(c)
+			if i.lease != nil {
+				i.lease.SetStoredTLS(c)
+			}
 		}
 		if e != nil {
 			i.startupErr = e
@@ -75,11 +126,15 @@ func (i *Issuer) SetConfig(cfg *certmagic.Config) {
 		i.startupErr = e
 	}
 }
+func (i *Issuer) Cleanup() error             { i.lease.Release(); return nil }
+func (i *Issuer) QWACBinding() BindingConfig { return i.Binding }
+func (i *Issuer) StartupError() error        { return i.startupErr }
+
 func (i *Issuer) PreCheck(ctx context.Context, names []string, interactive bool) error {
 	if i.startupErr != nil {
 		return i.startupErr
 	}
-	if len(i.config.Issuers) != 1 {
+	if i.config == nil || len(i.config.Issuers) != 1 {
 		return fmt.Errorf("QWAC issuer requires exactly one issuer; fallback bypass prohibited")
 	}
 	if len(names) != 1 || names[0] != i.Binding.Host {
@@ -88,11 +143,22 @@ func (i *Issuer) PreCheck(ctx context.Context, names []string, interactive bool)
 	return i.ACMEIssuer.PreCheck(ctx, names, interactive)
 }
 func (i *Issuer) Issue(ctx context.Context, csr *x509.CertificateRequest) (*certmagic.IssuedCertificate, error) {
+	release, e := i.lease.borrow()
+	if e != nil {
+		return nil, e
+	}
+	defer release()
 	if e := i.PreCheck(ctx, csr.DNSNames, false); e != nil {
+		return nil, e
+	}
+	if e := i.lease.Activate(); e != nil {
 		return nil, e
 	}
 	cert, e := i.ACMEIssuer.Issue(ctx, csr)
 	if e != nil {
+		return nil, e
+	}
+	if e = i.lease.ctx.Err(); e != nil {
 		return nil, e
 	}
 	b, _ := pem.Decode(cert.Certificate)
@@ -104,6 +170,7 @@ func (i *Issuer) Issue(ctx context.Context, csr *x509.CertificateRequest) (*cert
 		return nil, e
 	}
 	if e = i.manager.Publish(c); e != nil {
+		i.ctx.Logger().Error("TLS replacement refused by QWAC publication gate", zap.String("hostname", i.Binding.Host), zap.Error(e))
 		return nil, fmt.Errorf("binding gate refused TLS certificate: %w", e)
 	}
 	return cert, nil
@@ -112,7 +179,8 @@ func (i *Issuer) Issue(ctx context.Context, csr *x509.CertificateRequest) (*cert
 type Handler struct {
 	Binding BindingConfig `json:"binding"`
 	manager *store.Manager
-	cancel  context.CancelFunc
+	lease   *Lease
+	ctx     caddy.Context
 }
 
 func (Handler) CaddyModule() caddy.ModuleInfo {
@@ -121,60 +189,97 @@ func (Handler) CaddyModule() caddy.ModuleInfo {
 func (h *Handler) Provision(ctx caddy.Context) error {
 	return h.ProvisionWithOperations(ctx, store.Operations{})
 }
-
-// ProvisionWithOperations is the development adapter entry point.
 func (h *Handler) ProvisionWithOperations(ctx caddy.Context, ops store.Operations) error {
-	m, e := Shared(h.Binding, ops)
+	l, e := Acquire(ctx, h.Binding, ops)
 	if e != nil {
 		return e
 	}
-	h.manager = m
-	child, cancel := context.WithCancel(ctx)
-	h.cancel = cancel
-	go func() {
-		t := time.NewTicker(time.Second)
-		defer t.Stop()
-		for {
-			select {
-			case <-child.Done():
-				return
-			case <-t.C:
-				if e := m.Refresh(); e != nil {
-					ctx.Logger().Warn(e.Error())
-				}
-			}
-		}
-	}()
+	h.lease = l
+	h.manager = l.Manager()
+	h.ctx = ctx
 	return nil
 }
-func (h *Handler) Cleanup() error {
-	if h.cancel != nil {
-		h.cancel()
-	}
-	return nil
-}
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
-	state := h.manager.Snapshot()
-	if strings.HasPrefix(r.URL.Path, "/bindings/") {
-		name := strings.TrimPrefix(r.URL.Path, "/bindings/")
-		if strings.ContainsAny(name, "/\\") || !strings.HasSuffix(name, ".jose") {
-			return caddyhttp.Error(404, nil)
-		}
-		d, e := os.ReadFile(filepath.Join(h.Binding.Dir, name))
-		if e != nil {
-			return caddyhttp.Error(404, e)
-		}
-		w.Header().Set("Content-Type", "application/jose")
-		w.Header().Set("Cache-Control", "no-store")
-		_, e = w.Write(d)
+func (h *Handler) Cleanup() error { h.lease.Release(); return nil }
+
+// Validate checks the first matching automation policy, including fallback and
+// external-manager bypasses, before any ACME attempt. Embedded dev adapters use
+// the same interface and validation.
+func (h *Handler) Validate() error {
+	app, e := h.ctx.App("tls")
+	if e != nil {
 		return e
 	}
+	tls := app.(*caddytls.TLS)
+	if tls.Automation != nil {
+		for _, p := range tls.Automation.Policies {
+			subjects := p.Subjects()
+			matched := len(subjects) == 0
+			for _, s := range subjects {
+				if certmagic.MatchWildcard(h.Binding.Host, s) {
+					matched = true
+				}
+			}
+			if !matched {
+				continue
+			}
+			if len(subjects) != 1 || subjects[0] != h.Binding.Host || len(p.Issuers) != 1 || p.OnDemand || len(p.Managers) > 0 {
+				return fmt.Errorf("QWAC requires one explicit hostname policy, sole QWAC issuer, no on-demand/external/fallback issuers")
+			}
+			i, ok := p.Issuers[0].(interface {
+				QWACBinding() BindingConfig
+				StartupError() error
+			})
+			if !ok {
+				return fmt.Errorf("protected hostname requires the QWAC issuer")
+			}
+			if e := i.StartupError(); e != nil {
+				return e
+			}
+			a, e := i.QWACBinding().normalized()
+			if e != nil {
+				return e
+			}
+			b, e := h.Binding.normalized()
+			if e != nil {
+				return e
+			}
+			if !reflect.DeepEqual(a, b) {
+				return fmt.Errorf("issuer/handler binding configuration mismatch")
+			}
+			return nil
+		}
+	}
+	return fmt.Errorf("no explicit QWAC issuer policy for protected hostname")
+}
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
+	host := r.Host
+	if v, _, e := net.SplitHostPort(host); e == nil {
+		host = v
+	}
+	if strings.TrimSuffix(strings.ToLower(host), ".") != h.Binding.Host {
+		return next.ServeHTTP(w, r)
+	}
+	release, e := h.lease.borrow()
+	if e != nil {
+		return caddyhttp.Error(503, e)
+	}
+	defer release()
+	if e := h.lease.Activate(); e != nil {
+		return caddyhttp.Error(503, e)
+	}
+	if strings.HasPrefix(r.URL.Path, "/bindings/") {
+		return h.serveDocument(w, r)
+	}
+	state := h.manager.Snapshot()
 	if state.URL == "" || state.Expires <= time.Now().Unix() {
 		return caddyhttp.Error(503, fmt.Errorf("binding unavailable or expired"))
 	}
-	w.Header().Set("Link", fmt.Sprintf(`<%s>; rel="tls-certificate-binding"`, state.URL))
-	w.Header().Set("Cache-Control", "no-store")
-	return next.ServeHTTP(w, r)
+	rw := &bindingWriter{ResponseWriter: w, manager: h.manager}
+	e = next.ServeHTTP(rw, r)
+	if e == nil && !rw.committed {
+		rw.WriteHeader(http.StatusOK)
+	}
+	return e
 }
 
 var _ certmagic.Issuer = (*Issuer)(nil)
@@ -183,53 +288,3 @@ var _ certmagic.Revoker = (*Issuer)(nil)
 var _ certmagic.RenewalInfoGetter = (*Issuer)(nil)
 var _ caddytls.ConfigSetter = (*Issuer)(nil)
 var _ caddyhttp.MiddlewareHandler = (*Handler)(nil)
-
-// BindingConfig selects credentials explicitly; the core never knows a test-PKI layout.
-type BindingConfig struct {
-	store.Config
-	ChainFiles []string `json:"chain_files"`
-	KeyFile    string   `json:"key_file"`
-}
-
-var registry = struct {
-	sync.Mutex
-	entries map[string]sharedEntry
-}{entries: make(map[string]sharedEntry)}
-
-type sharedEntry struct {
-	cfg                      BindingConfig
-	manager                  *store.Manager
-	customSign, customCommit bool
-}
-
-// Shared gives issuer, refresh middleware and development diagnostics one manager.
-// Each directory has one configuration and operation mode for the process lifetime.
-func Shared(cfg BindingConfig, ops store.Operations) (*store.Manager, error) {
-	registry.Lock()
-	defer registry.Unlock()
-	dir, e := filepath.Abs(cfg.Dir)
-	if e != nil {
-		return nil, e
-	}
-	cfg.Dir = dir
-	if cfg.Lifetime == 0 {
-		cfg.Lifetime = 45 * time.Second
-	}
-	if entry, ok := registry.entries[dir]; ok {
-		if !reflect.DeepEqual(entry.cfg, cfg) || entry.customSign != (ops.Sign != nil) || entry.customCommit != (ops.CommitManifest != nil) {
-			return nil, fmt.Errorf("binding manager config or operation mode mismatch")
-		}
-		return entry.manager, nil
-	}
-	mat, e := credentials.Load(cfg.ChainFiles, cfg.KeyFile)
-	if e != nil {
-		return nil, e
-	}
-	m, e := store.Open(cfg.Config, mat, ops)
-	if e != nil {
-		return nil, e
-	}
-	cfg.ChainFiles = append([]string(nil), cfg.ChainFiles...)
-	registry.entries[dir] = sharedEntry{cfg, m, ops.Sign != nil, ops.CommitManifest != nil}
-	return m, nil
-}

@@ -123,7 +123,7 @@ func demo(dir string) error {
 	if e = os.WriteFile(filepath.Join(pkidir, "pebble-root.pem"), roots, 0600); e != nil {
 		return e
 	}
-	binding := map[string]any{"directory": filepath.Join(dir, "bindings"), "chain_files": []string{filepath.Join(pkidir, "qwac-leaf.pem"), filepath.Join(pkidir, "qwac-intermediate.pem"), filepath.Join(pkidir, "qwac-root.pem")}, "key_file": filepath.Join(pkidir, "qwac-leaf-key.pem"), "hostname": "qwac.example.com", "lifetime": int64(45 * time.Second)}
+	binding := map[string]any{"directory": filepath.Join(dir, "bindings"), "chain_files": []string{filepath.Join(pkidir, "qwac-leaf.pem"), filepath.Join(pkidir, "qwac-intermediate.pem"), filepath.Join(pkidir, "qwac-root.pem")}, "trust_files": []string{filepath.Join(pkidir, "qwac-root.pem")}, "key_file": filepath.Join(pkidir, "qwac-leaf-key.pem"), "hostname": "qwac.example.com", "lifetime": int64(45 * time.Second)}
 	if _, err := os.Stat(filepath.Join(dir, "firefox-compatibility")); err == nil {
 		binding["firefox_compatibility"] = true
 	}

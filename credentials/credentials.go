@@ -2,11 +2,14 @@
 package credentials
 
 import (
+	"bytes"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"github.com/cztamas/qwacamole/profile"
 	"os"
+	"time"
 )
 
 // Identity contains the signed organization metadata retained in binding state.
@@ -35,22 +38,65 @@ func ReadKey(path string) (*rsa.PrivateKey, error) {
 	if e != nil {
 		return nil, e
 	}
-	b, _ := pem.Decode(d)
+	b, rest := pem.Decode(d)
 	if b == nil {
 		return nil, fmt.Errorf("not PEM key")
 	}
-	return x509.ParsePKCS1PrivateKey(b.Bytes)
-}
-
-// Load reads a leaf-first chain including its trust anchor and a PKCS#1 RSA key.
-func Load(chainFiles []string, keyFile string) (*Credentials, error) {
-	m := &Credentials{}
-	for _, path := range chainFiles {
-		c, e := ReadCert(path)
+	if len(bytes.TrimSpace(rest)) != 0 || len(b.Headers) != 0 {
+		return nil, fmt.Errorf("one unencrypted RSA key required")
+	}
+	switch b.Type {
+	case "RSA PRIVATE KEY":
+		return x509.ParsePKCS1PrivateKey(b.Bytes)
+	case "PRIVATE KEY":
+		key, e := x509.ParsePKCS8PrivateKey(b.Bytes)
 		if e != nil {
 			return nil, e
 		}
-		m.Chain = append(m.Chain, c)
+		if rsaKey, ok := key.(*rsa.PrivateKey); ok {
+			return rsaKey, nil
+		}
+	}
+	return nil, fmt.Errorf("only unencrypted PKCS#1 or PKCS#8 RSA keys supported")
+}
+
+// ReadCertificates reads every certificate in an ordinary PEM bundle.
+func ReadCertificates(path string) ([]*x509.Certificate, error) {
+	d, e := os.ReadFile(path)
+	if e != nil {
+		return nil, e
+	}
+	var cs []*x509.Certificate
+	for len(bytes.TrimSpace(d)) > 0 {
+		if !bytes.HasPrefix(bytes.TrimSpace(d), []byte("-----BEGIN CERTIFICATE-----")) {
+			return nil, fmt.Errorf("unexpected PEM data in %s", path)
+		}
+		b, rest := pem.Decode(d)
+		if b == nil || b.Type != "CERTIFICATE" || len(b.Headers) != 0 {
+			return nil, fmt.Errorf("invalid certificate PEM in %s", path)
+		}
+		c, e := x509.ParseCertificate(b.Bytes)
+		if e != nil {
+			return nil, e
+		}
+		cs = append(cs, c)
+		d = rest
+	}
+	if len(cs) == 0 {
+		return nil, fmt.Errorf("empty certificate bundle: %s", path)
+	}
+	return cs, nil
+}
+
+// Load reads leaf-first certificates (bundles or separate files) and an RSA key.
+func Load(chainFiles []string, keyFile string) (*Credentials, error) {
+	m := &Credentials{}
+	for _, path := range chainFiles {
+		cs, e := ReadCertificates(path)
+		if e != nil {
+			return nil, e
+		}
+		m.Chain = append(m.Chain, cs...)
 	}
 	k, e := ReadKey(keyFile)
 	if e != nil {
@@ -61,6 +107,40 @@ func Load(chainFiles []string, keyFile string) (*Credentials, error) {
 		return nil, e
 	}
 	return m, nil
+}
+
+// ValidateFor checks local consistency against a separately supplied authority.
+// This does not establish browser trust, revocation status or legal qualification.
+func (m *Credentials) ValidateFor(host string, authority *x509.Certificate, now time.Time) error {
+	if e := m.Validate(); e != nil {
+		return e
+	}
+	if authority == nil || !authority.IsCA || !m.Chain[len(m.Chain)-1].Equal(authority) {
+		return fmt.Errorf("chain must end in the explicit QWAC authority")
+	}
+	if e := profile.Validate(m.Chain[0]); e != nil {
+		return e
+	}
+	if e := m.Chain[0].VerifyHostname(host); e != nil {
+		return e
+	}
+	for n, c := range m.Chain {
+		if now.Before(c.NotBefore) || !now.Before(c.NotAfter) {
+			return fmt.Errorf("QWAC chain certificate %d outside validity", n)
+		}
+		if n+1 < len(m.Chain) {
+			if e := c.CheckSignatureFrom(m.Chain[n+1]); e != nil {
+				return fmt.Errorf("QWAC chain is not leaf-first: %w", e)
+			}
+		}
+	}
+	roots, intermediates := x509.NewCertPool(), x509.NewCertPool()
+	roots.AddCert(authority)
+	for _, c := range m.Chain[1 : len(m.Chain)-1] {
+		intermediates.AddCert(c)
+	}
+	_, e := m.Chain[0].Verify(x509.VerifyOptions{Roots: roots, Intermediates: intermediates, CurrentTime: now, KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageAny}})
+	return e
 }
 
 // Validate rejects missing or mismatched signing material before use.

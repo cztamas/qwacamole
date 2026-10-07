@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "plugin-only inventory",
+    "all three Caddyfile examples adapt and validate",
+    "invalid syntax, missing trust, inconsistent pairing and bypass policies reject",
+    "legacy numeric JSON duration migration",
+    "real reverse_proxy status/body/streaming and header preservation",
+    "binding GET/HEAD, methods, path validation and no-store isolation",
+    "real automatic Pebble renewal and durable binding coverage",
+    "three unchanged forced Caddy reloads",
+    "conflicting process rejected by exclusive state lock",
+    "same-path QWAC leaf/key replacement under same authority",
+    "invalid credentials and inconsistent config reloads reject; old application remains active",
+    "real process restart and recovered binding history",
+    "real file_server application and reachable binding endpoints"
+  ],
+  "error": "<nil>",
+  "plugin_binary": "/Users/cztamas/dev/personal/qwacamole/bin/caddy-remote"
+}

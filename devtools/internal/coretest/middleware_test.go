@@ -21,7 +21,7 @@ func TestProductionMiddlewarePassesApplicationRoutesAndIgnoresFaultFiles(t *test
 	if e := pki.Generate(pkidir, pki.Identity{Host: "qwac.example.com", Organization: "Middleware TEST", Country: "HU", Locality: "Budapest", Registration: "NTRHU-TEST"}); e != nil {
 		t.Fatal(e)
 	}
-	cfg := plugin.BindingConfig{Config: store.Config{Dir: filepath.Join(dir, "bindings"), Host: "qwac.example.com", Lifetime: time.Minute}, ChainFiles: []string{filepath.Join(pkidir, "qwac-leaf.pem"), filepath.Join(pkidir, "qwac-intermediate.pem"), filepath.Join(pkidir, "qwac-root.pem")}, KeyFile: filepath.Join(pkidir, "qwac-leaf-key.pem")}
+	cfg := plugin.BindingConfig{Config: store.Config{Dir: filepath.Join(dir, "bindings"), Host: "qwac.example.com", Lifetime: time.Minute}, ChainFiles: []string{filepath.Join(pkidir, "qwac-leaf.pem"), filepath.Join(pkidir, "qwac-intermediate.pem"), filepath.Join(pkidir, "qwac-root.pem")}, TrustFiles: []string{filepath.Join(pkidir, "qwac-root.pem")}, KeyFile: filepath.Join(pkidir, "qwac-leaf-key.pem")}
 	ctx, cancel := caddy.NewContext(caddy.Context{Context: context.Background()})
 	defer cancel()
 	h := &plugin.Handler{Binding: cfg}
@@ -29,7 +29,9 @@ func TestProductionMiddlewarePassesApplicationRoutesAndIgnoresFaultFiles(t *test
 		t.Fatal(e)
 	}
 	defer h.Cleanup()
-	m, e := plugin.Shared(cfg, store.Operations{})
+	l, e := plugin.Acquire(ctx, cfg, store.Operations{})
+	defer l.Release()
+	m := l.Manager()
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -47,7 +49,7 @@ func TestProductionMiddlewarePassesApplicationRoutesAndIgnoresFaultFiles(t *test
 	}
 	for _, path := range []string{"/", "/state", "/init", "/test-pki/qwac-leaf-key.pem"} {
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest("GET", path, nil)
+		r := httptest.NewRequest("GET", "https://qwac.example.com"+path, nil)
 		next := caddyhttp.HandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
 			_, e := w.Write([]byte("application:" + r.URL.Path))
 			return e
@@ -60,7 +62,7 @@ func TestProductionMiddlewarePassesApplicationRoutesAndIgnoresFaultFiles(t *test
 		}
 	}
 	w := httptest.NewRecorder()
-	if e = h.ServeHTTP(w, httptest.NewRequest("GET", m.Snapshot().URL, nil), nil); e != nil {
+	if e = h.ServeHTTP(w, httptest.NewRequest("GET", "https://qwac.example.com"+m.Snapshot().URL, nil), nil); e != nil {
 		t.Fatal(e)
 	}
 	if w.Header().Get("Content-Type") != "application/jose" || w.Header().Get("Cache-Control") != "no-store" || w.Body.Len() == 0 {
@@ -68,7 +70,7 @@ func TestProductionMiddlewarePassesApplicationRoutesAndIgnoresFaultFiles(t *test
 	}
 	mismatch := cfg
 	mismatch.KeyFile = "other"
-	if _, e = plugin.Shared(mismatch, store.Operations{}); e == nil {
+	if _, e = plugin.Acquire(ctx, mismatch, store.Operations{}); e == nil {
 		t.Fatal("inconsistent sharing accepted")
 	}
 }
