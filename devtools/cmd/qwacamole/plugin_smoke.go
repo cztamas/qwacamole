@@ -266,6 +266,36 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		}
 	}
 	c.pass("invalid syntax, missing trust, inconsistent pairing and bypass policies reject")
+	// Match Caddy's first applicable policy even when no QWAC middleware is loaded.
+	// An earlier wildcard must not let an ordinary issuer shadow the QWAC gate.
+	for _, tc := range []struct {
+		name, subject     string
+		issuerOnly, valid bool
+	}{
+		{"shadowing-wildcard-issuer-only", "*.example.com", true, false},
+		{"shadowing-wildcard-paired", "*.example.com", false, false},
+		{"unrelated-wildcard-issuer-only", "*.other.com", true, true},
+		{"nonmatching-parent-wildcard-paired", "*.com", false, true},
+	} {
+		candidate := cloneJSON(cfg)
+		ordinary := cloneJSON(issuerJSON(candidate)["acme"].(map[string]any))
+		ordinary["module"] = "acme"
+		automation := candidate["apps"].(map[string]any)["tls"].(map[string]any)["automation"].(map[string]any)
+		automation["policies"] = append([]any{map[string]any{"subjects": []string{tc.subject}, "issuers": []any{ordinary}}}, automation["policies"].([]any)...)
+		if tc.issuerOnly {
+			delete(candidate["apps"].(map[string]any), "http")
+		}
+		if e = c.validateJSON(candidate, tc.name, tc.valid); e != nil {
+			return e
+		}
+		if !tc.valid {
+			log, e := os.ReadFile(filepath.Join(dir, "evidence", tc.name+".log"))
+			if e != nil || !strings.Contains(string(log), "QWAC issuer requires one explicit hostname") {
+				return fmt.Errorf("%s did not reject the shadowing policy at the issuer gate: %v: %s", tc.name, e, log)
+			}
+		}
+	}
+	c.pass("first matching wildcard policy cannot bypass issuer gate; unrelated policies remain valid")
 	// Existing numeric lifetime JSON remains valid after adding explicit trust.
 	numeric := cloneJSON(cfg)
 	issuerJSON(numeric)["binding"].(map[string]any)["lifetime"] = int64(45 * time.Second)

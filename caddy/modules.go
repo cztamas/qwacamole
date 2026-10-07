@@ -72,7 +72,7 @@ func (i *Issuer) checkPolicy(ctx caddy.Context) error {
 		for _, p := range tls.Automation.Policies {
 			matches := len(p.SubjectsRaw) == 0
 			for _, name := range p.SubjectsRaw {
-				if name == i.Binding.Host {
+				if certmagic.MatchWildcard(i.Binding.Host, name) {
 					matches = true
 				}
 			}
@@ -215,7 +215,7 @@ func (h *Handler) Validate() error {
 			subjects := p.Subjects()
 			matched := len(subjects) == 0
 			for _, s := range subjects {
-				if s == h.Binding.Host || s == "*" || strings.HasPrefix(s, "*.") && strings.HasSuffix(h.Binding.Host, s[1:]) {
+				if certmagic.MatchWildcard(h.Binding.Host, s) {
 					matched = true
 				}
 			}
