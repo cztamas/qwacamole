@@ -1,7 +1,8 @@
 # Supplied-QWAC agent with Certbot and Nginx
 
-This feature is under acceptance on `codex/certbot-nginx-agent`; do not treat
-historical Caddy evidence as proof of this integration. The production executable
+Acceptance of `codex/certbot-nginx-agent` is recorded in
+[the dated report](evidence-agent-nginx-20261007.md), including real remote
+installation, hosted CI and fresh native checks for both integrations. The production executable
 is `qwacamole-agent`, in the single `agent/` module. It contains no synthetic PKI,
 ACME issuer, browser driver or Caddy dependencies. The existing development
 `qwacamole` executable remains separate.
@@ -14,6 +15,9 @@ process-lock implementation. Development testing currently uses Nginx 1.30.5,
 Certbot 5.8.0, Go 1.27.1 and Pebble 2.8.0; final acceptance is tracked in
 [the plan](agent-nginx-plan.md). Nginx requires its HTTP SSL and auth_request
 modules. `validate` detects missing build flags and modified top-level config.
+Fresh native checks use Chrome 154.0.8037.98 / PKIMetadata 1798 and Firefox
+157.0.1; exact commands, trust setup and raw-evidence locations are in
+[the dated report](evidence-agent-nginx-20261007.md).
 
 Bind the TLS leaf actually presented to the browser. Arbitrary CDN TLS termination,
 distributed deployment, QWAC enrollment, HSMs and automatic TLS retirement are
@@ -65,9 +69,10 @@ For development, from the feature branch:
 
 ```sh
 make agent-build
-bin/qwacamole-agent render-nginx -config /etc/qwacamole/agent.json > /etc/nginx/qwacamole.conf
-bin/qwacamole-agent validate -config /etc/qwacamole/agent.json
 ```
+
+Install the built binary under `/usr/local/bin` before following the service
+commands. Create the supplied inputs and config below before rendering Nginx.
 
 Supply a JSON file with absolute paths (example addresses are production ports):
 
@@ -103,6 +108,26 @@ deployment settings must remain identical across restart; changed settings requi
 the full-stop offline migration described below. Same-path QWAC replacement does
 not change deployment settings.
 
+Run the configuration, service and Certbot commands below from a root shell
+(`sudo -i`). Prepare the example directories before rendering/starting services:
+
+```sh
+umask 077
+install -d -m 0700 /etc/qwacamole /var/lib/qwacamole/example.com /run/qwacamole-example
+install -d -m 0755 /var/lib/nginx/qwacamole /var/lib/acme
+```
+
+Place the supplied QWAC chain/key/root and `agent.json` under `/etc/qwacamole`
+with root ownership and mode 0600. Render the complete Nginx config only after
+those inputs are present. HTTP challenge files must be readable by the Nginx
+worker; the webroot above is traversable and Certbot writes the public tokens.
+Keep the agent state/config/keys private; do not make them worker-readable.
+
+```sh
+/usr/local/bin/qwacamole-agent render-nginx -config /etc/qwacamole/agent.json > /etc/nginx/qwacamole.conf
+/usr/local/bin/qwacamole-agent validate -config /etc/qwacamole/agent.json
+```
+
 Use the ordinary system TLS authorities for public ACME certificates. `tls_roots`
 is an optional absolute PEM file for an explicitly configured private TLS authority;
 it does not bypass hostname, chain or expiry validation. QWAC trust is separately
@@ -125,6 +150,9 @@ proxied. Keep these paths out of the application namespace.
 ## Service and Certbot setup
 
 Run Nginx with this prefix/config and start the agent before initial issuance:
+
+Configure the owning Nginx service to use these paths, or stop its existing master
+before a manual start. Ensure ports 80/443 are available; start only one master.
 
 ```sh
 /usr/sbin/nginx -p /var/lib/nginx/qwacamole -c /etc/nginx/qwacamole.conf
@@ -181,6 +209,17 @@ configured single-host lineage and submits a bodyless local deployment request.
 The daemon reads `fullchain.pem` and `privkey.pem` once and validates hostname,
 key match, validity and chain before publication.
 
+For manual validation, `status` must show `ready: true` and `phase: committed`,
+and `check` must succeed using a fresh normally verified TLS connection. Open
+`https://example.com` in a browser that trusts the supplied ordinary TLS and QWAC
+authorities. Chrome: site controls → **Connection is secure** → **EU Qualified
+Status**, then compare the displayed owner/country with the supplied QWAC.
+Firefox: padlock → **Connection secure**, then compare the owner and qualification
+text. Browser trust and native verification are separate from agent `check`.
+After normal renewal, require a changed `deployment.active`, run `check` again,
+and freshly navigate with the same browser profile/trust. The isolated devtools
+commands in the README automate these steps with explicitly short test lifetimes.
+
 Do not use Certbot's Nginx installer, an additional certificate-install hook, or
 point Nginx at Certbot's moving `live/` paths. The generated configuration uses
 only agent-controlled immutable generations. An ordinary Nginx reload cannot
@@ -235,6 +274,12 @@ migration is unsupported. Never edit deployment.json or the include pointer to
 force readiness. Before an initial successful deployment there is no prior TLS
 service to restore; HTTP challenges remain available and protected HTTPS stays
 unavailable.
+
+If both the daemon's loaded QWAC credentials and all retained TLS certificates
+have expired, first supply valid same-authority QWAC credentials and restart the
+agent to load them. Readiness remains closed until a fresh valid Certbot lineage
+is deployed through the normal publication/confirmation path. An expired old
+deployment cannot provide a usable rollback target.
 
 ## Monitoring, backup and retirement
 

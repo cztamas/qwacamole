@@ -38,8 +38,9 @@ No merge, tags, publication, visibility or license changes are authorized.
 
 ## Completion ledger
 
-All requirements are initially unproven. No planned test or historical browser
-report counts as newly executed acceptance.
+Every row below is backed by newly executed evidence in
+[the dated acceptance report](evidence-agent-nginx-20261007.md). Historical browser
+reports and planned tests were not substituted for current acceptance.
 
 | Requirement | Evidence needed | Status |
 |---|---|---|
@@ -49,7 +50,7 @@ report counts as newly executed acceptance.
 | Certbot deployment | Real HTTP-01 initial and normal automatic renewal, durable binding before staging, fresh TLS confirmation; hook errors independently recorded even with Certbot exit 0 | Verified |
 | Journal/reconciliation/failures | Five actual child-process crash boundaries, distinct leaves, two restarts; real signing/storage/config/reload/nonactivation/retry; expiry recovery without pruning | Verified |
 | Nginx behavior/gate | Real application/cache/headers/status/streaming, binding semantics, agent-down and explicit expired-state gates; reproduced/fixed delayed response commit across expiry | Verified |
-| Real full lifecycle | Final 22-check real run passes, including original held stream, refresh, auto-renew, expired cache, replacement, collection, faults/retry/restart and capacity refusal | Verified |
+| Real full lifecycle | Final remote-installed 24-check real run and hosted CI pass, including original held stream, refresh, auto-renew, expired cache, replacement, collection, faults/retry/restart and capacity refusal | Verified |
 | Both native integrations | Fresh Caddy Chrome/Firefox; final remote-installed Nginx Chrome/Firefox initial/renewed/cache/replacement with unchanged trust. Chrome's exact ignored-exp failure remains nonzero | Verified |
-| Independent CI/install | Workspace/real pinned independent races and clean remote Caddy+agent runtime pass; final hosted CI outstanding | Partial |
-| Usable documentation | Exact remote install, config/service/permissions/hooks/failure/monitoring/backup/retirement and dated evidence prepared; final audit outstanding | Partial |
+| Independent CI/install | Workspace/real pinned independent races, clean remote Caddy+agent runtime and hosted run 37684895890 on complete harness 2a4405f pass; uploaded 24 Nginx/22 Caddy results inspected | Verified |
+| Usable documentation | Exact remote install, ordered manual setup/native checks, config/service/permissions/hooks/failure/monitoring/backup/reconciliation/Nginx-worker retirement and dated evidence; final requirement audit complete | Verified |

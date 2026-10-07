@@ -37,11 +37,15 @@ The feature branch `codex/certbot-nginx-agent` adds the production
 `qwacamole-agent` executable in `agent/`. It uses supplied QWAC credentials and
 controls Certbot deployment into Nginx through a private local socket, durable
 binding publication, immutable TLS generations, validated reload and fresh TLS
-confirmation. The [agent guide](docs/agent-nginx.md) covers configuration,
-permissions, service setup, hooks, recovery and retirement. Engineering acceptance
-is still in progress in the [agent ledger](docs/agent-nginx-plan.md); the
-[dated evidence](docs/evidence-agent-nginx-20261007.md) distinguishes executed
-checks from outstanding browser and installation gates.
+confirmation. The [agent guide](docs/agent-nginx.md) covers installation,
+ordered manual setup and native verification, permissions, service setup, hooks,
+recovery and retirement. Completed acceptance is recorded in the
+[agent ledger](docs/agent-nginx-plan.md) and
+[dated evidence](docs/evidence-agent-nginx-20261007.md): remote installs, all-module
+races, 24 Nginx lifecycle/fault checks, 22 Caddy runtime checks, fresh native
+Chrome/Firefox for both integrations, and hosted CI. This remains an unpublished
+experimental integration; Chrome's established ignored-exp incompatibility stays
+explicitly visible and nonzero in its full suite.
 
 ```sh
 make agent-build
@@ -220,7 +224,9 @@ URL in an ordinary browser does not reproduce the required routing or trust.
 
 ## Firefox quickstart
 
-Tested with **stock Firefox 157.0** on macOS Apple Silicon. Firefox has desktop
+Tested with **stock Firefox 157.0 and 157.0.1** on macOS Apple Silicon; the
+[7 October acceptance](docs/evidence-agent-nginx-20261007.md) records the fresh
+157.0.1 runs. Firefox has desktop
 native QWAC support enabled by default since version 153. Install Firefox and
 NSS's `certutil` first (Homebrew supplies the latter):
 

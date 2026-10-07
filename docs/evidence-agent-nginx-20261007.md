@@ -1,13 +1,15 @@
-# Agent + Certbot + Nginx — work-in-progress evidence, 7 October 2026
+# Agent + Certbot + Nginx — acceptance evidence, 7 October 2026
 
-This is preliminary executed evidence, not final acceptance. Feature branch:
-`codex/certbot-nginx-agent`, base remote main `3fee651`. Shared core is pushed at
+Feature branch: `codex/certbot-nginx-agent`, base remote main `3fee651`.
+Initial intermediate checks below precede the final production, browser, remote
+consumer and hosted CI acceptance recorded later in this report. Shared core is
+pushed at
 `3c3fc434d5e40dc378afd8decc29194db79b63b5`, remotely resolved as
-`v0.0.0-20261007193456-3c3fc434d5e4`. Agent/Caddy source is still evolving;
-final immutable refs and acceptance remain outstanding in the
-[completion ledger](agent-nginx-plan.md). Historical evidence remains unchanged.
+`v0.0.0-20261007193456-3c3fc434d5e4`. Final immutable refs and every requirement
+are recorded in the [completion ledger](agent-nginx-plan.md). Historical reports
+remain unchanged.
 
-## Tools and executed proof
+## Tools and initial intermediate proof
 
 macOS arm64. Go 1.27.1 with `GOEXPERIMENT=nojsonv2`; Nginx 1.30.5 built under
 `.tools/nginx` using existing OpenSSL 3.6.3 and PCRE2; Certbot 5.8.0 in an isolated
@@ -122,6 +124,15 @@ retry, response commitment after expiry (503), new expired-state requests (403),
 expired binding delivery (503), signer repair, and real ACME capacity refusal
 without pruning or staging. Fault adapters live only in devtools. The installed
 production agent exposes no fault marker or injection command.
+
+The same final remotely installed agent then passed the expanded **24-check**
+suite at harness ref `2a4405feec2928590dca71bae0bc2cf41a5d59c0`, **exit 0**:
+`.local/agent-final-remote-runtime-20261007/nginx-smoke-656577859/`, console
+`.local/agent-final-remote-runtime.log`. Added checks directly verify runtime
+0700/socket 0600 permissions, rejected public control/private-file paths,
+private method/body/arbitrary-operation rejection, inaccessible Nginx internal
+gate/control routes and invalid binding paths. All prior lifecycle/fault/capacity
+assertions remain active. Production source matches the remote module exactly.
 
 Certbot's failed signing and capacity deploy hooks both returned overall success
 (`command_error: "<nil>"`) while agent status recorded the separate deployment
@@ -240,9 +251,36 @@ official HTTPS metadata but repeated Azure package-index ignores. CI now selects
 the official HTTPS mirror, bounds dependency network setup, and separates Nginx,
 Certbot and binary-build steps. Race/runtime assertions remain intact.
 
-## Still outstanding
+## Final hosted CI and completion audit
 
-Hosted CI on the complete harness/configuration and the final requirement audit.
+[Run 37684895890](https://github.com/cztamas/qwacamole/actions/runs/37684895890)
+**succeeded** on complete harness ref
+`2a4405feec2928590dca71bae0bc2cf41a5d59c0`. All workspace and independently pinned
+race suites, dependency boundaries, actual Nginx **24 checks** and actual Caddy
+**22 checks** passed. The uploaded artifact was downloaded and inspected:
+`ci-nginx/nginx-smoke-1615947713/evidence/result.json` contains 24 successful
+checks with `error: "<nil>"`; `ci/plugin-smoke-455786331/evidence/result.json`
+contains 22 with the same clean result. Linux Nginx is **1.24.0 (Ubuntu)**,
+confirmed in the uploaded `nginx/error.log`; Certbot is pinned to **5.8.0**.
+Local copies: `.local/agent-final-ci-result.json`, `.local/agent-final-ci.log`,
+`.local/agent-final-ci-artifacts/`. This separately verifies Linux portability;
+native browser proof above was actually executed on macOS, not hosted CI.
+
+Final source audit confirms the tested Caddy directory is byte-identical to its
+`2c78d36` production ref and the agent directory to its `a73695c` production ref.
+Final native Nginx runs used that exact remote-installed agent and native harness
+code subsequently committed in `2a4405f`; later harness additions were control/
+route checks, with native assertions unchanged. Documentation updates after
+`2a4405f` do not change production, harness, dependency or CI code.
+
+All ten objective requirements are verified in the completion ledger. The
+standard-library core and separate production modules, serialized lifecycle,
+cross-host Caddy progress, private fixed controls, publication-before-activation,
+fresh TLS confirmation, durable crash/recovery/failure handling, request and
+response-commit gates, full real lifecycle/capacity, native browsers, independent
+installs/CI, and operating/retirement documentation have current evidence.
+The accepted Chrome ignored-exp incompatibility remains explicitly failed and
+nonzero; no other native failure is accepted. No requirement remains outstanding.
 
 The Nginx config/service guide is prepared in [agent-nginx.md](agent-nginx.md).
 No merge, tags, publication, visibility or license change has been performed.
