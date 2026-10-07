@@ -278,7 +278,7 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 			return fmt.Errorf("bad syntax accepted: %s", name)
 		}
 	}
-	for _, name := range []string{"missing-trust", "inconsistent-handler", "fallback", "external-manager", "on-demand", "wrong-host"} {
+	for _, name := range []string{"missing-trust", "inconsistent-handler", "fallback", "external-manager", "external-manager-issuer-only", "on-demand", "wrong-host"} {
 		bad := cloneJSON(cfg)
 		iss := issuerJSON(bad)
 		switch name {
@@ -289,9 +289,12 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		case "fallback":
 			p := bad["apps"].(map[string]any)["tls"].(map[string]any)["automation"].(map[string]any)["policies"].([]any)[0].(map[string]any)
 			p["issuers"] = append(p["issuers"].([]any), map[string]any{"module": "acme"})
-		case "external-manager":
+		case "external-manager", "external-manager-issuer-only":
 			p := bad["apps"].(map[string]any)["tls"].(map[string]any)["automation"].(map[string]any)["policies"].([]any)[0].(map[string]any)
 			p["get_certificate"] = []any{map[string]any{"via": "http", "url": "http://127.0.0.1:9999"}}
+			if name == "external-manager-issuer-only" {
+				delete(bad["apps"].(map[string]any), "http")
+			}
 		case "on-demand":
 			p := bad["apps"].(map[string]any)["tls"].(map[string]any)["automation"].(map[string]any)["policies"].([]any)[0].(map[string]any)
 			p["on_demand"] = true
@@ -305,12 +308,15 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 	c.pass("invalid syntax, missing trust, inconsistent pairing and bypass policies reject")
 	// Match Caddy's first applicable policy even when no QWAC middleware is loaded.
 	// An earlier wildcard must not let an ordinary issuer shadow the QWAC gate.
+	c.env = append(c.env, "QWAC_SHADOW_HOST=*.example.com", "QWAC_UNRELATED_HOST=*.other.com")
 	for _, tc := range []struct {
 		name, subject     string
 		issuerOnly, valid bool
 	}{
 		{"shadowing-wildcard-issuer-only", "*.example.com", true, false},
 		{"shadowing-wildcard-paired", "*.example.com", false, false},
+		{"shadowing-placeholder-issuer-only", "{env.QWAC_SHADOW_HOST}", true, false},
+		{"unrelated-placeholder-issuer-only", "{env.QWAC_UNRELATED_HOST}", true, true},
 		{"unrelated-wildcard-issuer-only", "*.other.com", true, true},
 		{"nonmatching-parent-wildcard-paired", "*.com", false, true},
 	} {

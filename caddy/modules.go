@@ -76,8 +76,14 @@ func (i *Issuer) checkPolicy(ctx caddy.Context) error {
 	tls := app.(*caddytls.TLS)
 	if tls.Automation != nil {
 		for _, p := range tls.Automation.Policies {
-			matches := len(p.SubjectsRaw) == 0
-			for _, name := range p.SubjectsRaw {
+			// Caddy expands placeholders and IDNA before loading the issuer.
+			// Earlier/current policies must match their effective subjects.
+			subjects := p.Subjects()
+			if subjects == nil {
+				subjects = p.SubjectsRaw // Later, not-yet-provisioned policies.
+			}
+			matches := len(subjects) == 0
+			for _, name := range subjects {
 				if certmagic.MatchWildcard(i.Binding.Host, name) {
 					matches = true
 				}
@@ -85,7 +91,7 @@ func (i *Issuer) checkPolicy(ctx caddy.Context) error {
 			if !matches {
 				continue
 			}
-			if len(p.SubjectsRaw) != 1 || p.SubjectsRaw[0] != i.Binding.Host || len(p.IssuersRaw) != 1 || len(p.ManagersRaw) > 0 || p.OnDemand {
+			if len(subjects) != 1 || subjects[0] != i.Binding.Host || len(p.IssuersRaw) != 1 || len(p.ManagersRaw) > 0 || len(p.Managers) > 0 || p.OnDemand {
 				return fmt.Errorf("QWAC issuer requires one explicit hostname, sole issuer and no external/on-demand/fallback policy")
 			}
 			var m struct {
