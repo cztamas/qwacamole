@@ -18,7 +18,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatal("usage: qwacamole browser-demo|firefox-demo|firefox-check|firefox-suite|demo|browser|browser-suite|integration-test|pki|fixture|lifecycle|refresh-test|failure-test|clean")
+		log.Fatal("usage: qwacamole browser-demo|firefox-demo|firefox-check|firefox-suite|firefox-integration|demo|browser|browser-suite|integration-test|plugin-smoke|pki|fixture|lifecycle|refresh-test|failure-test|clean")
 	}
 	f := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
 	pluginBin := f.String("plugin-binary", "bin/caddy-plugin", "plugin-only Caddy binary for portable smoke")

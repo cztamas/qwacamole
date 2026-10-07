@@ -32,6 +32,40 @@ import (
 	"github.com/cztamas/qwacamole/store"
 )
 
+func TestHandlerActivationIncludesIssuerStoredTLSAcrossModuleContexts(t *testing.T) {
+	cfg, leaf := supplied(t)
+	issuerCtx, stopIssuer := newContext()
+	defer stopIssuer()
+	issuer, e := plugin.Acquire(issuerCtx, cfg, store.Operations{})
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer issuer.Release()
+	issuer.SetStoredTLS(leaf)
+	handlerCtx, stopHandler := newContext()
+	defer stopHandler()
+	handler, e := plugin.Acquire(handlerCtx, cfg, store.Operations{})
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer handler.Release()
+	if e = handler.Activate(); e != nil {
+		t.Fatal(e)
+	}
+	state := handler.Manager().Snapshot()
+	if len(state.IDs) != 1 || state.IDs[0] != binding.ID(leaf) {
+		t.Fatal("handler omitted the issuer module's recovered TLS leaf", state.IDs)
+	}
+	root, _ := pki.ReadCert(cfg.TrustFiles[0])
+	doc, e := handler.Manager().CurrentDocument()
+	if e != nil {
+		t.Fatal(e)
+	}
+	if e = binding.Verify(string(doc), cfg.Host, []*x509.Certificate{leaf}, root, time.Now()); e != nil {
+		t.Fatal(e)
+	}
+}
+
 func TestActivationFailureIncludingUnretainedStoredTLSIsAtomic(t *testing.T) {
 	cfg, tls := supplied(t)
 	var fail atomic.Bool

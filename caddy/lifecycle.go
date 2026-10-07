@@ -55,8 +55,8 @@ type Lease struct {
 }
 
 // Acquire loads material again for each Caddy configuration, including unchanged
-// force reloads. Issuer, middleware and development diagnostics share one lease
-// session, ensuring consistent paths, material and operations within that config.
+// force reloads. Modules share the directory owner; Caddy may give the issuer
+// and middleware different module contexts and therefore different sessions.
 func Acquire(ctx caddy.Context, cfg BindingConfig, ops store.Operations) (*Lease, error) {
 	cfg, e := cfg.normalized()
 	if e != nil {
@@ -160,7 +160,15 @@ func (l *Lease) activate(issued *x509.Certificate) error {
 	}
 	o := l.owner
 	if l.session.generation > o.active {
-		if e := o.manager.Activate(l.session.material, l.session.storedTLS, issued); e != nil {
+		// SetConfig discovers stored TLS on the issuer's lease. A handler's
+		// context can differ, so activation must include every live session's
+		// stored leaf, not just the activating module's. Overlapping/rejected
+		// candidates can only add coverage, never roll back the chosen signer.
+		stored := []*x509.Certificate{issued}
+		for _, session := range o.sessions {
+			stored = append(stored, session.storedTLS)
+		}
+		if e := o.manager.Activate(l.session.material, stored...); e != nil {
 			l.logger.Error("QWAC replacement publication failed", zap.String("state", o.cfg.Dir), zap.Error(e))
 			return e
 		}

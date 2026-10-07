@@ -166,6 +166,7 @@ func firefoxIntegration(base, binary, driver, certutil string) error {
 		}
 		return nil
 	}
+	native := map[string]browser.FirefoxResult{}
 	run := func(name, path string, leaf *x509.Certificate) error {
 		evidence := filepath.Join(dir, "evidence", "firefox-"+name)
 		if e := os.MkdirAll(evidence, 0700); e != nil {
@@ -184,6 +185,7 @@ func firefoxIntegration(base, binary, driver, certutil string) error {
 		if e = checkTrust(); e != nil {
 			return e
 		}
+		native[name] = r
 		fmt.Println("PASS native Firefox", name, "owner", r.UI.Organization, "profile/trust unchanged")
 		return nil
 	}
@@ -225,6 +227,9 @@ func firefoxIntegration(base, binary, driver, certutil string) error {
 	}
 	if e = run("cached-renewed", "/cached", qwac); e != nil {
 		return e
+	}
+	if native["initial"].UI.TLSFingerprint == native["cached-renewed"].UI.TLSFingerprint || native["initial"].UI.QWACFingerprint != native["cached-renewed"].UI.QWACFingerprint {
+		return fmt.Errorf("native Firefox renewal did not change TLS while retaining the same QWAC")
 	}
 	checkCache := func(name string) error {
 		transport.CloseIdleConnections()

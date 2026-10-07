@@ -252,7 +252,7 @@ In advanced JSON, pair the same middleware in `servers.*.errors.routes`.
 make test                 # race tests in core, Caddy and devtools; boundaries
 make plugin-smoke STATE=.local/plugin-smoke
 # Uses a fresh outside-checkout module cache and no replacements/devtools:
-scripts/check-remote-install.sh f6261bde56fc8a536c8f8340be8e540915b2e46e
+scripts/check-remote-install.sh 1ecccf0df725a9ae2a33c91a57375f97029618e3
 ```
 
 The portable smoke builds no browsers: it supplies synthetic TEST PEMs from
@@ -262,7 +262,8 @@ records logs plus result JSON in a new state subdirectory. The `Caddyfile.pebble
 example is adapted with accelerated renewal and explicit 6s binding lifetime/3s
 document grace. Checks include a real cache across expiry/renewal/replacement,
 conditional responses, redirects, WebSocket traffic, collection, two independent
-protected sites and an unprotected site, and custom error routes. It uses local
+protected sites and an unprotected site, custom error routes, and full-stop offline
+retirement with preserved Caddy TLS storage. It uses local
 ports 8443, 5002, 8053/UDP, 14000, 15000 and 2019 plus temporary loopback ports; stop
 other owned demos before running. The CI workflow runs portable Go/plugin checks
 on Linux without the macOS bootstrap. Native Chrome/Firefox checks remain a

@@ -1,8 +1,8 @@
 # Binding discovery and sustained operation
 
-This describes the unpublished hardening branch. Historical evidence and the
-older installation ref in the plugin guide describe their dated implementations;
-the new remote ref and native evidence must be verified before alpha readiness.
+This describes the unpublished hardening branch. The plugin guide pins its
+implemented immutable ref; [the dated hardening report](evidence-hardening-20261007.md)
+separates new validation from historical results.
 
 ## Discovery, caching and migration
 
