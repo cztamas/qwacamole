@@ -6,6 +6,8 @@ installation, hosted CI and fresh native checks for both integrations. The produ
 is `qwacamole-agent`, in the single `agent/` module. It contains no synthetic PKI,
 ACME issuer, browser driver or Caddy dependencies. The existing development
 `qwacamole` executable remains separate.
+Subsequent PR review fixes and their separate regression evidence are recorded in
+[the review follow-up](evidence-agent-review-20261007.md).
 
 ## Trust and supported deployment
 
@@ -15,6 +17,9 @@ process-lock implementation. Development testing currently uses Nginx 1.30.5,
 Certbot 5.8.0, Go 1.27.1 and Pebble 2.8.0; final acceptance is tracked in
 [the plan](agent-nginx-plan.md). Nginx requires its HTTP SSL and auth_request
 modules. `validate` detects missing build flags and modified top-level config.
+This is a dedicated Nginx instance owning one hostname and the complete top-level
+configuration. Existing multi-site configurations and arbitrary custom includes
+are unsupported; this module cannot be added to an existing shared Nginx master.
 Fresh native checks use Chrome 154.0.8037.98 / PKIMetadata 1798 and Firefox
 157.0.1; exact commands, trust setup and raw-evidence locations are in
 [the dated report](evidence-agent-nginx-20261007.md).
@@ -39,8 +44,8 @@ access to that socket or the agent state directory.
 
 Go 1.27.1 and authenticated repository access are required for the current private
 feature branch. The independently tested production agent ref is
-`a73695c94a9d85cfe79620567259358b931d7030`, resolved as
-`v0.0.0-20261007204144-a73695c94a9d`. Use an independent consumer manifest:
+`3170cc6a6ad026362c54ab0a8fb9e5b70a3fb609`, resolved as
+`v0.0.0-20261007214159-3170cc6a6ad0`. Use an independent consumer manifest:
 
 ```sh
 agent_install_dir=$(mktemp -d)
@@ -50,7 +55,7 @@ module example.invalid/qwacamole-agent-install
 
 go 1.27.1
 
-require github.com/cztamas/qwacamole/agent v0.0.0-20261007204144-a73695c94a9d
+require github.com/cztamas/qwacamole/agent v0.0.0-20261007214159-3170cc6a6ad0
 EOF
 GOWORK=off GOEXPERIMENT=nojsonv2 GOPRIVATE=github.com/cztamas/qwacamole \
   GOBIN="$agent_install_dir/bin" go install -mod=mod \
@@ -143,6 +148,24 @@ its protected body/cache headers. Already committed streaming responses continue
 subsequent requests must pass the gate again. Application body/status/cache headers
 are otherwise preserved. Expired or unavailable bindings, unconfirmed deployment
 and agent failure reject requests.
+WebSockets use explicit upstream HTTP/1.1 and forwarded Upgrade/Connection headers
+through both local proxy hops, including on Nginx 1.24. The availability gate also
+applies to new upgrades. An established tunnel may continue after binding expiry,
+just like an already committed application stream.
+
+Request policy follows the generated Nginx configuration: request buffering stays
+enabled, the default maximum client body is 1 MiB, and Nginx's default client-body,
+proxy-send and proxy-read inactivity timeouts are 60 seconds. These are inactivity
+limits, not a total request-duration limit. The agent allows five seconds for
+request headers and thirty seconds between keep-alive requests. Application bodies
+and committed response streams have no additional fixed duration deadline in the
+agent; cancellation/disconnection and Nginx's inactivity limits still apply.
+This permits forwarding a buffered upload when a slow origin applies backpressure
+for longer than ten seconds. Binding/gate requests retain a ten-second read
+deadline and their small responses have a ten-second write deadline; private
+control retains its separate bounded policy. Changing body limits or per-site
+timeouts requires configuration support beyond the current fixed template.
+
 Bindings are served on `/bindings/`, always uncached and without recursive Link.
 `/__qwac_gate` is internal, `/__qwac_control` reserved; private control is never
 proxied. Keep these paths out of the application namespace.
@@ -313,3 +336,10 @@ state, regenerate the HTTP-only config, start Nginx/agent and submit the current
 valid Certbot lineage through `deploy`. Restart the renewal timer after verified
 activation. Never prune binding coverage or generations while any Nginx worker
 can still serve a held connection.
+
+The WebSocket fix changes both the top-level template and immutable HTTPS
+generation templates. State created with the earlier agent cannot be reused
+unchanged by this version: validation/reconciliation will reject its old config.
+Use the full-stop reconstruction above when upgrading an existing demonstration
+or deployment; preserve the archived state and supplied credentials. Do not patch
+live immutable generations to bypass validation.

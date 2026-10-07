@@ -4,6 +4,12 @@ Objective: the user's 7 October agent objective. Base: remote main `3fee651`
 (includes the hardened Caddy integration). Branch: `codex/certbot-nginx-agent`.
 No merge, tags, publication, visibility or license changes are authorized.
 
+Post-acceptance PR review identified and reproduced missing Nginx WebSocket
+forwarding and the application-body read deadline. Corrections, expanded tests,
+the updated remote agent pin and upgrade constraints are tracked separately in
+[the review follow-up](evidence-agent-review-20261007.md); the ledger below records
+the original acceptance.
+
 ## Design and sequence
 
 1. Keep the root standard-library-only. Share binding delivery, expiry-driven

@@ -46,6 +46,10 @@ races, 24 Nginx lifecycle/fault checks, 22 Caddy runtime checks, fresh native
 Chrome/Firefox for both integrations, and hosted CI. This remains an unpublished
 experimental integration; Chrome's established ignored-exp incompatibility stays
 explicitly visible and nonzero in its full suite.
+The [PR review follow-up](docs/evidence-agent-review-20261007.md) fixes Nginx
+WebSocket forwarding and the agent's application-body deadline, with **28** real
+Nginx lifecycle/fault checks. The agent owns a dedicated single-host Nginx
+configuration; existing multi-site Nginx integration is outside its current scope.
 
 ```sh
 make agent-build
@@ -59,7 +63,8 @@ make nginx-firefox-test STATE=.local/nginx-firefox
 The Nginx smoke owns and stops its processes. It uses real HTTP-01 challenges,
 normal automatic renewal, an original held TLS stream, cached discovery,
 credential replacement, signing/storage/deployment faults, restart, expired-state
-gates and capacity refusal. Explicitly forced extra certificates are used only
+gates and capacity refusal, plus a real WebSocket frame echo and uploads forwarded
+to a slow origin beyond ten seconds. Explicitly forced extra certificates are used only
 for deterministic fault/capacity cases, after normal renewal has passed. Native
 commands create isolated profiles, preserve ordinary TLS validation and verify
 initial/renewed/replacement bindings using unchanged trust. No system trust or

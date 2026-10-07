@@ -320,15 +320,8 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 		}
 	}
 	c.pass("ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses")
-	// Both paths are real network requests. Nginx's unchanged default body limit
-	// is 1 MiB; the larger direct loopback request also forces agent backpressure.
-	proxyErr := errors.Join(
-		nginxWebSocketCheck(c, cfg, &tls.Config{RootCAs: roots, ServerName: cfg.Host}),
-		nginxUploadCheck(c, &http.Client{}, "agent-backpressure", "http://"+cfg.PublicListen+"/application/slow-body", 64<<20),
-		nginxUploadCheck(c, client, "nginx-buffered", "https://"+cfg.Host+":8443/slow-body", 1<<20),
-	)
-	if proxyErr != nil {
-		return proxyErr
+	if e = nginxWebSocketCheck(c, cfg, &tls.Config{RootCAs: roots, ServerName: cfg.Host}); e != nil {
+		return e
 	}
 	for _, test := range []struct {
 		method string
@@ -418,6 +411,15 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 	originalID := status.Deployment.Active
 	renewArgs := []string{"renew", "--non-interactive", "--no-random-sleep-on-renew", "--no-directory-hooks", "--config-dir", filepath.Join(dir, "certbot"), "--work-dir", filepath.Join(dir, "certbot-work"), "--logs-dir", filepath.Join(dir, "certbot-logs")}
 	for end := time.Now().Add(150 * time.Second); ; {
+		// Observe before asking Certbot to renew: native browser startup may
+		// span a refresh, which renewal would otherwise obscure with a union.
+		if current, err := readBinding(); err != nil {
+			return err
+		} else if !independentRefresh && current.Published > initialBinding.Published && current.Expires > initialBinding.Expires && reflect.DeepEqual(current.IDs, initialBinding.IDs) {
+			independentRefresh = true
+			writeJSON(filepath.Join(dir, "evidence/independent-refresh.json"), map[string]any{"before": initialBinding, "after": current})
+			c.pass("independent signed binding refresh without TLS renewal")
+		}
 		renewal := exec.Command(certbotBin, renewArgs...)
 		renewal.Env = issue.Env
 		out, e := renewal.CombinedOutput()
@@ -435,13 +437,6 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 		}
 		if e = json.Unmarshal(raw, &status); e != nil {
 			return e
-		}
-		if current, err := readBinding(); err != nil {
-			return err
-		} else if !independentRefresh && current.Published > initialBinding.Published && current.Expires > initialBinding.Expires && reflect.DeepEqual(current.IDs, initialBinding.IDs) {
-			independentRefresh = true
-			writeJSON(filepath.Join(dir, "evidence/independent-refresh.json"), map[string]any{"before": initialBinding, "after": current})
-			c.pass("independent signed binding refresh without TLS renewal")
 		}
 		if status.Ready && status.Deployment.Active != originalID {
 			break
@@ -485,6 +480,14 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 	close(releaseHeld)
 	if !independentRefresh {
 		return fmt.Errorf("renewal occurred without separately observed independent refresh")
+	}
+	// Slow uploads run after timing-sensitive initial native/renewal observations.
+	// Both paths are real requests; Nginx's unchanged default body limit is 1 MiB.
+	if e = errors.Join(
+		nginxUploadCheck(c, &http.Client{}, "agent-backpressure", "http://"+cfg.PublicListen+"/application/slow-body", 64<<20),
+		nginxUploadCheck(c, client, "nginx-buffered", "https://"+cfg.Host+":8443/slow-body", 1<<20),
+	); e != nil {
+		return e
 	}
 	if time.Now().Unix() <= initialBinding.Expires {
 		return fmt.Errorf("cache test must cross original signed expiry")
