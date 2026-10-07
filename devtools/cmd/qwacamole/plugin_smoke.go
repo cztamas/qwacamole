@@ -553,15 +553,24 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		return e
 	}
 	c.pass("real automatic Pebble renewal and durable binding coverage")
-	if time.Now().Unix() <= initial.Expires {
-		return fmt.Errorf("cache check did not outlive original binding expiry")
+	// Pebble's randomized ARI can renew unusually early. Explicitly cross the
+	// signed expiry instead of assuming renewal necessarily took longer.
+	for time.Now().Unix() <= initial.Expires {
+		time.Sleep(100 * time.Millisecond)
 	}
 	if e = checkCached(); e != nil {
 		return e
 	}
 	c.pass("real caching intermediary outlives binding expiry and discovers renewed TLS coverage")
-	if _, e = os.Stat(filepath.Join(dir, "bindings", filepath.Base(initial.URL))); !os.IsNotExist(e) {
-		return fmt.Errorf("automatic immutable collection did not retire old document after grace: %v", e)
+	for end := time.Now().Add(10 * time.Second); ; {
+		_, e = os.Stat(filepath.Join(dir, "bindings", filepath.Base(initial.URL)))
+		if os.IsNotExist(e) {
+			break
+		}
+		if e != nil || time.Now().After(end) {
+			return fmt.Errorf("automatic immutable collection did not retire old document after grace: %v", e)
+		}
+		time.Sleep(100 * time.Millisecond)
 	}
 	c.pass("automatic document collection preserves current binding and retained TLS coverage")
 	before, e := c.state()
