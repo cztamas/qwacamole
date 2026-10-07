@@ -91,6 +91,7 @@ error_log %s info;
 events { worker_connections 1024; }
 http {
   access_log %s;
+  client_body_temp_path %s;
   default_type application/octet-stream;
   map $http_upgrade $qwac_connection_upgrade {
     default upgrade;
@@ -104,7 +105,7 @@ http {
   }
   include %s;
 }
-`, quote(filepath.Join(c.NginxPrefix, "nginx.pid")), quote(filepath.Join(c.NginxPrefix, "error.log")), quote(filepath.Join(c.NginxPrefix, "access.log")), c.HTTPListen, c.Host, quote(c.Webroot), quote(filepath.Join(c.StateDir, "enabled", "*.conf")))
+`, quote(filepath.Join(c.NginxPrefix, "nginx.pid")), quote(filepath.Join(c.NginxPrefix, "error.log")), quote(filepath.Join(c.NginxPrefix, "access.log")), quote(filepath.Join(c.NginxPrefix, "client_body_temp")), c.HTTPListen, c.Host, quote(c.Webroot), quote(filepath.Join(c.StateDir, "enabled", "*.conf")))
 }
 func (c Config) httpsConfig(generation string) string {
 	return fmt.Sprintf(`server {
