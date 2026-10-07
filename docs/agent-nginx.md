@@ -44,8 +44,8 @@ access to that socket or the agent state directory.
 
 Go 1.27.1 and authenticated repository access are required for the current private
 feature branch. The independently tested production agent ref is
-`3170cc6a6ad026362c54ab0a8fb9e5b70a3fb609`, resolved as
-`v0.0.0-20261007214159-3170cc6a6ad0`. Use an independent consumer manifest:
+`072fa57bb58b1171fc21cf241c5822af018df3d4`, resolved as
+`v0.0.0-20261007220001-072fa57bb58b`. Use an independent consumer manifest:
 
 ```sh
 agent_install_dir=$(mktemp -d)
@@ -55,7 +55,7 @@ module example.invalid/qwacamole-agent-install
 
 go 1.27.1
 
-require github.com/cztamas/qwacamole/agent v0.0.0-20261007214159-3170cc6a6ad0
+require github.com/cztamas/qwacamole/agent v0.0.0-20261007220001-072fa57bb58b
 EOF
 GOWORK=off GOEXPERIMENT=nojsonv2 GOPRIVATE=github.com/cztamas/qwacamole \
   GOBIN="$agent_install_dir/bin" go install -mod=mod \
@@ -106,8 +106,15 @@ The configured Nginx file must exactly match `render-nginx` output. It is a comp
 config, not an include to paste into another configuration. Initially it serves
 HTTP-01 challenges and HTTP 404 elsewhere. The agent installs the HTTPS include
 after binding publication. `nginx_prefix` and webroot must exist with appropriate
-master/Certbot access. The state/runtime directories must be mode 0700. A short
-runtime path is required: Unix socket paths above 100 bytes reject at validation.
+master/Certbot access. The state/runtime directories must be mode 0700.
+The generated config keeps buffered request-body temporary files under
+`nginx_prefix/client_body_temp`, rather than a package's shared system directory.
+Nginx creates it during configuration validation/startup; its master needs
+permission to create/manage the directory and its worker must be able to write
+there. Keep the prefix traversable by the worker. These temporary files contain
+application request bodies and belong to Nginx, outside the agent's private state.
+
+A short runtime path is required: Unix socket paths above 100 bytes reject at validation.
 Do not share the runtime directory or state with another deployment. Persisted
 deployment settings must remain identical across restart; changed settings require
 the full-stop offline migration described below. Same-path QWAC replacement does

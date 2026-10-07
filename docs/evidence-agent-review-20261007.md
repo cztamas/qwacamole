@@ -1,4 +1,4 @@
-# PR #3 review follow-up, 7 October 2026
+# PR #3 review follow-up, 7–8 October 2026
 
 This report supplements the [original acceptance](evidence-agent-nginx-20261007.md).
 It does not attribute new Nginx coverage to the earlier Caddy WebSocket test.
@@ -77,9 +77,9 @@ WebSocket test only covered Caddy.
 
 ## Real remote module
 
-Production fix: `3170cc6a6ad026362c54ab0a8fb9e5b70a3fb609`, resolved remotely as
+Initial production fix: `3170cc6a6ad026362c54ab0a8fb9e5b70a3fb609`, resolved remotely as
 `github.com/cztamas/qwacamole/agent v0.0.0-20261007214159-3170cc6a6ad0`.
-The devtools manifest pins this actual version, with no replacement. Core remains
+At that stage devtools pinned this actual version, with no replacement. Core remains
 `v0.0.0-20261007193456-3c3fc434d5e4`; Caddy remains
 `v0.0.0-20261007200511-2c78d367c557`.
 
@@ -94,6 +94,19 @@ metadata contains the exact agent/core versions above. Console evidence:
 `.local/review-remote-agent-20261007.log`. Production changes contain only the
 agent; no shared-core, Caddy, credential, trust or binding-profile changes were
 needed.
+
+The final harness also ran the **complete 28-check suite** with that remotely
+installed production binary, exit 0:
+
+```sh
+bin/qwacamole nginx-smoke -agent-binary bin/qwacamole-agent-remote \
+  -state .local/review-nginx-remote-final-20261007
+```
+
+Raw final run: `.local/review-nginx-remote-final-20261007/nginx-smoke-2878585548/`;
+console `.local/review-nginx-remote-final-20261007.log`. This includes all signing,
+storage, reload, expiry, upgrade rejection, restart and capacity checks after the
+deterministic refresh-observation correction.
 
 All four independently pinned module race suites pass with `GOWORK=off` and no
 replacements (`.local/review-independent-races-20261007.log`). Production
@@ -117,3 +130,66 @@ The harness now waits for the independent refresh before making any renewal call
 It still requires later publication/expiry, identical
 single-leaf coverage, distinct renewed TLS and uninterrupted original streaming;
 no acceptance assertion was removed.
+
+## Fresh native verification of the fixed remote agent
+
+Both successful runs use `bin/qwacamole-agent-remote` installed at the exact
+production ref above. They create new isolated profiles, retain unchanged trust
+through renewal/replacement, and preserve ordinary TLS verification.
+
+```sh
+bin/qwacamole nginx-browser-integration -native-browser chrome \
+  -agent-binary bin/qwacamole-agent-remote \
+  -state .local/review-nginx-chrome-final-20261007
+bin/qwacamole nginx-browser-integration -native-browser firefox \
+  -agent-binary bin/qwacamole-agent-remote \
+  -state .local/review-nginx-firefox-verified-20261007
+```
+
+Chrome: `.local/review-nginx-chrome-final-20261007/nginx-smoke-1056424109/`,
+exit 0, **18 lifecycle checks plus three native checks**. Chrome 154.0.8037.98
+loads injected root-store version 1000000. Initial, renewed-cached-after-expiry
+and replacement-cached-after-expiry binding END events (sources 227, 168 and 160)
+each record `is_valid_2qwac_binding:true`; the harness matches the expected QWAC
+leaf/root and deployed TLS leaf. Owner changes from `Nginx Agent TEST` to
+`Nginx Replacement TEST` without profile/trust changes. This successful run uses
+the pre-renewal observation correction; production is identical to the final
+agent, and the later harness correction only waits for refresh before Certbot.
+
+Firefox: `.local/review-nginx-firefox-verified-20261007/nginx-smoke-249454170/`,
+exit 0, **18 lifecycle checks plus three native checks**, using the final staged
+refresh observation. Firefox 157.0.1 records `accept_insecure_certs:false`,
+`connection:secure-etsi`, `qualified_visible:true`, and
+`certificate_overridden:false` in all three native results. The native owner and
+QWAC fingerprint match the expected original/replacement credential; its TLS
+fingerprint changes on renewal. Both runs also pass the new real WebSocket echo
+and slow-origin upload checks.
+
+These are positive regression checks of the changed Nginx integration. The
+previously recorded stock Chrome ignored-binding-expiry incompatibility remains
+unchanged and visible in its full Caddy negative suite; this follow-up does not
+claim to fix it or rerun unrelated browser negatives.
+
+## Ubuntu upload-buffer directory correction
+
+[Hosted run 37691951916](https://github.com/cztamas/qwacamole/actions/runs/37691951916)
+at `bf3f16c82d30ba9c506f968aa1a74efb8b2020b8` passed workspace/independent races,
+boundaries, the actual **Nginx 1.24.0** WebSocket upgrade/frame echo, independent
+refresh, automatic renewal, held-stream coverage and the 64 MiB agent upload.
+The 1 MiB buffered Nginx upload then returned HTTP **500**: the package's absolute
+default temporary path `/var/lib/nginx/body/0000000001` was not writable by the
+isolated runner. The raw `nginx/error.log` records `Permission denied`.
+Artifacts are retained in `.local/review-ci-20261007-failed-artifacts/`; console
+`.local/review-ci-20261007-failed.log`. Caddy runtime was skipped in this failed run.
+
+The generated complete configuration now explicitly sets `client_body_temp_path`
+under its own Nginx prefix. Nginx manages this directory with its own permissions;
+the guide explains master/worker access and the temporary request bodies. This
+avoids writing a distribution's shared system directory and preserves the real
+buffered upload, its size limit and the twelve-second slow-origin assertion.
+No sudo workaround, larger in-memory buffer or skipped test was introduced.
+
+Final production agent: `072fa57bb58b1171fc21cf241c5822af018df3d4`, version
+`v0.0.0-20261007220001-072fa57bb58b`. Core and Caddy pins remain unchanged. Earlier
+native evidence above is explicitly for `3170cc6`; only the Nginx temporary-path
+directive changes between those production refs.
