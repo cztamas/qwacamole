@@ -17,7 +17,7 @@ jobs:
           cache-dependency-path: |
             caddy/go.sum
             devtools/go.sum
-      - name: All module race tests
+      - name: All module race tests (transactions, crash recovery, cache, retention and concurrency)
         run: |
           go test -race ./...
           (cd caddy && go test -race ./...)
@@ -32,7 +32,7 @@ jobs:
           cp "$(go env GOPATH)/bin/pebble" .tools/bin/pebble
           GOWORK=off xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@v0.0.0="$PWD/caddy" --replace github.com/cztamas/qwacamole="$PWD" --output bin/caddy-plugin
           (cd devtools && go build -o ../bin/qwacamole ./cmd/qwacamole)
-      - name: Real ACME application and reload checks (no browser bootstrap)
+      - name: Real ACME multi-site cache, WebSocket, renewal and offline retirement checks
         run: bin/qwacamole plugin-smoke -state .local/ci
       - uses: actions/upload-artifact@v4
         if: always()

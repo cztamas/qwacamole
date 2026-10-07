@@ -126,5 +126,8 @@ func (h *Demo) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.
 		return json.NewEncoder(w).Encode(state)
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if r.URL.Path == "/cache-origin" {
+		w.Header().Set("Cache-Control", "public, max-age=600")
+	}
 	return page.Execute(w, state)
 }

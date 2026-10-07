@@ -3,6 +3,7 @@ package main
 // This portable development check supplies TEST credentials to a separate,
 // plugin-only Caddy process. None of this enrollment or DNS code is in the plugin.
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/rand"
@@ -15,6 +16,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,8 +25,11 @@ import (
 	"time"
 
 	"github.com/cztamas/qwacamole/binding"
+	"github.com/cztamas/qwacamole/devtools/internal/cacheproxy"
 	"github.com/cztamas/qwacamole/devtools/internal/pki"
 	"github.com/cztamas/qwacamole/store"
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
 	"github.com/miekg/dns"
 )
 
@@ -186,6 +191,38 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		w.Header().Set("Link", `</style>; rel="preload"`)
 		w.Header().Add("Link", `</next>; rel="next"`)
 		w.Header().Set("Cache-Control", "public, max-age=321")
+		if r.URL.Path == "/ws" {
+			conn, _, _, e := ws.UpgradeHTTP(r, w)
+			if e != nil {
+				return
+			}
+			defer conn.Close()
+			d, op, e := wsutil.ReadClientData(conn)
+			if e == nil {
+				_ = wsutil.WriteServerMessage(conn, op, d)
+			}
+			return
+		}
+		if r.URL.Path == "/conditional" {
+			w.Header().Set("ETag", `"app"`)
+			if r.Header.Get("If-None-Match") == `"app"` {
+				w.WriteHeader(304)
+				return
+			}
+			w.WriteHeader(200)
+			w.Write([]byte("conditional body"))
+			return
+		}
+		if r.URL.Path == "/redirect" {
+			w.Header().Set("Location", "/app")
+			w.WriteHeader(307)
+			return
+		}
+		if r.URL.Path == "/cache-origin" {
+			w.WriteHeader(200)
+			w.Write([]byte("cached origin body"))
+			return
+		}
 		w.WriteHeader(201)
 		w.Write([]byte("application-first\n"))
 		w.(http.Flusher).Flush()
@@ -308,6 +345,11 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 	automation := cfg["apps"].(map[string]any)["tls"].(map[string]any)["automation"].(map[string]any)
 	automation["renew_interval"] = "2s"
 	automation["policies"].([]any)[0].(map[string]any)["renewal_window_ratio"] = 0.8
+	// Accelerated binding refresh is development-only. Cache age exceeds it.
+	issuerJSON(cfg)["binding"].(map[string]any)["lifetime"] = "6s"
+	findBindingHandler(cfg)["binding"].(map[string]any)["lifetime"] = "6s"
+	issuerJSON(cfg)["binding"].(map[string]any)["document_grace"] = "3s"
+	findBindingHandler(cfg)["binding"].(map[string]any)["document_grace"] = "3s"
 	configPath := filepath.Join(dir, "caddy.json")
 	if e = writeJSON(configPath, cfg); e != nil {
 		return e
@@ -317,7 +359,7 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		m := new(dns.Msg)
 		m.SetReply(r)
 		for _, q := range r.Question {
-			if q.Name == "qwac.example.com." && q.Qtype == dns.TypeA {
+			if (q.Name == "qwac.example.com." || q.Name == "second.example.com.") && q.Qtype == dns.TypeA {
 				m.Answer = append(m.Answer, &dns.A{Hdr: dns.RR_Header{Name: q.Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0}, A: net.IPv4(127, 0, 0, 1)})
 			}
 		}
@@ -359,7 +401,15 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 	os.WriteFile(filepath.Join(pkidir, "pebble-root.pem"), roots, 0600)
 	c.client = &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{RootCAs: tlsPool}, DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 		return (&net.Dialer{}).DialContext(ctx, network, "127.0.0.1:8443")
-	}, ForceAttemptHTTP2: true}, Timeout: 5 * time.Second}
+	}, ForceAttemptHTTP2: true}, Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	cache := &cacheproxy.Proxy{Origin: "https://qwac.example.com:8443/cache-origin", Client: c.client}
+	intermediary := httptest.NewServer(cache)
+	defer intermediary.Close()
+	server := httpServer(cfg)
+	server["routes"] = append([]any{map[string]any{"match": []any{map[string]any{"host": []string{id.Host}, "path": []string{"/cached"}}}, "handle": []any{map[string]any{"handler": "reverse_proxy", "upstreams": []any{map[string]any{"dial": strings.TrimPrefix(intermediary.URL, "http://")}}}}, "terminal": true}}, server["routes"].([]any)...)
+	if e = writeJSON(configPath, cfg); e != nil {
+		return e
+	}
 	c.caddy, e = c.start(c.bin, "caddy", "run", "--config", configPath)
 	if e != nil {
 		return e
@@ -379,11 +429,34 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		return fmt.Errorf("application/header preservation failed: %v %s", res, body)
 	}
 	c.pass("real reverse_proxy status/body/streaming and header preservation")
-	get, doc, e := c.get(initial.URL, "GET")
+	cached, cachedBody, e := c.get("/cached", "GET")
+	if e != nil || cached.StatusCode != 200 || cached.Header.Get("X-Qwac-Cache") != "miss" || len(cached.Header.Values("Link")) != 3 || !strings.Contains(strings.Join(cached.Header.Values("Link"), ","), store.DiscoveryURL) {
+		return fmt.Errorf("cache population failed: %v %v", cached, e)
+	}
+	cachedLinks := strings.Join(cached.Header.Values("Link"), ",")
+	checkCached := func() error {
+		response, body, e := c.get("/cached", "GET")
+		if e != nil {
+			return e
+		}
+		if response.StatusCode != 200 || response.Header.Get("X-Qwac-Cache") != "hit" || string(body) != string(cachedBody) || strings.Join(response.Header.Values("Link"), ",") != cachedLinks || response.Header.Get("Cache-Control") != "public, max-age=321" {
+			return fmt.Errorf("cached response changed: %v", response)
+		}
+		_, doc, e := c.get(store.DiscoveryURL, "GET")
+		if e != nil {
+			return e
+		}
+		root, e := pki.ReadCert(filepath.Join(pkidir, "qwac-root.pem"))
+		if e != nil {
+			return e
+		}
+		return binding.Verify(string(doc), id.Host, []*x509.Certificate{response.TLS.PeerCertificates[0]}, root, time.Now())
+	}
+	get, doc, e := c.get(store.DiscoveryURL, "GET")
 	if e != nil {
 		return e
 	}
-	head, headBody, e := c.get(initial.URL, "HEAD")
+	head, headBody, e := c.get(store.DiscoveryURL, "HEAD")
 	if e != nil {
 		return e
 	}
@@ -393,13 +466,57 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 	for _, test := range []struct {
 		path, method string
 		status       int
-	}{{initial.URL, "POST", 405}, {"/bindings/current.json", "GET", 404}, {"/bindings/../current.json", "GET", 404}, {"/bindings/" + strings.Repeat("0", 64) + ".jose", "GET", 404}} {
+	}{{store.DiscoveryURL, "POST", 405}, {"/bindings/current.json", "GET", 404}, {"/bindings/../current.json", "GET", 404}, {"/bindings/" + strings.Repeat("0", 64) + ".jose", "GET", 404}} {
 		res, _, e := c.get(test.path, test.method)
 		if e != nil || res.StatusCode != test.status {
 			return fmt.Errorf("endpoint control %+v: %v %v", test, res, e)
 		}
 	}
 	c.pass("binding GET/HEAD, methods, path validation and no-store isolation")
+	request, _ := http.NewRequest("GET", "https://qwac.example.com:8443/conditional", nil)
+	request.Header.Set("If-None-Match", `"app"`)
+	conditional, e := c.client.Do(request)
+	if e != nil {
+		return e
+	}
+	conditional.Body.Close()
+	if conditional.StatusCode != 304 || conditional.Header.Get("ETag") != `"app"` || conditional.Header.Get("Cache-Control") != "public, max-age=321" || len(conditional.Header.Values("Link")) != 3 {
+		return fmt.Errorf("conditional response changed: %v", conditional)
+	}
+	redirect, _, e := c.get("/redirect", "GET")
+	if e != nil || redirect.StatusCode != 307 || redirect.Header.Get("Location") != "/app" || len(redirect.Header.Values("Link")) != 3 {
+		return fmt.Errorf("redirect changed: %v %v", redirect, e)
+	}
+	c.pass("conditional cache headers and redirect status/location preserved")
+	conn, e := tls.Dial("tcp", "127.0.0.1:8443", &tls.Config{RootCAs: tlsPool, ServerName: id.Host})
+	if e != nil {
+		return e
+	}
+	defer conn.Close()
+	if e = conn.SetDeadline(time.Now().Add(5 * time.Second)); e != nil {
+		return e
+	}
+	_, e = io.WriteString(conn, "GET /ws HTTP/1.1\r\nHost: qwac.example.com:8443\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\r\n")
+	if e != nil {
+		return e
+	}
+	reader := bufio.NewReader(conn)
+	upgrade, e := http.ReadResponse(reader, nil)
+	if e != nil || upgrade.StatusCode != 101 || !strings.Contains(strings.Join(upgrade.Header.Values("Link"), ","), store.DiscoveryURL) {
+		return fmt.Errorf("WebSocket upgrade failed: %v %v", upgrade, e)
+	}
+	if e = wsutil.WriteClientMessage(conn, ws.OpText, []byte("upgrade-echo")); e != nil {
+		return e
+	}
+	echo, _, e := wsutil.ReadServerData(struct {
+		io.Reader
+		io.Writer
+	}{reader, conn})
+	if e != nil || string(echo) != "upgrade-echo" {
+		return fmt.Errorf("WebSocket traffic failed: %s %v", echo, e)
+	}
+	conn.Close()
+	c.pass("real WebSocket upgrade advertises binding and preserves bidirectional traffic")
 	// Detect automatic renewal without restart/credential changes and verify union.
 	var renewed store.State
 	for end := time.Now().Add(100 * time.Second); time.Now().Before(end); {
@@ -430,6 +547,17 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		return e
 	}
 	c.pass("real automatic Pebble renewal and durable binding coverage")
+	if time.Now().Unix() <= initial.Expires {
+		return fmt.Errorf("cache check did not outlive original binding expiry")
+	}
+	if e = checkCached(); e != nil {
+		return e
+	}
+	c.pass("real caching intermediary outlives binding expiry and discovers renewed TLS coverage")
+	if _, e = os.Stat(filepath.Join(dir, "bindings", filepath.Base(initial.URL))); !os.IsNotExist(e) {
+		return fmt.Errorf("automatic immutable collection did not retire old document after grace: %v", e)
+	}
+	c.pass("automatic document collection preserves current binding and retained TLS coverage")
 	before, e := c.state()
 	if e != nil {
 		return e
@@ -490,6 +618,13 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		return fmt.Errorf("replacement was not published with retained coverage")
 	}
 	c.pass("same-path QWAC leaf/key replacement under same authority")
+	if e = checkCached(); e != nil {
+		return e
+	}
+	if _, hits := cache.Counts(); hits < 2 {
+		return fmt.Errorf("cache-hit evidence absent")
+	}
+	c.pass("unchanged cached Link discovers same-authority QWAC replacement")
 	keyPath := filepath.Join(pkidir, "qwac-leaf-key.pem")
 	validKey, _ := os.ReadFile(keyPath)
 	os.WriteFile(keyPath, []byte("invalid key"), 0600)
@@ -544,6 +679,10 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 	fileHTTP["http_port"] = baseHTTP["http_port"]
 	fileHTTP["https_port"] = baseHTTP["https_port"]
 	issuerJSON(files)["acme"] = issuerJSON(cfg)["acme"]
+	for _, binding := range []map[string]any{issuerJSON(files)["binding"].(map[string]any), findBindingHandler(files)["binding"].(map[string]any)} {
+		binding["lifetime"] = "6s"
+		binding["document_grace"] = "3s"
+	}
 	fileCfg := filepath.Join(dir, "files.json")
 	writeJSON(fileCfg, files)
 	// Bundle also changes with credentials, as operators must keep supplied material consistent.
@@ -557,5 +696,133 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		return fmt.Errorf("file_server runtime failed: %v %v %s", e, res, d)
 	}
 	c.pass("real file_server application and reachable binding endpoints")
+	// Independent single-host owners may share one Caddy instance alongside an
+	// ordinary site. Each protected owner has different credentials/state.
+	secondPKI := filepath.Join(dir, "second-pki")
+	if e = pki.Generate(secondPKI, pki.Identity{Host: "second.example.com", Organization: "Second protected TEST", Country: "HU", Locality: "Budapest", Registration: "NTRHU-SECOND"}); e != nil {
+		return e
+	}
+	multi := cloneJSON(cfg)
+	firstBinding := issuerJSON(multi)["binding"].(map[string]any)
+	secondIssuer := cloneJSON(issuerJSON(multi))
+	secondBinding := secondIssuer["binding"].(map[string]any)
+	secondBinding["hostname"] = "second.example.com"
+	secondBinding["directory"] = filepath.Join(dir, "second-bindings")
+	secondBinding["chain_files"] = []string{filepath.Join(secondPKI, "qwac-leaf.pem"), filepath.Join(secondPKI, "qwac-intermediate.pem")}
+	secondBinding["key_file"] = filepath.Join(secondPKI, "qwac-leaf-key.pem")
+	secondBinding["trust_files"] = []string{filepath.Join(secondPKI, "qwac-root.pem")}
+	policies := multi["apps"].(map[string]any)["tls"].(map[string]any)["automation"].(map[string]any)
+	policies["policies"] = append(policies["policies"].([]any), map[string]any{"subjects": []string{"second.example.com"}, "renewal_window_ratio": 0.8, "issuers": []any{secondIssuer}})
+	multiServer := httpServer(multi)
+	multiServer["routes"] = append([]any{
+		map[string]any{"match": []any{map[string]any{"host": []string{"second.example.com"}}}, "handle": []any{map[string]any{"handler": "qwac", "binding": secondBinding}, map[string]any{"handler": "static_response", "body": "second protected application"}}, "terminal": true},
+		map[string]any{"match": []any{map[string]any{"host": []string{id.Host}, "path": []string{"/error"}}}, "handle": []any{map[string]any{"handler": "qwac", "binding": firstBinding}, map[string]any{"handler": "error", "status_code": "418", "error": "deliberate application error"}}, "terminal": true},
+	}, multiServer["routes"].([]any)...)
+	// Caddy evaluates error routes outside the normal chain. Pairing middleware
+	// here preserves arbitrary application Link/cache headers at error commit.
+	multiServer["errors"] = map[string]any{"routes": []any{map[string]any{"match": []any{map[string]any{"host": []string{id.Host}}}, "handle": []any{map[string]any{"handler": "qwac", "binding": firstBinding}, map[string]any{"handler": "static_response", "status_code": "418", "body": "application error body", "headers": map[string]any{"Link": []string{`</error-help>; rel="help"`}, "Cache-Control": []string{"private, max-age=0"}}}}}}}
+	// Allocate a separate ordinary HTTP listener without relying on a fixed port.
+	plainListener, e := net.Listen("tcp", "127.0.0.1:0")
+	if e != nil {
+		return e
+	}
+	plainAddress := plainListener.Addr().String()
+	plainListener.Close()
+	multi["apps"].(map[string]any)["http"].(map[string]any)["servers"].(map[string]any)["ordinary"] = map[string]any{"listen": []string{plainAddress}, "automatic_https": map[string]any{"disable": true}, "routes": []any{map[string]any{"handle": []any{map[string]any{"handler": "static_response", "body": "ordinary unprotected application"}}}}}
+	multiPath := filepath.Join(dir, "multi.json")
+	if e = writeJSON(multiPath, multi); e != nil {
+		return e
+	}
+	if _, e = c.command("multi-site-reload", "reload", "--config", multiPath); e != nil {
+		return e
+	}
+	if e = c.ready(); e != nil {
+		return e
+	}
+	var second *http.Response
+	for end := time.Now().Add(30 * time.Second); time.Now().Before(end); {
+		second, e = c.client.Get("https://second.example.com:8443/")
+		if e == nil {
+			break
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+	if e != nil {
+		return e
+	}
+	secondBody, e := io.ReadAll(second.Body)
+	second.Body.Close()
+	if e != nil || second.StatusCode != 200 || string(secondBody) != "second protected application" || !strings.Contains(strings.Join(second.Header.Values("Link"), ","), store.DiscoveryURL) {
+		return fmt.Errorf("second protected site failed: %v %s %v", second, secondBody, e)
+	}
+	secondDoc, e := c.client.Get("https://second.example.com:8443" + store.DiscoveryURL)
+	if e != nil {
+		return e
+	}
+	secondBytes, e := io.ReadAll(secondDoc.Body)
+	secondDoc.Body.Close()
+	if e != nil {
+		return e
+	}
+	secondRoot, _ := pki.ReadCert(filepath.Join(secondPKI, "qwac-root.pem"))
+	if e = binding.Verify(string(secondBytes), "second.example.com", []*x509.Certificate{second.TLS.PeerCertificates[0]}, secondRoot, time.Now()); e != nil {
+		return e
+	}
+	if e = binding.Verify(string(secondBytes), id.Host, []*x509.Certificate{second.TLS.PeerCertificates[0]}, root, time.Now()); e == nil {
+		return fmt.Errorf("independent sites shared binding authority")
+	}
+	plain, e := http.Get("http://" + plainAddress)
+	if e != nil {
+		return e
+	}
+	plainBody, e := io.ReadAll(plain.Body)
+	plain.Body.Close()
+	if e != nil || string(plainBody) != "ordinary unprotected application" || plain.Header.Get("Link") != "" {
+		return fmt.Errorf("unprotected site changed: %v %s %v", plain, plainBody, e)
+	}
+	c.pass("two independent protected sites alongside unchanged unprotected site")
+	errorResponse, errorBody, e := c.get("/error", "GET")
+	if e != nil || errorResponse.StatusCode != 418 || string(errorBody) != "application error body" || len(errorResponse.Header.Values("Link")) != 2 || errorResponse.Header.Get("Cache-Control") != "private, max-age=0" {
+		return fmt.Errorf("Caddy error-handler response changed: %v %s %v", errorResponse, errorBody, e)
+	}
+	c.pass("Caddy error-handler status/body/application headers with paired binding middleware")
+	// Retirement is only safe after the entire owning process exits. Archive the
+	// whole binding state, preserving CertMagic's current TLS storage, then prove
+	// startup reconstructs coverage for precisely the leaf it actually serves.
+	stopChild(c.caddy)
+	c.caddy = nil
+	c.client.CloseIdleConnections()
+	if e = os.Rename(filepath.Join(dir, "bindings"), filepath.Join(dir, "retired-bindings")); e != nil {
+		return e
+	}
+	if e = os.Mkdir(filepath.Join(dir, "bindings"), 0700); e != nil {
+		return e
+	}
+	c.caddy, e = c.start(c.bin, "caddy", "run", "--config", configPath)
+	if e != nil {
+		return e
+	}
+	if e = c.ready(); e != nil {
+		return e
+	}
+	retired, e := c.state()
+	if e != nil {
+		return e
+	}
+	res, _, e = c.get("/app", "GET")
+	if e != nil {
+		return e
+	}
+	if len(retired.IDs) != 1 || retired.IDs[0] != binding.ID(res.TLS.PeerCertificates[0]) || retired.Owner != replaced.Owner {
+		return fmt.Errorf("offline retirement did not reconstruct current TLS coverage: %+v", retired)
+	}
+	_, doc, e = c.get(store.DiscoveryURL, "GET")
+	if e != nil {
+		return e
+	}
+	if e = binding.Verify(string(doc), id.Host, res.TLS.PeerCertificates[:1], root, time.Now()); e != nil {
+		return e
+	}
+	c.pass("full process stop/offline state archive retains TLS storage and rebuilds current coverage")
 	return nil
 }

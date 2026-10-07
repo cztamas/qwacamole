@@ -45,6 +45,8 @@ func main() {
 	_ = f.Parse(os.Args[2:])
 	var e error
 	switch os.Args[1] {
+	case "firefox-integration":
+		e = firefoxIntegration(*dir, *bin, *driver, *certutil)
 	case "plugin-smoke":
 		e = pluginSmoke(*dir, *pluginBin)
 	case "firefox-suite":

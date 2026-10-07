@@ -7,6 +7,7 @@ import (
 	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/caddyserver/caddy/v2/modules/caddytls"
+	"strconv"
 )
 
 func init() {
@@ -79,7 +80,7 @@ func parseBinding(d *caddyfile.Dispenser, b *BindingConfig, acme *caddytls.ACMEI
 			if len(b.TrustFiles) != 1 {
 				return d.Err("one explicit authority PEM required")
 			}
-		case "lifetime":
+		case "lifetime", "refresh_before", "document_grace":
 			var s string
 			if !d.AllArgs(&s) {
 				return d.ArgErr()
@@ -88,7 +89,28 @@ func parseBinding(d *caddyfile.Dispenser, b *BindingConfig, acme *caddytls.ACMEI
 			if e != nil {
 				return d.Errf("invalid binding lifetime: %v", e)
 			}
-			b.Lifetime = v
+			switch name {
+			case "lifetime":
+				b.Lifetime = v
+			case "refresh_before":
+				b.RefreshBefore = v
+			case "document_grace":
+				b.DocumentGrace = v
+			}
+		case "max_certificates", "max_document_bytes":
+			var s string
+			if !d.AllArgs(&s) {
+				return d.ArgErr()
+			}
+			v, e := strconv.ParseInt(s, 10, 32)
+			if e != nil {
+				return d.Errf("invalid %s: %v", name, e)
+			}
+			if name == "max_certificates" {
+				b.MaxCertificates = int(v)
+			} else {
+				b.MaxDocumentBytes = v
+			}
 		case "firefox_compatibility":
 			if d.NextArg() {
 				return d.ArgErr()

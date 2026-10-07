@@ -33,6 +33,14 @@ For Firefox, start with [Firefox quickstart](#firefox-quickstart).
 
 ## Installable Caddy plugin
 
+The current hardening branch prepares an **unpublished public alpha**. It adds
+stable uncached discovery, transactional activation, document collection,
+expiry-driven refresh and enforced capacity limits. See
+[operations and migration](docs/operations.md) and the
+[release checklist](docs/alpha-release.md). Native browser and remote-install
+acceptance for this branch are still pending; historical reports below remain
+dated evidence for their original refs.
+
 For supplied QWAC credentials and a normal single-host ACME-managed Caddy site,
 use the [installation and operations guide](docs/caddy-plugin.md). It includes
 authenticated private-GitHub installation, complete Caddyfile proxy/file/Pebble
@@ -407,7 +415,9 @@ cat .local/manual/evidence/refresh-test.json
 touch .local/manual/restart-request
 ```
 
-Refresh must change the binding URL while the exact TLS ID set stays unchanged.
+Refresh must change the signed document and advance its `iat`/`exp` while the
+exact TLS ID set stays unchanged. The advertised `/bindings/current.jose` URL
+stays stable; the manifest retains a separate immutable artifact URL.
 Wait until `.local/manual/restart-request` disappears and
 `.local/manual/evidence/restart.json` is written, then run:
 
@@ -537,7 +547,7 @@ Useful files in each state:
 | Path | Meaning |
 |---|---|
 | `pki/` | Separate test QWAC, fixture TLS, and ACME API certificates/keys; `pebble-root.pem` is fetched from the running Pebble instance |
-| `bindings/current.json` | Atomically published manifest, TLS IDs, synthetic owner, advertised URL and expiry |
+| `bindings/current.json` | Atomically published manifest, TLS IDs, owner, immutable artifact URL, separate discovery URL and expiry |
 | `bindings/*.jose` | Immutable signed bindings, including retained old documents |
 | `caddy.json`, `pebble.json` | Generated configs with absolute state paths |
 | `evidence/caddy.log`, `evidence/pebble.log` | Real issuance/challenge/renewal/failure logs |
@@ -703,14 +713,17 @@ succeeds. This project gates in `Issue`, not in the post-obtain event.
 
 The shared manager writes content-addressed, immutable `/bindings/<sha256>.jose`
 documents, fsyncs them, then atomically switches `current.json`. Readers observe
-complete snapshots. Old documents remain on disk until project cleanup. During
+complete snapshots. Historical documents are collected after a configurable
+grace, while the current committed artifact remains protected. During
 rotation, current bindings include all previously published TLS certificates and
 the new certificate. They remain covered through refresh and restart until state
 cleanup: an existing authenticated HTTP/2 connection may outlive its leaf's
 expiry. Pruning that hash at expiry would remove qualified status on such a
-connection even though renewal succeeded. This is a retention policy for this
-short-lived local demo; the set grows with renewals and fresh state is required
-for a new run. Ordinary TLS expiry verification for new connections is unchanged.
+connection even though renewal succeeded. Enforced certificate/document capacities
+refuse further publication rather than prune needed coverage. The
+[operational policy](docs/operations.md) explains the full drain/offline retirement
+procedure and its availability consequence. Ordinary TLS expiry verification for
+new connections is unchanged.
 Restart verifies
 stored signatures, document hashes, certificate IDs, and profiles before
 republication; issuer configuration also recovers an already stored TLS
@@ -718,9 +731,14 @@ certificate when no binding manifest exists.
 
 `http.handlers.qwac` advertises a relative `Link` with
 `rel="tls-certificate-binding"`, serves `application/jose`, and runs independent
-binding refresh and cleanup. Ordinary application requests pass to the next Caddy handler; the plugin supplies no HTML, `/state`, `/init`, or `/test-pki` routes. Bindings live for at most 45 seconds; refresh starts with 15
-seconds remaining. Effective expiry is capped by the longest-lived bound TLS
-certificate and QWAC leaf. HTTP responses use `Cache-Control: no-store`.
+binding refresh and cleanup. Ordinary application requests pass to the next Caddy
+handler; the plugin supplies no HTML, `/state`, `/init`, or `/test-pki` routes.
+Discovery uses stable `/bindings/current.jose` independently of immutable recovery
+identifiers. Deployment lifetime defaults to one hour; devtools explicitly use
+45 seconds. Refresh is scheduled from signed expiry with a proportional advance
+margin and bounded retry jitter/backoff. Effective expiry is capped by the
+longest-lived bound TLS certificate and QWAC leaf. Binding responses use
+`Cache-Control: no-store`; application cache policy remains intact.
 
 Pebble certificates live for 360 seconds. CertMagic checks renewal every two
 seconds with a 0.8 renewal-window ratio and preserves ARI. Actual observed

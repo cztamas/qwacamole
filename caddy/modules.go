@@ -23,14 +23,20 @@ import (
 
 func init() { caddy.RegisterModule(Issuer{}); caddy.RegisterModule(Handler{}) }
 
+// Issuer wraps Caddy's ACME issuer with a durable 2-QWAC publication gate. A TLS
+// leaf is returned to CertMagic only after a verified binding covers it alongside
+// every retained leaf. Configure it as the sole issuer for one literal hostname.
 type Issuer struct {
+	// ACMEIssuer retains Caddy's ordinary ACME configuration and interfaces.
 	caddytls.ACMEIssuer `json:"acme"`
-	Binding             BindingConfig `json:"binding"`
-	manager             *store.Manager
-	lease               *Lease
-	ctx                 caddy.Context
-	config              *certmagic.Config
-	startupErr          error
+	// Binding selects supplied RSA credentials, explicit authority, local state
+	// and operational limits. Pair HTTP middleware with identical settings.
+	Binding    BindingConfig `json:"binding"`
+	manager    *store.Manager
+	lease      *Lease
+	ctx        caddy.Context
+	config     *certmagic.Config
+	startupErr error
 }
 
 func (Issuer) CaddyModule() caddy.ModuleInfo {
@@ -151,9 +157,6 @@ func (i *Issuer) Issue(ctx context.Context, csr *x509.CertificateRequest) (*cert
 	if e := i.PreCheck(ctx, csr.DNSNames, false); e != nil {
 		return nil, e
 	}
-	if e := i.lease.Activate(); e != nil {
-		return nil, e
-	}
 	cert, e := i.ACMEIssuer.Issue(ctx, csr)
 	if e != nil {
 		return nil, e
@@ -169,14 +172,18 @@ func (i *Issuer) Issue(ctx context.Context, csr *x509.CertificateRequest) (*cert
 	if e != nil {
 		return nil, e
 	}
-	if e = i.manager.Publish(c); e != nil {
+	if e = i.lease.Publish(c); e != nil {
 		i.ctx.Logger().Error("TLS replacement refused by QWAC publication gate", zap.String("hostname", i.Binding.Host), zap.Error(e))
 		return nil, fmt.Errorf("binding gate refused TLS certificate: %w", e)
 	}
 	return cert, nil
 }
 
+// Handler advertises a stable uncached binding endpoint and serves verified
+// documents for one hostname. Put it before application handlers, including in
+// custom error routes. It does not create credentials or establish browser trust.
 type Handler struct {
+	// Binding must match the protected hostname's sole QWAC ACME issuer.
 	Binding BindingConfig `json:"binding"`
 	manager *store.Manager
 	lease   *Lease

@@ -18,8 +18,13 @@ import (
 // separately configured, single QWAC authority used only for local consistency.
 type BindingConfig struct {
 	store.Config
+	// ChainFiles supplies leaf-first PEM certificates, bundled or separate. The
+	// explicit authority may be omitted here; TrustFiles supplies it separately.
 	ChainFiles []string `json:"chain_files"`
-	KeyFile    string   `json:"key_file"`
+	// KeyFile is an unencrypted RSA PKCS#1 or PKCS#8 PEM key matching the leaf.
+	KeyFile string `json:"key_file"`
+	// TrustFiles contains exactly one explicitly configured QWAC authority PEM.
+	// This local consistency anchor does not add trust to visiting browsers.
 	TrustFiles []string `json:"trust_files"`
 }
 
@@ -30,18 +35,20 @@ func (b *BindingConfig) UnmarshalJSON(d []byte) error {
 	if e := json.Unmarshal(d, &fields); e != nil {
 		return e
 	}
-	if raw := fields["lifetime"]; len(raw) != 0 && raw[0] == '"' {
-		var s string
-		if e := json.Unmarshal(raw, &s); e != nil {
-			return e
+	for _, name := range []string{"lifetime", "refresh_before", "document_grace"} {
+		if raw := fields[name]; len(raw) != 0 && raw[0] == '"' {
+			var s string
+			if e := json.Unmarshal(raw, &s); e != nil {
+				return e
+			}
+			v, e := caddy.ParseDuration(s)
+			if e != nil {
+				return e
+			}
+			fields[name], _ = json.Marshal(int64(v))
 		}
-		v, e := caddy.ParseDuration(s)
-		if e != nil {
-			return e
-		}
-		fields["lifetime"], _ = json.Marshal(int64(v))
-		d, _ = json.Marshal(fields)
 	}
+	d, _ = json.Marshal(fields)
 	// Match Caddy's strict handling of unknown configuration fields.
 	var p plain
 	dec := json.NewDecoder(strings.NewReader(string(d)))
@@ -70,13 +77,11 @@ func (b BindingConfig) normalized() (BindingConfig, error) {
 			}
 		}
 	}
-	if b.Lifetime == 0 {
-		b.Lifetime = 45 * time.Second
-	}
-	if b.Lifetime < time.Second {
-		return b, fmt.Errorf("binding lifetime must be at least 1s")
-	}
 	var e error
+	b.Config, e = b.Config.WithDefaults()
+	if e != nil {
+		return b, e
+	}
 	b.Dir, e = filepath.Abs(b.Dir)
 	if e != nil {
 		return b, e
