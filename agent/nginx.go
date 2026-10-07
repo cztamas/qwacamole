@@ -127,11 +127,11 @@ func (c Config) httpsConfig(generation string) string {
   location / {
     auth_request /__qwac_gate;
     add_header Link '</bindings/current.jose>; rel="tls-certificate-binding"' always;
-    proxy_pass %s;
+    proxy_pass http://%s/application/;
     proxy_buffering off;
     proxy_intercept_errors off;
     proxy_set_header Host $host;
   }
 }
-`, c.HTTPSListen, c.Host, quote(filepath.Join(generation, "fullchain.pem")), quote(filepath.Join(generation, "privkey.pem")), c.PublicListen, c.PublicListen, c.Application)
+`, c.HTTPSListen, c.Host, quote(filepath.Join(generation, "fullchain.pem")), quote(filepath.Join(generation, "privkey.pem")), c.PublicListen, c.PublicListen, c.PublicListen)
 }

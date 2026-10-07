@@ -33,11 +33,21 @@ func (a *Agent) Status() (Status, error) {
 	return Status{Ready: a.ready.Load() && bindinghttp.Available(a.Manager), Deployment: a.journal, Binding: s}, e
 }
 
-// PublicHandler exposes binding bytes and a bodyless gate only. Control,
-// diagnostics, certificate files and private keys are never served here.
+// PublicHandler exposes bindings, a bodyless gate and the configured protected
+// application proxy. Control, diagnostics and private files are never served.
 func (a *Agent) PublicHandler() http.Handler {
 	docs := bindinghttp.Handler(a.Manager)
+	application := applicationProxy(a.Config.Application, func() bool {
+		return a.ready.Load() && bindinghttp.Available(a.Manager)
+	})
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/application/") {
+			application.ServeHTTP(w, r)
+			return
+		}
+		// Application streams must not inherit a binding-response write timeout.
+		// Bound the small binding/gate responses without limiting committed streams.
+		_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(10 * time.Second))
 		w.Header().Set("Cache-Control", "no-store")
 		if strings.HasPrefix(r.URL.Path, "/bindings/") {
 			docs.ServeHTTP(w, r)
@@ -139,7 +149,7 @@ func (a *Agent) Serve(ctx context.Context, log *slog.Logger) error {
 		return e
 	}
 	defer public.Close()
-	pub := &http.Server{Handler: a.PublicHandler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, IdleTimeout: 30 * time.Second}
+	pub := &http.Server{Handler: a.PublicHandler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, IdleTimeout: 30 * time.Second}
 	ctl := &http.Server{Handler: a.controlHandler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 5 * time.Second, WriteTimeout: 2 * time.Minute, IdleTimeout: 5 * time.Second}
 	child, cancel := context.WithCancel(ctx)
 	defer cancel()

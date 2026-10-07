@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/cztamas/qwacamole/binding"
 	"github.com/cztamas/qwacamole/bindinghttp"
+	"github.com/cztamas/qwacamole/credentials"
 	"github.com/cztamas/qwacamole/store"
 )
 
@@ -131,7 +133,7 @@ func Open(c Config, target Target, ops store.Operations) (*Agent, error) {
 		return fail(e)
 	}
 	switch a.journal.Phase {
-	case "empty", "prepared", "bound", "activating", "reloading", "confirming", "rolling_back", "rolled_back", "committed":
+	case "empty", "prepared", "bound", "activating", "reloading", "confirming", "rolling_back", "rolled_back", "committed", "needs_deploy":
 	default:
 		return fail(fmt.Errorf("unsupported deployment journal phase"))
 	}
@@ -319,6 +321,15 @@ func (a *Agent) rollback(ctx context.Context, j Journal, cause error) error {
 		if !a.covered(j.Previous) {
 			return errors.Join(cause, fmt.Errorf("prior TLS leaf missing binding coverage"))
 		}
+		// An expired prior leaf cannot be restored as usable TLS. Keep its
+		// coverage and selected files, close the gate and permit a fresh candidate.
+		if a.generationExpired(j.Previous) {
+			e := fmt.Errorf("prior TLS certificate has expired; a fresh deployment is required")
+			j.Phase = "needs_deploy"
+			j.Active = j.Previous
+			j.LastError = errors.Join(cause, e).Error()
+			return errors.Join(cause, e, a.save(j))
+		}
 		if e := a.confirm(ctx, j.Previous); e != nil {
 			return errors.Join(cause, e)
 		}
@@ -398,7 +409,7 @@ func (a *Agent) Deploy(ctx context.Context) (err error) {
 	if e != nil {
 		return e
 	}
-	if a.journal.Phase != "committed" && a.journal.Phase != "rolled_back" && a.journal.Phase != "empty" {
+	if a.journal.Phase != "committed" && a.journal.Phase != "rolled_back" && a.journal.Phase != "empty" && a.journal.Phase != "needs_deploy" {
 		return fmt.Errorf("interrupted deployment requires reconciliation before retry")
 	}
 	j := Journal{Phase: "prepared", Previous: previous, Active: previous, Candidate: binding.ID(leaf)}
@@ -467,6 +478,18 @@ func (a *Agent) Reconcile(ctx context.Context) error {
 		}
 		return nil
 	}
+	// There is no valid binding lifetime when every retained leaf has expired.
+	// Readiness remains closed; record this explicitly instead of trapping an
+	// interrupted journal in a refresh/reconciliation loop. No coverage is removed.
+	allExpired, e := a.retainedExpired()
+	if e != nil {
+		return e
+	}
+	if allExpired || j.Phase == "needs_deploy" {
+		j.Phase = "needs_deploy"
+		j.LastError = "deployment requires a fresh valid TLS candidate; protected requests remain unavailable"
+		return errors.Join(errors.New(j.LastError), a.save(j))
+	}
 	// Re-publish recovered complete coverage with supplied same-authority QWAC.
 	mat, e := a.Config.Material()
 	if e != nil {
@@ -507,6 +530,32 @@ func (a *Agent) Reconcile(ctx context.Context) error {
 		return e
 	}
 	return nil
+}
+
+func (a *Agent) generationExpired(id string) bool {
+	leaf, e := credentials.ReadCert(filepath.Join(a.generation(id), "fullchain.pem"))
+	return e == nil && binding.ID(leaf) == id && !leaf.NotAfter.After(time.Now())
+}
+
+func (a *Agent) retainedExpired() (bool, error) {
+	s := a.Manager.Snapshot()
+	if len(s.Certs) == 0 {
+		return false, nil
+	}
+	for _, raw := range s.Certs {
+		der, e := base64.StdEncoding.DecodeString(raw)
+		if e != nil {
+			return false, e
+		}
+		leaf, e := x509.ParseCertificate(der)
+		if e != nil {
+			return false, e
+		}
+		if leaf.NotAfter.After(time.Now()) {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 // ReplaceCredentials validates and atomically publishes a same-authority QWAC
