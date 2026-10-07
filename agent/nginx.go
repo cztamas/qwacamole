@@ -92,6 +92,10 @@ events { worker_connections 1024; }
 http {
   access_log %s;
   default_type application/octet-stream;
+  map $http_upgrade $qwac_connection_upgrade {
+    default upgrade;
+    '' close;
+  }
   server {
     listen %s;
     server_name %s;
@@ -128,6 +132,9 @@ func (c Config) httpsConfig(generation string) string {
     auth_request /__qwac_gate;
     add_header Link '</bindings/current.jose>; rel="tls-certificate-binding"' always;
     proxy_pass http://%s/application/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $qwac_connection_upgrade;
     proxy_buffering off;
     proxy_intercept_errors off;
     proxy_set_header Host $host;

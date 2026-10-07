@@ -42,6 +42,10 @@ func (a *Agent) PublicHandler() http.Handler {
 	})
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/application/") {
+			// Nginx owns client upload limits/timeouts. Origin backpressure can
+			// delay forwarding a buffered body, so do not impose the small
+			// binding/gate request deadline on application bodies.
+			_ = http.NewResponseController(w).SetReadDeadline(time.Time{})
 			application.ServeHTTP(w, r)
 			return
 		}

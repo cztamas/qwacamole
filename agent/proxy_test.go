@@ -125,3 +125,51 @@ func TestProtectedProxyPreservesCommittedStream(t *testing.T) {
 		t.Fatal("new protected request bypassed gate", blocked.StatusCode)
 	}
 }
+
+func TestDelayedUpgradeRejectedWhenBindingDisappears(t *testing.T) {
+	started, release := make(chan struct{}), make(chan struct{})
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Upgrade") != "websocket" {
+			t.Error("upgrade headers did not reach origin")
+		}
+		close(started)
+		<-release
+		conn, _, err := http.NewResponseController(w).Hijack()
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer conn.Close()
+		_, _ = io.WriteString(conn, "HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nCache-Control: public\r\n\r\n")
+	}))
+	defer upstream.Close()
+	var available atomic.Bool
+	available.Store(true)
+	gateway := httptest.NewServer(applicationProxy(upstream.URL, available.Load))
+	defer gateway.Close()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		req, _ := http.NewRequest("GET", gateway.URL+"/application/ws", nil)
+		req.Header.Set("Connection", "Upgrade")
+		req.Header.Set("Upgrade", "websocket")
+		client := &http.Client{Timeout: 2 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != 503 || resp.Header.Get("Upgrade") != "" || resp.Header.Get("Cache-Control") != "no-store" {
+			t.Error("upgrade escaped response-commit gate", resp.StatusCode, resp.Header)
+		}
+	}()
+	select {
+	case <-started:
+	case <-done:
+		t.Fatal("upgrade never reached origin")
+	}
+	available.Store(false)
+	close(release)
+	<-done
+}
