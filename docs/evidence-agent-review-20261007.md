@@ -193,3 +193,63 @@ Final production agent: `072fa57bb58b1171fc21cf241c5822af018df3d4`, version
 `v0.0.0-20261007220001-072fa57bb58b`. Core and Caddy pins remain unchanged. Earlier
 native evidence above is explicitly for `3170cc6`; only the Nginx temporary-path
 directive changes between those production refs.
+
+The final ref installs from a fresh remote consumer with no replacements, exit 0
+(`.local/review-remote-agent-20261008.log`). All four independent module race
+suites and production dependency boundaries pass again with this pin, logs
+`.local/review-independent-races-20261008.log` and
+`.local/review-boundaries-20261008.log`.
+
+Both native integrations were then rerun with the **final remotely installed
+072fa57 agent** and the final harness, sequentially:
+
+```sh
+bin/qwacamole nginx-browser-integration -native-browser chrome \
+  -agent-binary bin/qwacamole-agent-remote -state .local/review-final-chrome-20261008
+bin/qwacamole nginx-browser-integration -native-browser firefox \
+  -agent-binary bin/qwacamole-agent-remote -state .local/review-final-firefox-20261008
+```
+
+Both exit 0, each with **18 lifecycle checks and three native checks**:
+
+| Browser | Final raw run | Native observations |
+|---|---|---|
+| Chrome 154.0.8037.98 | `.local/review-final-chrome-20261008/nginx-smoke-2645877469/` | Initial, renewed and replacement binding accepted; exact expected QWAC/TLS; same profile and trust |
+| Firefox 157.0.1 | `.local/review-final-firefox-20261008/nginx-smoke-1484077698/` | Initial, renewed and replacement native qualified status/owner; no certificate override; same profile and trust |
+
+Both also pass WebSocket echo and the twelve-second slow-origin body/hash checks
+with the new owned Nginx temporary directory. The same trust, expiry and native
+evidence requirements described above apply; no browser or trust-policy changes
+were made for this correction.
+
+The **complete final 28-check** Nginx smoke also exits 0 with that remote binary:
+
+```sh
+bin/qwacamole nginx-smoke -agent-binary bin/qwacamole-agent-remote \
+  -state .local/review-final-remote-nginx-20261008
+```
+
+Raw run `.local/review-final-remote-nginx-20261008/nginx-smoke-3810142252/` and
+console `.local/review-final-remote-nginx-20261008.log` include all fault, rollback,
+expiry/upgrade rejection, restart and capacity checks. Every owned process is
+stopped; no demo listener remains on 8443, 18081, 14000 or 15000.
+
+## Final hosted CI
+
+[Run 37693473249](https://github.com/cztamas/qwacamole/actions/runs/37693473249)
+passes at exact source commit `29e6f33096d85563c0060a9fd6647a32f57ca125`.
+Workspace races, independently pinned races, dependency boundaries, tool builds,
+**28 real Nginx checks** and **22 Caddy runtime checks** all pass. Downloaded
+`result.json` files report `<nil>` errors. The Nginx log identifies **1.24.0
+(Ubuntu)** and records the 1 MiB body buffered successfully into the owned
+`nginx/client_body_temp/0000000001` path, rather than `/var/lib/nginx/body`.
+
+Raw artifact download: `.local/review-ci-final-20261008-artifacts/`:
+`ci-nginx/nginx-smoke-3709785150/` and `ci/plugin-smoke-2594785230/`. Full log:
+`.local/review-ci-final-20261008.log`; exact source/job metadata:
+`.local/review-ci-final-20261008.json`.
+
+The subsequent evidence commit records these results and removes obsolete
+checksums for the superseded agent version; it changes no production code, test
+code or dependency selections. No merge, tag, release or trust-store change was
+made.
