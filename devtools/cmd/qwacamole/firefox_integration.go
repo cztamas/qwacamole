@@ -222,8 +222,10 @@ func firefoxIntegration(base, binary, driver, certutil string) error {
 	if e = lifecycle(dir); e != nil {
 		return e
 	}
-	if time.Now().Unix() <= first.Expires {
-		return fmt.Errorf("Firefox cache scenario did not outlive initial binding expiry")
+	// Renewal may happen early under randomized ACME renewal information. The
+	// cache acceptance check must independently cross the original signed expiry.
+	for time.Now().Unix() <= first.Expires {
+		time.Sleep(100 * time.Millisecond)
 	}
 	if e = run("cached-renewed", "/cached", qwac); e != nil {
 		return e
