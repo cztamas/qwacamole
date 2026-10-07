@@ -47,7 +47,22 @@ checks from outstanding browser and installation gates.
 make agent-build
 make bootstrap-nginx  # isolated development dependencies on macOS
 make nginx-smoke STATE=.local/nginx-smoke
+# Run sequentially; both use the same isolated demonstration ports.
+make nginx-chrome-test STATE=.local/nginx-chrome
+make nginx-firefox-test STATE=.local/nginx-firefox
 ```
+
+The Nginx smoke owns and stops its processes. It uses real HTTP-01 challenges,
+normal automatic renewal, an original held TLS stream, cached discovery,
+credential replacement, signing/storage/deployment faults, restart, expired-state
+gates and capacity refusal. Explicitly forced extra certificates are used only
+for deterministic fault/capacity cases, after normal renewal has passed. Native
+commands create isolated profiles, preserve ordinary TLS validation and verify
+initial/renewed/replacement bindings using unchanged trust. No system trust or
+normal browser profile is changed. On Linux, install Nginx with SSL/auth_request
+support and pass `-nginx /usr/sbin/nginx` to `bin/qwacamole nginx-smoke` or
+`nginx-browser-integration`; the bundled Nginx source bootstrap currently supports
+macOS with existing Homebrew OpenSSL 3 and PCRE2.
 
 ## Installable Caddy plugin
 

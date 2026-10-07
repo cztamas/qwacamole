@@ -21,8 +21,8 @@ unsupported. Strict bindings are default; `firefox_compatibility` explicitly
 selects the established compatibility profile. Synthetic devtools authorities
 have no legal qualification.
 
-The daemon has two separate listeners: loopback HTTP for binding bytes and the
-bodyless availability gate, and a Unix control socket with mode 0600 in a real
+The daemon has two separate listeners: loopback HTTP for binding bytes, the
+bodyless availability gate and a proxy to the configured application, and a Unix control socket with mode 0600 in a real
 0700 runtime directory. Public HTTP cannot deploy certificates, choose paths,
 execute commands, inspect status or read keys. Local control callers can invoke
 only predefined operations using configuration loaded at daemon startup. Protect
@@ -33,9 +33,35 @@ access to that socket or the agent state directory.
 
 ## Installation and configuration
 
-An immutable remote install command will be recorded after the implemented agent
-revision is pushed and independently tested. For development, from the feature
-branch:
+Go 1.27.1 and authenticated repository access are required for the current private
+feature branch. The independently tested production agent ref is
+`a73695c94a9d85cfe79620567259358b931d7030`, resolved as
+`v0.0.0-20261007204144-a73695c94a9d`. Use an independent consumer manifest:
+
+```sh
+agent_install_dir=$(mktemp -d)
+cd "$agent_install_dir"
+cat > go.mod <<'EOF'
+module example.invalid/qwacamole-agent-install
+
+go 1.27.1
+
+require github.com/cztamas/qwacamole/agent v0.0.0-20261007204144-a73695c94a9d
+EOF
+GOWORK=off GOEXPERIMENT=nojsonv2 GOPRIVATE=github.com/cztamas/qwacamole \
+  GOBIN="$agent_install_dir/bin" go install -mod=mod \
+  github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent
+go version -m "$agent_install_dir/bin/qwacamole-agent"
+sudo install -m 0755 "$agent_install_dir/bin/qwacamole-agent" /usr/local/bin/qwacamole-agent
+```
+
+This is a real remote installation with no local replacements. Direct
+`go install package@ref` currently fails its default-branch deprecation lookup
+because the new nested module exists only on the feature branch. The explicit
+consumer manifest avoids that lookup and pins both the agent and its real core
+dependency. The checked installer is `scripts/check-remote-agent.sh REF`.
+
+For development, from the feature branch:
 
 ```sh
 make agent-build
@@ -82,10 +108,16 @@ is an optional absolute PEM file for an explicitly configured private TLS author
 it does not bypass hostname, chain or expiry validation. QWAC trust is separately
 supplied and does not grant ordinary TLS trust.
 
-Nginx proxies an ordinary HTTP origin, adds its discovery Link alongside upstream
-Link fields, and preserves application body/status/cache headers. Its internal
-`auth_request` checks the agent before protected application requests. Expired or
-unavailable bindings, unconfirmed deployment and agent failure reject requests.
+Nginx adds its discovery Link alongside upstream Link fields and forwards the
+application through the agent's `/application/` proxy to the configured HTTP
+origin. This extra local hop supplies a response-commit gate: Nginx's internal
+`auth_request` checks availability at request admission, and the agent checks
+again before forwarding response headers or a protocol upgrade. An upstream
+response delayed past binding expiry is rejected with 503 and `no-store`, without
+its protected body/cache headers. Already committed streaming responses continue;
+subsequent requests must pass the gate again. Application body/status/cache headers
+are otherwise preserved. Expired or unavailable bindings, unconfirmed deployment
+and agent failure reject requests.
 Bindings are served on `/bindings/`, always uncached and without recursive Link.
 `/__qwac_gate` is internal, `/__qwac_control` reserved; private control is never
 proxied. Keep these paths out of the application namespace.
@@ -179,6 +211,13 @@ reconciliation. A disconnected control caller does not cancel necessary rollback
 On restart, readiness starts closed until journal, selected files, binding coverage
 and the actually served certificate agree. Successful reload exit alone is not
 accepted as confirmation.
+
+If every retained TLS leaf has expired, or rollback can only restore an expired
+prior leaf, the journal records `needs_deploy` and keeps readiness closed. There
+is no usable prior HTTPS deployment to claim in this state. Obtain a fresh valid
+Certbot candidate and retry `deploy`; its binding must still publish before
+activation, and all expired leaves remain retained. `reconcile` reports this
+condition as an error instead of claiming readiness or deleting coverage.
 
 After correcting credentials, disk capacity, Nginx config or process state:
 

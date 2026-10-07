@@ -117,6 +117,9 @@ func agentFixture(t *testing.T) (agent.Config, *deploymentTarget) {
 // Renew under the same ordinary TLS authority, using a genuinely different key
 // and leaf; rollback tests must distinguish old and candidate deployments.
 func renewAgentCandidate(t *testing.T, c agent.Config) string {
+	return issueAgentCandidate(t, c, time.Time{})
+}
+func issueAgentCandidate(t *testing.T, c agent.Config, expires time.Time) string {
 	t.Helper()
 	pkidir := filepath.Dir(c.KeyFile)
 	old, e := credentials.ReadCert(filepath.Join(c.CertbotLineage, "fullchain.pem"))
@@ -137,6 +140,9 @@ func renewAgentCandidate(t *testing.T, c agent.Config) string {
 	}
 	template := *old
 	template.SerialNumber = pki.Serial()
+	if !expires.IsZero() {
+		template.NotAfter = expires
+	}
 	leaf, e := pki.Issue(&template, root, &key.PublicKey, signer)
 	if e != nil {
 		t.Fatal(e)
@@ -313,6 +319,79 @@ func TestAgentInterruptedJournalReconcilesServedState(t *testing.T) {
 			got, e := a.Status()
 			if e != nil || !got.Ready || got.Deployment.Active != j.Active {
 				t.Fatal(got, e)
+			}
+		})
+	}
+}
+
+func TestAgentExpiredDeploymentCanRecoverWithoutPruning(t *testing.T) {
+	for _, phase := range []string{"committed", "prepared"} {
+		t.Run(phase, func(t *testing.T) {
+			cfg, target := agentFixture(t)
+			cfg.Lifetime = "3s"
+			target.cfg = cfg
+			expires := time.Now().Add(4 * time.Second).Truncate(time.Second)
+			old := issueAgentCandidate(t, cfg, expires)
+			a, e := agent.Open(cfg, target, store.Operations{})
+			if e != nil {
+				t.Fatal(e)
+			}
+			target.publications = a.Manager
+			if e = a.Deploy(context.Background()); e != nil {
+				a.Close()
+				t.Fatal(e)
+			}
+			status, _ := a.Status()
+			fresh := issueAgentCandidate(t, cfg, time.Now().Add(time.Hour))
+			if phase == "prepared" {
+				j := status.Deployment
+				j.Phase, j.Previous, j.Candidate = phase, old, fresh
+				d, _ := json.Marshal(j)
+				if e = store.Atomic(filepath.Join(cfg.StateDir, "deployment.json"), d); e != nil {
+					a.Close()
+					t.Fatal(e)
+				}
+			}
+			time.Sleep(time.Until(expires.Add(100 * time.Millisecond)))
+			if gateCode(a) != 403 {
+				a.Close()
+				t.Fatal("expired binding gate is open")
+			}
+			w := httptest.NewRecorder()
+			a.PublicHandler().ServeHTTP(w, httptest.NewRequest("GET", "http://local/bindings/current.jose", nil))
+			if w.Code != 503 || w.Header().Get("Cache-Control") != "no-store" {
+				a.Close()
+				t.Fatal("expired binding was delivered", w.Code)
+			}
+			a.Close()
+			a, e = agent.Open(cfg, target, store.Operations{})
+			if e != nil {
+				t.Fatal(e)
+			}
+			defer a.Close()
+			target.publications = a.Manager
+			if e = a.Reconcile(context.Background()); e == nil {
+				t.Fatal("expired TLS incorrectly reconciled as usable")
+			}
+			status, _ = a.Status()
+			if status.Ready || status.Deployment.Phase != "needs_deploy" || gateCode(a) != 403 {
+				t.Fatal(status)
+			}
+			// A failed activation cannot claim the expired prior leaf is usable.
+			target.failValidate = true
+			if e = a.Deploy(context.Background()); e == nil {
+				t.Fatal("invalid config accepted")
+			}
+			status, _ = a.Status()
+			if status.Ready || status.Deployment.Phase != "needs_deploy" {
+				t.Fatal(status)
+			}
+			if e = a.Deploy(context.Background()); e != nil {
+				t.Fatal("fresh deployment trapped behind expired intent", e)
+			}
+			status, _ = a.Status()
+			if !status.Ready || status.Deployment.Active != fresh || len(a.Manager.Snapshot().IDs) != 2 {
+				t.Fatal("fresh deployment lost expired held coverage", status)
 			}
 		})
 	}

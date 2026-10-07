@@ -30,7 +30,10 @@ import (
 
 // nginxSmoke owns every process and directory it creates. Certbot performs real
 // HTTP-01 validation through Nginx; the agent is a separate production binary.
-func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
+func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) error {
+	return nginxLifecycle(parent, agentBin, nginxBin, certbotBin, nil)
+}
+func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginxNative) (retErr error) {
 	if e := checkDemoPorts(); e != nil {
 		return e
 	}
@@ -67,7 +70,11 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 		}
 	}
 	pkidir := filepath.Join(dir, "pki")
-	if e = pki.Generate(pkidir, pki.Identity{Host: "qwac.example.com", Organization: "Nginx Agent TEST", Country: "HU", Locality: "Budapest", Registration: "NTRHU-NGINX-TEST"}); e != nil {
+	generate := pki.Generate
+	if native != nil && native.mode == "firefox" {
+		generate = pki.GenerateFirefox
+	}
+	if e = generate(pkidir, pki.Identity{Host: "qwac.example.com", Organization: "Nginx Agent TEST", Country: "HU", Locality: "Budapest", Registration: "NTRHU-NGINX-TEST"}); e != nil {
 		return e
 	}
 	dnsMux := dns.NewServeMux()
@@ -154,6 +161,12 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 		}
 		w.Header().Set("Link", `</style>; rel="preload"`)
 		w.Header().Set("Cache-Control", "public, max-age=600")
+		if r.URL.Path == "/delayed" {
+			time.Sleep(2 * time.Second)
+			w.WriteHeader(201)
+			w.Write([]byte("protected delayed body"))
+			return
+		}
 		if r.URL.Path == "/redirect" {
 			w.Header().Set("Location", "/app")
 			w.WriteHeader(307)
@@ -182,7 +195,7 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 	})}
 	go app.Serve(appLn)
 	defer app.Close()
-	cfg := agent.Config{Host: "qwac.example.com", RuntimeDir: runtimeDir, StateDir: filepath.Join(dir, "agent"), ChainFiles: []string{filepath.Join(pkidir, "qwac-leaf.pem"), filepath.Join(pkidir, "qwac-intermediate.pem"), filepath.Join(pkidir, "qwac-root.pem")}, KeyFile: filepath.Join(pkidir, "qwac-leaf-key.pem"), TrustFile: filepath.Join(pkidir, "qwac-root.pem"), TLSRoots: rootPath, CertbotLineage: filepath.Join(dir, "certbot", "live", "qwac.example.com"), PublicListen: "127.0.0.1:18081", HTTPListen: "127.0.0.1:5002", HTTPSListen: "127.0.0.1:8443", ProbeAddress: "127.0.0.1:8443", Application: "http://" + appLn.Addr().String(), Webroot: filepath.Join(dir, "webroot"), NginxBinary: nginxBin, NginxPrefix: filepath.Join(dir, "nginx"), NginxConfig: filepath.Join(dir, "nginx.conf"), Lifetime: "45s", DocumentGrace: "2s"}
+	cfg := agent.Config{Host: "qwac.example.com", RuntimeDir: runtimeDir, StateDir: filepath.Join(dir, "agent"), ChainFiles: []string{filepath.Join(pkidir, "qwac-leaf.pem"), filepath.Join(pkidir, "qwac-intermediate.pem"), filepath.Join(pkidir, "qwac-root.pem")}, KeyFile: filepath.Join(pkidir, "qwac-leaf-key.pem"), TrustFile: filepath.Join(pkidir, "qwac-root.pem"), TLSRoots: rootPath, CertbotLineage: filepath.Join(dir, "certbot", "live", "qwac.example.com"), PublicListen: "127.0.0.1:18081", HTTPListen: "127.0.0.1:5002", HTTPSListen: "127.0.0.1:8443", ProbeAddress: "127.0.0.1:8443", Application: "http://" + appLn.Addr().String(), Webroot: filepath.Join(dir, "webroot"), NginxBinary: nginxBin, NginxPrefix: filepath.Join(dir, "nginx"), NginxConfig: filepath.Join(dir, "nginx.conf"), Lifetime: "45s", DocumentGrace: "2s", FirefoxCompatibility: native != nil && native.mode == "firefox"}
 	for _, path := range []string{cfg.StateDir, filepath.Join(cfg.StateDir, "enabled"), cfg.NginxPrefix, cfg.Webroot} {
 		if e = os.MkdirAll(path, 0700); e != nil {
 			return e
@@ -192,9 +205,22 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 		return e
 	}
 	cfgPath := filepath.Join(dir, "agent.json")
+	// Explicit development capacity permits two rotations and then exercises a
+	// refusal. Production defaults remain 256 retained certificates.
+	cfg.MaxCertificates = 3
 	if e = writeJSON(cfgPath, cfg); e != nil {
 		return e
 	}
+	verify := binding.Verify
+	if cfg.FirefoxCompatibility {
+		verify = binding.VerifyFirefox
+	}
+	if native != nil {
+		if e = native.prepare(dir, pkidir); e != nil {
+			return e
+		}
+	}
+
 	if e = (agent.Nginx{Config: cfg}).Validate(context.Background()); e != nil {
 		return e
 	}
@@ -222,6 +248,10 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 		time.Sleep(100 * time.Millisecond)
 	}
 	c.pass("isolated production agent and HTTP-only Nginx bootstrap")
+	if e = checkAgentControlBoundary(ctx, cfg); e != nil {
+		return e
+	}
+	c.pass("private runtime/socket permissions and control methods/body validation; public control/file paths reject")
 	hook := agentBin + " certbot-hook -config " + cfgPath
 	args := []string{"certonly", "--non-interactive", "--agree-tos", "--email", "demo@example.invalid", "--webroot", "-w", cfg.Webroot, "-d", cfg.Host, "--cert-name", cfg.Host, "--key-type", "rsa", "--rsa-key-size", "2048", "--server", "https://localhost:14000/dir", "--config-dir", filepath.Join(dir, "certbot"), "--work-dir", filepath.Join(dir, "certbot-work"), "--logs-dir", filepath.Join(dir, "certbot-logs"), "--deploy-hook", hook, "--no-directory-hooks"}
 	issue := exec.Command(certbotBin, args...)
@@ -299,12 +329,19 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 		}
 		if test.method == "GET" {
 			root, _ := credentials.ReadCert(cfg.TrustFile)
-			if e = binding.Verify(string(b), cfg.Host, []*x509.Certificate{r.TLS.PeerCertificates[0]}, root, time.Now()); e != nil {
+			if e = verify(string(b), cfg.Host, []*x509.Certificate{r.TLS.PeerCertificates[0]}, root, time.Now()); e != nil {
 				return e
 			}
 		}
 	}
 	c.pass("binding GET/HEAD/no-store/method rejection and nonrecursive discovery")
+	for _, path := range []string{"/__qwac_gate", "/__qwac_control/deploy", "/bindings/not-a-document"} {
+		r, _, e := get(path, "GET", false)
+		if e != nil || r.StatusCode != 404 {
+			return fmt.Errorf("reserved Nginx path reachable: %s %v %v", path, r, e)
+		}
+	}
+	c.pass("Nginx internal gate/control and invalid binding paths are inaccessible")
 
 	readBinding := func() (store.State, error) {
 		var s store.State
@@ -324,6 +361,16 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 	}
 	cachedHash := sha256.Sum256(cachedBody)
 	cachedLink := strings.Join(cachedInitial.Header.Values("Link"), ",")
+	initialQWAC, e := pki.ReadCert(filepath.Join(pkidir, "qwac-leaf.pem"))
+	if e != nil {
+		return e
+	}
+	if native != nil {
+		if e = native.check("initial", initialQWAC, status.Deployment.Active); e != nil {
+			return e
+		}
+	}
+
 	independentRefresh := false
 
 	// Keep one active HTTP/1 stream on the original authenticated TLS connection.
@@ -408,7 +455,7 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 		return e
 	}
 	root, _ := credentials.ReadCert(cfg.TrustFile)
-	if e = binding.Verify(string(b), cfg.Host, []*x509.Certificate{held.ConnectionState().PeerCertificates[0], r.TLS.PeerCertificates[0]}, root, time.Now()); e != nil {
+	if e = verify(string(b), cfg.Host, []*x509.Certificate{held.ConnectionState().PeerCertificates[0], r.TLS.PeerCertificates[0]}, root, time.Now()); e != nil {
 		return e
 	}
 	select {
@@ -440,6 +487,12 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 	}
 	writeJSON(filepath.Join(dir, "evidence/cache-renewed.json"), map[string]any{"age": cachedRenewed.Header.Get("Age"), "original_exp": initialBinding.Expires, "link": cachedLink, "body_sha256": fmt.Sprintf("%x", cachedHash), "cache": "hit"})
 	c.pass("real cache longer than original signed lifetime discovers renewed binding")
+	if native != nil {
+		if e = native.check("renewed-cached-after-expiry", initialQWAC, status.Deployment.Active); e != nil {
+			return e
+		}
+	}
+
 	replacement, e := replaceDemoQWAC(pkidir, "Nginx Replacement TEST")
 	if e != nil {
 		return e
@@ -451,7 +504,7 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 	if e != nil {
 		return e
 	}
-	if e = binding.Verify(string(b), cfg.Host, []*x509.Certificate{r.TLS.PeerCertificates[0]}, root, time.Now()); e != nil {
+	if e = verify(string(b), cfg.Host, []*x509.Certificate{r.TLS.PeerCertificates[0]}, root, time.Now()); e != nil {
 		return e
 	}
 	_, chain, _, _, e := binding.Decode(string(b))
@@ -469,6 +522,12 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 		return fmt.Errorf("cached response changed across QWAC replacement")
 	}
 	c.pass("same-authority QWAC replacement through unchanged cached discovery")
+	if native != nil {
+		if e = native.check("replacement-cached-after-expiry", replacement, status.Deployment.Active); e != nil {
+			return e
+		}
+	}
+
 	for end := time.Now().Add(5 * time.Second); ; {
 		_, err := os.Stat(filepath.Join(cfg.StateDir, "bindings", filepath.Base(initialBinding.URL)))
 		if os.IsNotExist(err) {
@@ -511,5 +570,12 @@ func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) (retErr error) {
 		time.Sleep(100 * time.Millisecond)
 	}
 	c.pass("agent restart reconciles files and actual verified served TLS")
+	if native == nil {
+		stopChild(daemon)
+		daemon = nil
+		if e = nginxFailureChecks(c, cfg, cfgPath, agentBin, certbotBin, issue.Env, client); e != nil {
+			return e
+		}
+	}
 	return nil
 }

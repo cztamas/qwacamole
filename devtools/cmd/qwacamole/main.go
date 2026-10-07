@@ -21,6 +21,8 @@ func main() {
 		log.Fatal("usage: qwacamole browser-demo|firefox-demo|firefox-check|firefox-suite|firefox-integration|demo|browser|browser-suite|integration-test|plugin-smoke|pki|fixture|lifecycle|refresh-test|failure-test|clean")
 	}
 	f := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
+	nativeBrowser := f.String("native-browser", "chrome", "Nginx acceptance browser: chrome or firefox")
+	agentConfig := f.String("config", "", "deployment config for development fault service")
 	agentBin := f.String("agent-binary", "bin/qwacamole-agent", "production agent binary")
 	nginxBin := f.String("nginx", ".tools/nginx/sbin/nginx", "Nginx executable")
 	certbotBin := f.String("certbot", ".tools/certbot-venv/bin/certbot", "Certbot executable")
@@ -48,6 +50,10 @@ func main() {
 	_ = f.Parse(os.Args[2:])
 	var e error
 	switch os.Args[1] {
+	case "agent-fault-service":
+		e = agentFaultService(*agentConfig, *dir)
+	case "nginx-browser-integration":
+		e = nginxLifecycle(*dir, *agentBin, *nginxBin, *certbotBin, &nginxNative{mode: *nativeBrowser, binary: *bin, metadata: *metadata, driver: *driver, certutil: *certutil})
 	case "nginx-smoke":
 		e = nginxSmoke(*dir, *agentBin, *nginxBin, *certbotBin)
 	case "firefox-integration":

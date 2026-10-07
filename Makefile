@@ -62,7 +62,7 @@ plugin-smoke: plugin-build
 remote-install-check:
 	./scripts/check-remote-install.sh $(REF)
 
-.PHONY: agent-build bootstrap-nginx nginx-smoke
+.PHONY: agent-build bootstrap-nginx nginx-smoke nginx-chrome-test nginx-firefox-test remote-agent-check
 agent-build: bootstrap
 	cd agent && $(GO) build -o ../bin/qwacamole-agent ./cmd/qwacamole-agent
 bootstrap-nginx:
@@ -70,3 +70,11 @@ bootstrap-nginx:
 nginx-smoke: agent-build
 	cd devtools && $(GO) build -o ../bin/qwacamole ./cmd/qwacamole
 	bin/qwacamole nginx-smoke -state $(STATE)
+nginx-chrome-test: agent-build
+	cd devtools && $(GO) build -o ../bin/qwacamole ./cmd/qwacamole
+	bin/qwacamole nginx-browser-integration -native-browser chrome -state $(STATE) $(BROWSER_ARGS)
+nginx-firefox-test: bootstrap-firefox agent-build
+	cd devtools && $(GO) build -o ../bin/qwacamole ./cmd/qwacamole
+	bin/qwacamole nginx-browser-integration -native-browser firefox -state $(STATE) $(BROWSER_ARGS)
+remote-agent-check:
+	./scripts/check-remote-agent.sh $(REF)

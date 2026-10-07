@@ -43,13 +43,13 @@ report counts as newly executed acceptance.
 
 | Requirement | Evidence needed | Status |
 |---|---|---|
-| Production boundaries | Four modules and dependency checks pass; production agent builds; real remote agent install pending | Partial |
-| Shared lifecycle and Caddy locking | Shared core worker/delivery; cross-host stalled-signing and existing cleanup/generation race regressions pass; actual Caddy and native reruns pending | Partial |
-| Agent operational/control interface | CLI implemented, production daemon used by real smoke; private socket/exclusive owner and HTTP delivery checked; security/failure audit remains | Partial |
-| Certbot deployment | Real initial HTTP-01, normal automatic renew (no force), controlled immutable paths and fresh verified confirmation pass | Partial; final acceptance pending |
-| Journal/reconciliation/failures | Journal, distinct-leaf rollback/retry, publication failures, ownership and restart tests pass; stronger crash/interruption and actual failure coverage pending | Partial |
-| Nginx behavior/gate | Real headers/cache/conditional/redirect/error/binding semantics and agent-down gate pass; explicit expired-state and further fault checks pending | Partial |
-| Real full lifecycle | Thirteen real checks pass: issuance, independent refresh, automatic renewal, original held stream, expired cached discovery, same-authority replacement, GC and restart; faults/capacity remain | Partial |
-| Both native integrations | Fresh Caddy Chrome/Firefox and new Nginx Chrome/Firefox, initial/renewed/cache, unchanged trust, exact Chrome gap | Pending |
-| Independent CI/install | All-module races, workspace and real pinned independent consumers, clean remote Caddy and agent runtime | Pending |
-| Usable documentation | Installation/service/security/monitoring/backup/retirement and new dated report | Pending |
+| Production boundaries | Four modules; workspace/independent races and dependency checks pass; clean remote agent metadata is core + stdlib only | Verified |
+| Shared lifecycle and Caddy locking | Shared worker/delivery; blocked-signing cross-host and cleanup/generation races; fresh actual/remote Caddy runtime and Chrome/Firefox pass established criteria | Verified |
+| Agent operational/control interface | Fixed-config CLI and separate production daemon; private socket/exclusive owners, bodyless controls, no private file/control exposure on public listener | Verified |
+| Certbot deployment | Real HTTP-01 initial and normal automatic renewal, durable binding before staging, fresh TLS confirmation; hook errors independently recorded even with Certbot exit 0 | Verified |
+| Journal/reconciliation/failures | Five actual child-process crash boundaries, distinct leaves, two restarts; real signing/storage/config/reload/nonactivation/retry; expiry recovery without pruning | Verified |
+| Nginx behavior/gate | Real application/cache/headers/status/streaming, binding semantics, agent-down and explicit expired-state gates; reproduced/fixed delayed response commit across expiry | Verified |
+| Real full lifecycle | Final 22-check real run passes, including original held stream, refresh, auto-renew, expired cache, replacement, collection, faults/retry/restart and capacity refusal | Verified |
+| Both native integrations | Fresh Caddy Chrome/Firefox; final remote-installed Nginx Chrome/Firefox initial/renewed/cache/replacement with unchanged trust. Chrome's exact ignored-exp failure remains nonzero | Verified |
+| Independent CI/install | Workspace/real pinned independent races and clean remote Caddy+agent runtime pass; final hosted CI outstanding | Partial |
+| Usable documentation | Exact remote install, config/service/permissions/hooks/failure/monitoring/backup/retirement and dated evidence prepared; final audit outstanding | Partial |

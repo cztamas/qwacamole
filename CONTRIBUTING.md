@@ -4,8 +4,10 @@ This repository is preparing an unpublished public alpha. Repository visibility,
 licensing and release publication are owner decisions still outstanding. Do not
 assume an open-source license or publish packages/tags on the project's behalf.
 
-Use a feature branch. Keep core (`credentials`, `profile`, `binding`, `store`)
+Use a feature branch. Keep core (`credentials`, `profile`, `binding`, `store`,
+`lifecycle`, `bindinghttp`)
 standard-library only; the nested `caddy` module adds the Caddy integration;
+`agent` owns supplied-credential deployment and local Nginx process coordination;
 `devtools` owns synthetic authorities, browser trust setup, negative fixtures and
 test orchestration. Never add test enrollment/browser dependencies to the
 installed plugin. Preserve Mozilla fixture attribution and clearly identify the
@@ -30,6 +32,15 @@ its real Go version, then update the nested plugin requirement. Test the exact
 implemented remote plugin ref with `scripts/check-remote-install.sh <full-SHA>`
 and run the portable smoke against `bin/caddy-remote`. Local replacements alone
 do not prove independent installation.
+
+For agent changes, run `make agent-build`, real `make nginx-smoke`, then native
+`make nginx-chrome-test` and `make nginx-firefox-test` sequentially. Use
+`scripts/check-remote-agent.sh <full-SHA>` to install an actual immutable remote
+agent, and pass `-agent-binary bin/qwacamole-agent-remote` to the Nginx harness.
+The production agent must remain free of Caddy/browser/test-PKI dependencies.
+Keep signing/storage/reload/crash injection inside devtools. Test all four
+modules with `scripts/check-independent-modules.sh` as well as the workspace;
+update real dependency pins after pushing their implemented production refs.
 
 Tests should exercise behavioral invariants: publication before TLS activation,
 old/new complete state under failures, authenticated connection coverage beyond
