@@ -37,9 +37,10 @@ The current hardening branch prepares an **unpublished public alpha**. It adds
 stable uncached discovery, transactional activation, document collection,
 expiry-driven refresh and enforced capacity limits. See
 [operations and migration](docs/operations.md) and the
-[release checklist](docs/alpha-release.md). Native browser and remote-install
-acceptance for this branch are still pending; historical reports below remain
-dated evidence for their original refs.
+[release checklist](docs/alpha-release.md). Native browser, hosted CI and
+exact-ref remote installation/runtime acceptance are recorded in the [7 October hardening evidence](docs/evidence-hardening-20261007.md).
+Chrome retains its documented ignored-exp failure; Firefox passes all eleven
+fixtures. Historical reports below remain dated evidence for their original refs.
 
 For supplied QWAC credentials and a normal single-host ACME-managed Caddy site,
 use the [installation and operations guide](docs/caddy-plugin.md). It includes
@@ -62,7 +63,9 @@ The bundled bootstrap supports macOS arm64 only. Other platforms have not been
 validated and need a port of the bootstrap and browser discovery.
 
 You need `git`, `curl`, `tar`, `shasum`, `make`, and network access to Go download
-and module servers. Go does not need to be installed beforehand: `make build`
+and module servers. The repository is currently private; use authorized Git
+credentials and the private-module setup in the [plugin guide](docs/caddy-plugin.md#installation-from-the-private-github-repository).
+Go does not need to be installed beforehand: `make build`
 downloads a checksum-verified runtime, xcaddy, and Pebble into `.tools/`, then
 builds `bin/qwacamole` and `bin/caddy`. The first build may take several minutes.
 Docker, administrative privileges, hosts-file edits, and system-trust changes
@@ -103,6 +106,7 @@ example site in a **visible stock Chrome window**:
 ```sh
 git clone https://github.com/cztamas/qwacamole.git
 cd qwacamole
+git checkout codex/public-alpha-hardening
 make browser-demo DEMO_ARGS='-organization "Example Synthetic Owner TEST" -country HU -locality Budapest -registration NTRHU-TEST-0001'
 ```
 

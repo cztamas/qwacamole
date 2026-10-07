@@ -15,10 +15,10 @@ export GOPRIVATE=github.com/cztamas/qwacamole
 export GOEXPERIMENT=nojsonv2
 # Preserve other existing GOPRIVATE entries if you already have them.
 go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
-xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@1ecccf0df725a9ae2a33c91a57375f97029618e3
+xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@234f8d7e20a5863f3f2929e50a8e11f24650064e
 ```
 
-The implemented plugin resolves to `v0.0.0-20261007083852-1ecccf0df725`;
+The implemented plugin resolves to `v0.0.0-20261007085522-234f8d7e20a5`;
 the [dated evidence](evidence-hardening-20261007.md) records the fresh-cache remote
 build and module inventory. Repository examples and checks for this stage are on
 `codex/public-alpha-hardening`; after an authenticated clone, use
@@ -252,7 +252,7 @@ In advanced JSON, pair the same middleware in `servers.*.errors.routes`.
 make test                 # race tests in core, Caddy and devtools; boundaries
 make plugin-smoke STATE=.local/plugin-smoke
 # Uses a fresh outside-checkout module cache and no replacements/devtools:
-scripts/check-remote-install.sh 1ecccf0df725a9ae2a33c91a57375f97029618e3
+scripts/check-remote-install.sh 234f8d7e20a5863f3f2929e50a8e11f24650064e
 ```
 
 The portable smoke builds no browsers: it supplies synthetic TEST PEMs from

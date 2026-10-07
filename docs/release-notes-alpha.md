@@ -30,7 +30,10 @@ termination is unsupported. No automatic QWAC enrollment, distributed state,
 HSM support or authority migration is provided. Synthetic demo authorities do
 not confer legal qualification. Strict standard bindings remain default, with
 an explicit Firefox compatibility mode. Chromium's known ignored-exp assertion
-must remain visible; final dated browser evidence will list exact versions.
+remains visible: Chrome 154.0.8037.98 passes ten fixtures with only that expected
+nonzero failure; Firefox 157.0 passes all eleven. The
+[dated engineering evidence](evidence-hardening-20261007.md) records native
+lifecycle/cache acceptance and exact remote installation/runtime versions.
 
 Visibility, license, release tags/publication, anonymous availability and Caddy
 registration/hosted-builder compatibility remain owner gates in the

@@ -55,22 +55,22 @@ release publication, privacy/license choice or Caddy registration is authorized.
 
 ## Verification and completion ledger
 
-All items start **unproven**. Replace these entries with exact current files,
-commands, outcomes and dated evidence as each stage is completed; green tests
-alone do not prove the full objective.
+All engineering requirements are complete. Exact commands, outcomes, source
+versions and native evidence are in the [7 October report](evidence-hardening-20261007.md).
+Publication and account actions remain explicit owner gates.
 
-| Requirement | Required proof | Status |
+| Requirement | Current proof | Status |
 |---|---|---|
-| Cached discovery | Real cache outlives signed expiry; stable Link resolves current verified coverage after refresh/renewal/replacement; native Firefox acceptance | Unproven |
-| Transactional activation | One candidate with absent stored leaf; boundary failures retain prior live state; crash/restart old-or-new; concurrent snapshots; issuer gate | New core/lease regressions and actual Caddy replacement/recovery passed; final native failure gate pending |
-| Safe document retention | Current/staged/grace/readers protected, only owned validated files deleted, recovery and failure tests | Ownership/grace/current/orphan tests and automatic actual-Caddy collection passed |
-| TLS retention/capacity | Supported lifecycle investigation, preserved expired-held coverage, enforced limits and justified drain/retirement procedure | Investigation, enforced limits, existing expired-held regression and operational procedure implemented; fresh native held check pending |
-| Refresh/diagnostics | Expiry-driven validated margins, backoff/jitter, fail-closed recovery and useful expiry/error/count/size observations | Policy/duration/backoff tests, automatic refresh/cache regression and structured diagnostics implemented; native refresh/failure proof pending |
-| Caddy behavior | Multi-site/unprotected, conditional/cache/redirect/error, streaming/WebSocket, concurrent lifecycle/disk/held connections | 21 actual-Caddy smoke checks and concurrent lifecycle race regression passed; fresh native held proof pending |
-| Compatibility and CI | JSON/state migrations, all-module races/boundaries, portable new regressions | Local races/boundaries/migrations passed; hosted hardening-head CI pending |
-| Exact-ref installation | Real resolved core/plugin versions, fresh external build with no replacements/devtools, installed runtime | Unproven |
-| Both native browsers | All named Chrome and Firefox requirements, unchanged trust/profile, exact expected suite outcomes | Unproven |
-| Unpublished alpha | Updated guides/comments, release/contribution/security artifacts and checklist with owner decisions; no unauthorized publication | Unproven |
+| Cached discovery | Real 600s cache with unchanged Link/body at ages 71s/100s; signed expiry crossed; native Firefox accepts renewed TLS and replacement QWAC | Complete |
+| Transactional activation | Absent stored-leaf and separate-module-context regressions, fault/crash old-or-new recovery, concurrent snapshots; both browsers prove pre-return failure gates/recovery | Complete |
+| Safe document retention | Authenticated ownership/grace/current/staged/readers/orphan regressions and automatic actual-Caddy collection | Complete |
+| TLS retention/capacity | Supported Caddy lifecycle investigation; enforced limits; Chrome continuous HTTP/2 47s beyond TLS expiry; tested full-stop/offline retirement | Complete |
+| Refresh/diagnostics | Expiry-driven validated margins, backoff/jitter, fail-closed outage/recovery tests; both native browsers prove independent refresh and failure recovery | Complete |
+| Caddy behavior | All 22 local and remotely installed actual-Caddy checks; multi-site/cache/conditional/redirect/error/streaming/WebSocket/held lifecycle; disk/concurrency race coverage | Complete |
+| Compatibility and CI | Legacy state/numeric JSON migration; three module race suites and boundaries; hosted run 37597323566 passes all 22 runtime checks | Complete |
+| Exact-ref installation | Remote production ref 234f8d7e20a5; real core d576a2929a0f; fresh external build with no replacements/devtools; installed binary passes all 22 checks | Complete (authenticated private install) |
+| Both native browsers | Fresh Chrome then Firefox sequentially; exact owner/chain/native UI evidence; unchanged profile/trust; Chrome ten passes plus only documented ignored-exp failure, Firefox eleven passes | Complete with documented Chrome gap |
+| Unpublished alpha | README/guide/comments, operations/migrations, draft release notes, CONTRIBUTING, SECURITY and owner release checklist; no publication actions performed | Complete |
 
 Historical evidence remains unchanged. New results belong in a separate dated
 hardening report. Completion requires auditing the original objective against

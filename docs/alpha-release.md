@@ -6,20 +6,22 @@ owner actions; it does not claim that an alpha has been published.
 
 ## Engineering gates
 
-- [ ] Complete the [hardening ledger](public-alpha-plan.md) against the original
+- [x] Complete the [hardening ledger](public-alpha-plan.md) against the original
   objective, with a separately dated evidence report and no missing browser gate.
-- [ ] Pass all-module race tests, boundaries, portable actual-Caddy checks,
+- [x] Pass all-module race tests, boundaries, portable actual-Caddy checks,
   state/config migration, failure/crash recovery, held connection and cache checks.
-- [ ] Build the exact pushed immutable plugin ref outside the checkout with fresh
+- [x] Build the exact pushed immutable plugin ref outside the checkout with fresh
   module cache, `GOWORK=off`, no local replacements or devtools; verify runtime.
-- [ ] Record Go 1.27.1, `GOEXPERIMENT=nojsonv2`, xcaddy 0.4.5 and Caddy 2.10.2;
+- [x] Record Go 1.27.1, `GOEXPERIMENT=nojsonv2`, xcaddy 0.4.5 and Caddy 2.10.2;
   recheck toolchain compatibility rather than assuming newer versions work.
-- [ ] Run fresh native Chrome then Firefox sequentially, unchanged trust across
+- [x] Run fresh native Chrome then Firefox sequentially, unchanged trust across
   renewal, all existing fixtures and lifecycle controls, and Firefox cached-Link
   acceptance across binding expiry and credential replacement. Chrome must have
   only its exact documented ignored-exp suite failure, with nonzero exit retained.
-- [ ] Update README/plugin guide's installation ref, resolved core/plugin
+- [x] Update README/plugin guide's installation ref, resolved core/plugin
   versions, current evidence links and compatibility statements after proof.
+
+Evidence and exact commands: [7 October acceptance report](evidence-hardening-20261007.md).
 
 ## Owner decisions before public availability
 
