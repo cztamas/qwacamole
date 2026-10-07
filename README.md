@@ -41,6 +41,8 @@ and portable checks. The development browser quickstarts below remain supported.
 New integration verification is recorded separately in
 [the plugin evidence report](docs/evidence-plugin-20261006.md), including the
 remotely tested immutable ref, portable CI, and fresh native browser checks.
+[The PR review follow-up](docs/evidence-review-20261007.md) records the subsequent
+wildcard-policy fix and refreshed installation ref.
 
 ## Prerequisites
 

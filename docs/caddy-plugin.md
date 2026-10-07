@@ -15,11 +15,11 @@ export GOPRIVATE=github.com/cztamas/qwacamole
 export GOEXPERIMENT=nojsonv2
 # Preserve other existing GOPRIVATE entries if you already have them.
 go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
-xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@2cf938efc50b1d714da67e29b6e9adccdf940f25
+xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@f6261bde56fc8a536c8f8340be8e540915b2e46e
 ```
 
-The implemented plugin resolves to `v0.0.0-20261006175344-2cf938efc50b`;
-the [dated evidence](evidence-plugin-20261006.md) records the fresh-cache remote
+The implemented plugin resolves to `v0.0.0-20261007072646-f6261bde56fc`;
+the [dated evidence](evidence-review-20261007.md) records the fresh-cache remote
 build and module inventory. Repository examples and checks for this stage are on
 `codex/installable-caddy-plugin`; after an authenticated clone, use
 `git checkout codex/installable-caddy-plugin` to work with them. The immutable
@@ -234,7 +234,7 @@ not delete history while protected connections may depend on it.
 make test                 # race tests in core, Caddy and devtools; boundaries
 make plugin-smoke STATE=.local/plugin-smoke
 # Uses a fresh outside-checkout module cache and no replacements/devtools:
-scripts/check-remote-install.sh 2cf938efc50b1d714da67e29b6e9adccdf940f25
+scripts/check-remote-install.sh f6261bde56fc8a536c8f8340be8e540915b2e46e
 ```
 
 The portable smoke builds no browsers: it supplies synthetic TEST PEMs from
