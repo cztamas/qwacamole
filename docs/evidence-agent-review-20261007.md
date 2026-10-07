@@ -108,7 +108,12 @@ upload checks plus browser startup delayed the observation until Certbot's next
 call had already replaced the single-leaf binding with an overlap binding.
 Raw run: `.local/review-nginx-chrome-20261007/nginx-smoke-1128897920/`, exit 1.
 This run does not count as successful native acceptance. Slow uploads now run
-after the independent-refresh/renewal observation, and the harness samples refresh
-before calling Certbot. It still requires later publication/expiry, identical
+after the independent-refresh/renewal observation. A subsequent Firefox run
+(`.local/review-nginx-firefox-final-20261007/nginx-smoke-3891751001/`, exit 1)
+exposed the other side of the same observation race: Certbot's first normal call
+was already due, as recorded alongside Pebble's ARI suggested window in
+`certbot-logs/letsencrypt.log`. It renewed before the first scheduled refresh.
+The harness now waits for the independent refresh before making any renewal call.
+It still requires later publication/expiry, identical
 single-leaf coverage, distinct renewed TLS and uninterrupted original streaming;
 no acceptance assertion was removed.

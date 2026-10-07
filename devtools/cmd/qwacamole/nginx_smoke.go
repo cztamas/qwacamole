@@ -409,17 +409,29 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 		}
 	}()
 	originalID := status.Deployment.Active
-	renewArgs := []string{"renew", "--non-interactive", "--no-random-sleep-on-renew", "--no-directory-hooks", "--config-dir", filepath.Join(dir, "certbot"), "--work-dir", filepath.Join(dir, "certbot-work"), "--logs-dir", filepath.Join(dir, "certbot-logs")}
-	for end := time.Now().Add(150 * time.Second); ; {
-		// Observe before asking Certbot to renew: native browser startup may
-		// span a refresh, which renewal would otherwise obscure with a union.
+	// First observe independent refresh with unchanged TLS coverage. Pebble's
+	// ARI window can make even the first normal Certbot renew call immediately
+	// due; invoking it sooner would replace the single-leaf refresh evidence.
+	for end := time.Now().Add(60 * time.Second); !independentRefresh; {
 		if current, err := readBinding(); err != nil {
 			return err
-		} else if !independentRefresh && current.Published > initialBinding.Published && current.Expires > initialBinding.Expires && reflect.DeepEqual(current.IDs, initialBinding.IDs) {
+		} else if current.Published > initialBinding.Published && current.Expires > initialBinding.Expires && reflect.DeepEqual(current.IDs, initialBinding.IDs) {
 			independentRefresh = true
 			writeJSON(filepath.Join(dir, "evidence/independent-refresh.json"), map[string]any{"before": initialBinding, "after": current})
 			c.pass("independent signed binding refresh without TLS renewal")
+			break
 		}
+		if time.Now().After(end) {
+			return fmt.Errorf("independent binding refresh not observed before renewal")
+		}
+		select {
+		case err := <-streamErr:
+			return fmt.Errorf("held stream disconnected before independent refresh: %w", err)
+		case <-time.After(250 * time.Millisecond):
+		}
+	}
+	renewArgs := []string{"renew", "--non-interactive", "--no-random-sleep-on-renew", "--no-directory-hooks", "--config-dir", filepath.Join(dir, "certbot"), "--work-dir", filepath.Join(dir, "certbot-work"), "--logs-dir", filepath.Join(dir, "certbot-logs")}
+	for end := time.Now().Add(150 * time.Second); ; {
 		renewal := exec.Command(certbotBin, renewArgs...)
 		renewal.Env = issue.Env
 		out, e := renewal.CombinedOutput()
