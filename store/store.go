@@ -20,14 +20,26 @@ import (
 )
 
 type Config struct {
-	Dir                  string        `json:"directory"`
-	Host                 string        `json:"hostname"`
-	Lifetime             time.Duration `json:"lifetime"`
-	FirefoxCompatibility bool          `json:"firefox_compatibility,omitempty"`
+	Dir      string        `json:"directory"`
+	Host     string        `json:"hostname"`
+	Lifetime time.Duration `json:"lifetime"`
+	// RefreshBefore is the advance margin, reduced proportionally when TLS or
+	// QWAC expiry caps the effective lifetime. Zero selects Lifetime/3.
+	RefreshBefore time.Duration `json:"refresh_before,omitempty"`
+	// DocumentGrace protects historical and orphaned documents until both their
+	// expiry and filesystem modification time are at least this far in the past.
+	DocumentGrace time.Duration `json:"document_grace,omitempty"`
+	// MaxCertificates refuses additions beyond this count; it never prunes
+	// certificates needed by authenticated connections, even after NotAfter.
+	MaxCertificates int `json:"max_certificates,omitempty"`
+	// MaxDocumentBytes refuses oversized publications before writing any state.
+	MaxDocumentBytes     int64 `json:"max_document_bytes,omitempty"`
+	FirefoxCompatibility bool  `json:"firefox_compatibility,omitempty"`
 }
 type State struct {
 	Owner          credentials.Identity `json:"synthetic_owner"`
 	URL            string               `json:"url"`
+	DiscoveryURL   string               `json:"discovery_url,omitempty"`
 	Certs          []string             `json:"certificates_der"`
 	IDs            []string             `json:"tls_ids"`
 	Expires        int64                `json:"expires"`
@@ -35,20 +47,31 @@ type State struct {
 	BindingProfile string               `json:"binding_profile,omitempty"`
 }
 type Manager struct {
-	mu         sync.RWMutex
-	cfg        Config
-	material   *credentials.Credentials
-	operations Operations
-	current    State
+	mu          sync.RWMutex
+	cfg         Config
+	material    *credentials.Credentials
+	operations  Operations
+	current     State
+	currentDoc  []byte
+	changed     chan struct{}
+	lastFailure string
 }
 
-// Operations overrides the signing or manifest-commit boundary. Nil functions
+// DiscoveryURL is stable across publication, renewal and credential replacement.
+// State.URL continues to identify an immutable recovery artifact.
+const DiscoveryURL = "/bindings/current.jose"
+
+// Operations overrides signing, document-write or manifest-commit boundaries. Nil functions
 // use the standard implementation. A new certificate is never returned to the
 // issuer until both succeed; every candidate is verified before publication.
-// A custom CommitManifest must durably write the supplied bytes to the supplied
-// path before returning nil. The default uses Atomic, including directory fsync.
+// Custom writers must durably write supplied bytes to the supplied path before
+// returning nil. The defaults use Atomic, including directory fsync. A returned
+// manifest error restores prior bytes if the failing writer already renamed the
+// candidate. An unsuccessful rollback is reported explicitly; storage repair is
+// then required before restart. Process crashes recover a verified old/new commit.
 type Operations struct {
 	Sign           func(*credentials.Credentials, []*x509.Certificate, time.Time, time.Duration, bool) (string, binding.Header, error)
+	WriteDocument  func(string, []byte) error
 	CommitManifest func(string, []byte, bool) error
 }
 
@@ -66,16 +89,15 @@ func open(cfg Config, mat *credentials.Credentials, ops Operations, refresh bool
 	if e := mat.Validate(); e != nil {
 		return nil, e
 	}
-	if cfg.Lifetime == 0 {
-		cfg.Lifetime = 45 * time.Second
-	}
-	if cfg.Lifetime < time.Second {
-		return nil, errors.New("binding lifetime must be at least one second")
+	var err error
+	cfg, err = cfg.WithDefaults()
+	if err != nil {
+		return nil, err
 	}
 	if e := os.MkdirAll(cfg.Dir, 0700); e != nil {
 		return nil, e
 	}
-	m := &Manager{cfg: cfg, material: mat, operations: ops}
+	m := &Manager{cfg: cfg, material: mat, operations: ops, changed: make(chan struct{}, 1)}
 	d, e := os.ReadFile(filepath.Join(cfg.Dir, "current.json"))
 	if os.IsNotExist(e) {
 		return m, nil
@@ -86,7 +108,10 @@ func open(cfg Config, mat *credentials.Credentials, ops Operations, refresh bool
 	if e = json.Unmarshal(d, &m.current); e != nil {
 		return nil, e
 	}
-	doc, e := os.ReadFile(filepath.Join(cfg.Dir, filepath.Base(m.current.URL)))
+	if !immutablePath(m.current.URL) {
+		return nil, errors.New("recovery requires an immutable binding URL")
+	}
+	doc, e := m.readDocumentLocked(filepath.Base(m.current.URL))
 	if e != nil {
 		return nil, e
 	}
@@ -94,14 +119,18 @@ func open(cfg Config, mat *credentials.Credentials, ops Operations, refresh bool
 	if e != nil {
 		return nil, e
 	}
-	if h.Exp != m.current.Expires {
-		return nil, errors.New("recovery expiry mismatch")
+	if h.Exp != m.current.Expires || h.Iat != m.current.Published {
+		return nil, errors.New("recovery signed time mismatch")
 	}
 	sum := sha256.Sum256(doc)
 	if filepath.Base(m.current.URL) != hex.EncodeToString(sum[:])+".jose" {
 		return nil, errors.New("recovery document hash mismatch")
 	}
 	var all []*x509.Certificate
+	if len(m.current.Certs) != len(m.current.IDs) || len(m.current.IDs) != len(h.SigD.HashV) {
+		return nil, errors.New("recovery certificate identifier count mismatch")
+	}
+	seen := map[string]bool{}
 	for n, raw := range m.current.Certs {
 		der, err := base64.StdEncoding.DecodeString(raw)
 		if err != nil {
@@ -114,11 +143,17 @@ func open(cfg Config, mat *credentials.Credentials, ops Operations, refresh bool
 		if n >= len(m.current.IDs) || m.current.IDs[n] != binding.ID(c) {
 			return nil, errors.New("recovery certificate identifier mismatch")
 		}
+		if seen[m.current.IDs[n]] {
+			return nil, errors.New("duplicate recovery TLS certificate")
+		}
+		seen[m.current.IDs[n]] = true
 		all = append(all, c)
 	}
 	if err := m.verify(string(doc), all, time.Unix(h.Iat, 0)); err != nil {
 		return nil, fmt.Errorf("recovery binding: %w", err)
 	}
+	m.currentDoc = append([]byte(nil), doc...)
+	m.current.DiscoveryURL = DiscoveryURL
 
 	cs, e := m.certsLocked()
 	if e != nil {
@@ -166,9 +201,16 @@ func (m *Manager) prepareReplacementLocked(mat *credentials.Credentials) error {
 	return candidate.verify(doc, cs, time.Now())
 }
 
-// Replace publishes and independently verifies the candidate binding before
-// switching signing material. Existing TLS coverage is never pruned.
+// Replace atomically replaces credentials while preserving retained TLS coverage.
 func (m *Manager) Replace(mat *credentials.Credentials) error {
+	return m.Activate(mat)
+}
+
+// Activate prepares candidate credentials and the complete retained/additional
+// TLS set together. One signed, verified, durable publication precedes any live
+// signer/state change. Additional leaves include Caddy's stored or newly issued
+// certificate, which may be absent from the recovered manifest.
+func (m *Manager) Activate(mat *credentials.Credentials, additional ...*x509.Certificate) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if e := m.prepareReplacementLocked(mat); e != nil {
@@ -178,15 +220,54 @@ func (m *Manager) Replace(mat *credentials.Credentials) error {
 	if e != nil {
 		return e
 	}
-	if hasLiveCertificate(cs, time.Now()) {
-		candidate := &Manager{cfg: m.cfg, material: mat, operations: m.operations, current: m.current}
-		if e = candidate.publishLocked(cs, time.Now()); e != nil {
+	cs, added := unionCertificates(cs, additional)
+	if len(cs) > 0 {
+		candidate := &Manager{cfg: m.cfg, material: mat, operations: m.operations, current: m.current, currentDoc: m.currentDoc}
+		if e = candidate.publishCandidateLocked(cs, time.Now(), added); e != nil {
+			m.lastFailure = e.Error()
 			return e
 		}
 		m.current = candidate.current
+		m.currentDoc = candidate.currentDoc
+		m.lastFailure = ""
+		m.notifyLocked()
 	}
 	m.material = mat
 	return nil
+}
+
+func unionCertificates(retained, additional []*x509.Certificate) ([]*x509.Certificate, bool) {
+	seen := make(map[string]bool, len(retained))
+	for _, c := range retained {
+		seen[binding.ID(c)] = true
+	}
+	added := false
+	for _, c := range additional {
+		if c != nil && !seen[binding.ID(c)] {
+			retained = append(retained, c)
+			seen[binding.ID(c)] = true
+			added = true
+		}
+	}
+	return retained, added
+}
+
+// CurrentDocument returns a verified copy of exactly one committed snapshot.
+// The stable endpoint never selects a staged artifact or extends signed expiry.
+func (m *Manager) CurrentDocument() ([]byte, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if len(m.currentDoc) == 0 || m.current.Expires <= time.Now().Unix() {
+		return nil, errors.New("current binding unavailable or expired")
+	}
+	cs, e := m.certsLocked()
+	if e != nil {
+		return nil, e
+	}
+	if e = m.verify(string(m.currentDoc), cs, time.Now()); e != nil {
+		return nil, e
+	}
+	return append([]byte(nil), m.currentDoc...), nil
 }
 func (m *Manager) Snapshot() State {
 	m.mu.RLock()
@@ -202,28 +283,13 @@ func (m *Manager) Snapshot() State {
 func (m *Manager) Document(path string) ([]byte, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	name := strings.TrimPrefix(path, "/bindings/")
-	if path != "/bindings/"+name || len(name) != 69 || !strings.HasSuffix(name, ".jose") {
+	if !immutablePath(path) {
 		return nil, errors.New("invalid binding path")
 	}
-	if _, e := hex.DecodeString(name[:64]); e != nil || name != strings.ToLower(name) {
-		return nil, errors.New("invalid binding identifier")
-	}
-	p := filepath.Join(m.cfg.Dir, name)
-	info, e := os.Lstat(p)
+	name := strings.TrimPrefix(path, "/bindings/")
+	d, e := m.readDocumentLocked(name)
 	if e != nil {
 		return nil, e
-	}
-	if !info.Mode().IsRegular() {
-		return nil, errors.New("binding must be a regular file")
-	}
-	d, e := os.ReadFile(p)
-	if e != nil {
-		return nil, e
-	}
-	sum := sha256.Sum256(d)
-	if name != hex.EncodeToString(sum[:])+".jose" {
-		return nil, errors.New("binding content hash mismatch")
 	}
 	h, _, _, _, e := binding.Decode(string(d))
 	if e != nil {
@@ -247,6 +313,35 @@ func (m *Manager) Document(path string) ([]byte, error) {
 	}
 	if e = m.verify(string(d), cs, time.Unix(h.Iat, 0)); e != nil {
 		return nil, e
+	}
+	return d, nil
+}
+
+func immutablePath(path string) bool {
+	name := strings.TrimPrefix(path, "/bindings/")
+	if path != "/bindings/"+name || len(name) != 69 || !strings.HasSuffix(name, ".jose") || name != strings.ToLower(name) {
+		return false
+	}
+	_, e := hex.DecodeString(name[:64])
+	return e == nil
+}
+
+func (m *Manager) readDocumentLocked(name string) ([]byte, error) {
+	p := filepath.Join(m.cfg.Dir, name)
+	info, e := os.Lstat(p)
+	if e != nil {
+		return nil, e
+	}
+	if !info.Mode().IsRegular() {
+		return nil, errors.New("binding must be a regular file")
+	}
+	d, e := os.ReadFile(p)
+	if e != nil {
+		return nil, e
+	}
+	sum := sha256.Sum256(d)
+	if name != hex.EncodeToString(sum[:])+".jose" {
+		return nil, errors.New("binding content hash mismatch")
 	}
 	return d, nil
 }
@@ -287,7 +382,7 @@ func (m *Manager) Publish(c *x509.Certificate) error {
 	}
 	for _, old := range cs {
 		if old.Equal(c) {
-			if m.current.Expires > now.Add(10*time.Second).Unix() {
+			if now.Before(m.nextRefreshLocked()) {
 				return nil
 			}
 			return m.publishLocked(cs, now)
@@ -300,14 +395,14 @@ func (m *Manager) Refresh() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	now := time.Now()
-	if m.current.Expires > now.Add(15*time.Second).Unix() {
+	if now.Before(m.nextRefreshLocked()) {
 		return nil
 	}
 	cs, e := m.certsLocked()
 	if e != nil {
 		return e
 	}
-	if !hasLiveCertificate(cs, now) {
+	if len(cs) == 0 {
 		return nil
 	}
 	return m.publishLocked(cs, now)
@@ -315,7 +410,17 @@ func (m *Manager) Refresh() error {
 func (m *Manager) publishLocked(cs []*x509.Certificate, now time.Time) error {
 	return m.publishCandidateLocked(cs, now, false)
 }
-func (m *Manager) publishCandidateLocked(cs []*x509.Certificate, now time.Time, newCertificate bool) error {
+func (m *Manager) publishCandidateLocked(cs []*x509.Certificate, now time.Time, newCertificate bool) (err error) {
+	defer func() {
+		if err != nil {
+			m.lastFailure = err.Error()
+		} else {
+			m.lastFailure = ""
+		}
+	}()
+	if len(cs) > m.cfg.MaxCertificates && len(cs) > len(m.current.Certs) {
+		return fmt.Errorf("retained TLS certificate capacity %d reached: drain all connections and retire state offline before adding certificates", m.cfg.MaxCertificates)
+	}
 	sign := binding.Sign
 	if m.cfg.FirefoxCompatibility {
 		sign = binding.SignFirefox
@@ -333,6 +438,15 @@ func (m *Manager) publishCandidateLocked(cs []*x509.Certificate, now time.Time, 
 	}
 	if e = m.verify(doc, cs, now); e != nil {
 		return e
+	}
+	// Derive manifest metadata from the independently verified signed bytes,
+	// never from an injected signer's separately returned header.
+	h, _, _, _, e = binding.Decode(doc)
+	if e != nil {
+		return e
+	}
+	if int64(len(doc)) > m.cfg.MaxDocumentBytes {
+		return fmt.Errorf("binding document exceeds max_document_bytes %d; drain and retire TLS coverage offline or raise capacity", m.cfg.MaxDocumentBytes)
 	}
 	sum := sha256.Sum256([]byte(doc))
 	name := hex.EncodeToString(sum[:]) + ".jose"
@@ -352,7 +466,7 @@ func (m *Manager) publishCandidateLocked(cs []*x509.Certificate, now time.Time, 
 			owner.Registration = fmt.Sprint(name.Value)
 		}
 	}
-	state := State{Owner: owner, URL: "/bindings/" + name, Expires: h.Exp, Published: now.Unix()}
+	state := State{Owner: owner, URL: "/bindings/" + name, DiscoveryURL: DiscoveryURL, Expires: h.Exp, Published: h.Iat}
 	if m.cfg.FirefoxCompatibility {
 		state.BindingProfile = "firefox-compatibility-without-crit"
 	}
@@ -360,8 +474,15 @@ func (m *Manager) publishCandidateLocked(cs []*x509.Certificate, now time.Time, 
 		state.Certs = append(state.Certs, base64.StdEncoding.EncodeToString(c.Raw))
 		state.IDs = append(state.IDs, binding.ID(c))
 	}
-	if e = Atomic(filepath.Join(m.cfg.Dir, name), []byte(doc)); e != nil {
+	write := m.operations.WriteDocument
+	if write == nil {
+		write = Atomic
+	}
+	if e = write(filepath.Join(m.cfg.Dir, name), []byte(doc)); e != nil {
 		return e
+	}
+	if persisted, err := m.readDocumentLocked(name); err != nil || string(persisted) != doc {
+		return fmt.Errorf("candidate document not durably readable: %v", err)
 	}
 	d, e := json.MarshalIndent(state, "", "  ")
 	if e != nil {
@@ -371,10 +492,35 @@ func (m *Manager) publishCandidateLocked(cs []*x509.Certificate, now time.Time, 
 	if commit == nil {
 		commit = func(path string, d []byte, _ bool) error { return Atomic(path, d) }
 	}
-	if e = commit(filepath.Join(m.cfg.Dir, "current.json"), d, newCertificate); e != nil {
+	manifestPath := filepath.Join(m.cfg.Dir, "current.json")
+	prior, priorErr := os.ReadFile(manifestPath)
+	if priorErr != nil && !os.IsNotExist(priorErr) {
+		return priorErr
+	}
+	if e = commit(manifestPath, d, newCertificate); e != nil {
+		// Atomic rename may have succeeded before a directory sync error was
+		// reported. Preserve ordinary error semantics by restoring the old commit.
+		actual, readErr := os.ReadFile(manifestPath)
+		unchanged := readErr == nil && string(actual) == string(prior) || os.IsNotExist(readErr) && os.IsNotExist(priorErr)
+		if !unchanged {
+			var rollback error
+			if os.IsNotExist(priorErr) {
+				rollback = os.Remove(manifestPath)
+				if rollback == nil {
+					rollback = syncDirectory(m.cfg.Dir)
+				}
+			} else {
+				rollback = Atomic(manifestPath, prior)
+			}
+			if rollback != nil {
+				return fmt.Errorf("manifest commit failed: %v; prior manifest rollback failed, repair storage before restart: %w", e, rollback)
+			}
+		}
 		return e
 	}
 	m.current = state
+	m.currentDoc = []byte(doc)
+	m.notifyLocked()
 	return nil
 }
 
@@ -407,7 +553,11 @@ func Atomic(path string, data []byte) error {
 	if e = os.Rename(f.Name(), path); e != nil {
 		return e
 	}
-	d, e := os.Open(filepath.Dir(path))
+	return syncDirectory(filepath.Dir(path))
+}
+
+func syncDirectory(path string) error {
+	d, e := os.Open(path)
 	if e != nil {
 		return e
 	}

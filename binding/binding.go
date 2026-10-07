@@ -131,14 +131,26 @@ func Decode(doc string) (Header, []*x509.Certificate, []byte, string, error) {
 	return h, cs, sig, p[0] + ".", e
 }
 func Verify(doc, host string, certs []*x509.Certificate, root *x509.Certificate, now time.Time) error {
-	return verify(doc, host, certs, root, now, false)
+	return verify(doc, host, certs, root, now, false, false)
 }
 
 func VerifyFirefox(doc, host string, certs []*x509.Certificate, root *x509.Certificate, now time.Time) error {
-	return verify(doc, host, certs, root, now, true)
+	return verify(doc, host, certs, root, now, true, false)
 }
 
-func verify(doc, host string, certs []*x509.Certificate, root *x509.Certificate, now time.Time, firefox bool) error {
+// InspectDocument authenticates a stored document's signer, profile, hostname,
+// signature and hash-list structure at its issuance time. It does NOT establish
+// TLS certificate coverage or current validity; use Verify for acceptance. This
+// permits storage collection to recognize orphaned, unpublished candidates.
+func InspectDocument(doc, host string, root *x509.Certificate, firefox bool) (Header, error) {
+	h, _, _, _, e := Decode(doc)
+	if e == nil {
+		e = verify(doc, host, nil, root, time.Unix(h.Iat, 0), firefox, true)
+	}
+	return h, e
+}
+
+func verify(doc, host string, certs []*x509.Certificate, root *x509.Certificate, now time.Time, firefox, inspect bool) error {
 	h, cs, sig, input, e := Decode(doc)
 	if e != nil {
 		return e
@@ -186,8 +198,31 @@ func verify(doc, host string, certs []*x509.Certificate, root *x509.Certificate,
 	if !cs[len(cs)-1].Equal(root) {
 		return errors.New("chain does not end in configured QWAC authority")
 	}
-	if h.SigD.MID != "http://uri.etsi.org/19182/ObjectIdByURIHash" || h.SigD.HashM != "S256" || len(h.SigD.Pars) != len(h.SigD.HashV) || len(certs) == 0 {
+	if h.SigD.MID != "http://uri.etsi.org/19182/ObjectIdByURIHash" || h.SigD.HashM != "S256" || len(h.SigD.Pars) != len(h.SigD.HashV) || len(h.SigD.Pars) == 0 {
 		return errors.New("invalid sigD")
+	}
+	seen := map[string]bool{}
+	for n, p := range h.SigD.Pars {
+		if len(p) != 68 || !strings.HasSuffix(p, ".cer") || p != strings.ToLower(p) || seen[p] {
+			return errors.New("invalid or duplicate sigD identifier")
+		}
+		seen[p] = true
+		if _, e = hex.DecodeString(p[:64]); e != nil {
+			return errors.New("invalid sigD identifier")
+		}
+		hash, err := base64.RawURLEncoding.DecodeString(h.SigD.HashV[n])
+		if err != nil || len(hash) != sha256.Size {
+			return errors.New("invalid sigD hash")
+		}
+	}
+	if h.Exp > cs[0].NotAfter.Unix() {
+		return errors.New("expiry exceeds QWAC maximum")
+	}
+	if inspect {
+		return nil
+	}
+	if len(certs) == 0 {
+		return errors.New("empty TLS certificate set")
 	}
 	latest := certs[0].NotAfter
 	for _, c := range certs {
@@ -195,8 +230,8 @@ func verify(doc, host string, certs []*x509.Certificate, root *x509.Certificate,
 			latest = c.NotAfter
 		}
 		found := false
-		for _, v := range h.SigD.HashV {
-			if v == TLSHash(c) {
+		for n, v := range h.SigD.HashV {
+			if v == TLSHash(c) && h.SigD.Pars[n] == ID(c)+".cer" {
 				found = true
 			}
 		}
