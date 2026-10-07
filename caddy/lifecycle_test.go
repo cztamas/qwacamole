@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestInFlightOperationRetainsOwnershipPastModuleCleanup(t *testing.T) {
@@ -49,5 +50,28 @@ func TestInFlightOperationRetainsOwnershipPastModuleCleanup(t *testing.T) {
 	}
 	if _, e = lock.Stat(); e == nil {
 		t.Fatal("state lock still open")
+	}
+}
+
+func TestRetryBackoffIsBoundedAndJittered(t *testing.T) {
+	seen := map[time.Duration]bool{}
+	for _, attempt := range []int{1, 2, 7, 100} {
+		base := time.Second
+		if attempt == 2 {
+			base = 2 * time.Second
+		}
+		if attempt >= 7 {
+			base = 48 * time.Second
+		}
+		for range 20 {
+			d := retryDelay(attempt)
+			if d < base || d >= base*5/4 || d >= time.Minute {
+				t.Fatal("retry outside bounds", attempt, d)
+			}
+			seen[d] = true
+		}
+	}
+	if len(seen) < 4 {
+		t.Fatal("retry jitter absent")
 	}
 }

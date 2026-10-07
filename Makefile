@@ -27,6 +27,9 @@ firefox-check:
 # Requires a Firefox demo state and its fixture server; see docs/firefox.md.
 firefox-test:
 	bin/qwacamole firefox-suite -state $(STATE) $(BROWSER_ARGS)
+.PHONY: firefox-integration
+firefox-integration: bootstrap-firefox build
+	bin/qwacamole firefox-integration -state $(STATE) $(BROWSER_ARGS)
 test:
 	$(GO) test -race ./...
 	cd caddy && $(GO) test -race ./...

@@ -9,15 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOEXPERIMENT: nojsonv2
+      GOPRIVATE: github.com/cztamas/qwacamole
     steps:
       - uses: actions/checkout@v4
+      # Go resolves the real core version in its own VCS cache, outside the
+      # checkout. Reuse checkout's read-only repository credential there too.
+      - name: Scope private module authentication to this repository
+        run: git config --global http.https://github.com/cztamas/qwacamole.extraheader "$(git config --get http.https://github.com/.extraheader)"
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.1'
           cache-dependency-path: |
             caddy/go.sum
             devtools/go.sum
-      - name: All module race tests
+      - name: All module race tests (transactions, crash recovery, cache, retention and concurrency)
         run: |
           go test -race ./...
           (cd caddy && go test -race ./...)
@@ -32,10 +37,13 @@ jobs:
           cp "$(go env GOPATH)/bin/pebble" .tools/bin/pebble
           GOWORK=off xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@v0.0.0="$PWD/caddy" --replace github.com/cztamas/qwacamole="$PWD" --output bin/caddy-plugin
           (cd devtools && go build -o ../bin/qwacamole ./cmd/qwacamole)
-      - name: Real ACME application and reload checks (no browser bootstrap)
+      - name: Real ACME multi-site cache, WebSocket, renewal and offline retirement checks
         run: bin/qwacamole plugin-smoke -state .local/ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: plugin-smoke-evidence
           path: .local/ci/**/evidence/
+      - name: Remove private module authentication
+        if: always()
+        run: git config --global --unset-all http.https://github.com/cztamas/qwacamole.extraheader || true

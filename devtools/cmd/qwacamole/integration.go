@@ -74,7 +74,7 @@ func integration(dir, binary, metadata string) error {
 		return e
 	}
 	run := func(name string) error {
-		r, e := browser.Run(browser.Options{Binary: binary, Profile: profile, NetLog: filepath.Join(dir, "evidence", name+"-netlog.json"), URL: "https://qwac.example.com:8443/?fresh=" + name, InitURL: "https://qwac.example.com:8443/init", CTException: true})
+		r, e := browser.Run(browser.Options{Binary: binary, Profile: profile, NetLog: filepath.Join(dir, "evidence", name+"-netlog.json"), URL: "https://qwac.example.com:8443/?fresh=" + name, InitURL: "https://qwac.example.com:8443/init", CTException: true, ThroughTLSExpiry: name == "held-through-tls-expiry"})
 		_ = writeJSON(filepath.Join(dir, "evidence", name+"-result.json"), r)
 		if e != nil {
 			return e
@@ -92,6 +92,10 @@ func integration(dir, binary, metadata string) error {
 		return e
 	}
 	fmt.Println("PASS native renewed binding, profile unchanged")
+	if e = run("held-through-tls-expiry"); e != nil {
+		return e
+	}
+	fmt.Println("PASS continuous native HTTP/2 verification through TLS expiry and a full binding refresh lifetime")
 	if e = os.WriteFile(filepath.Join(dir, "restart-request"), nil, 0600); e != nil {
 		return e
 	}
@@ -126,7 +130,7 @@ func integration(dir, binary, metadata string) error {
 	defer func() { _ = fixture.Process.Signal(syscall.SIGTERM); _ = fixture.Wait() }()
 	time.Sleep(time.Second)
 	err := suite(dir, binary, metadata)
-	summary := map[string]any{"initial_native_verified": true, "renewal_native_verified": true, "profile_unchanged": true, "restart_recovered": true, "independent_refresh": true, "renewal_failure_gates": true, "negative_suite_passed": err == nil}
+	summary := map[string]any{"initial_native_verified": true, "renewal_native_verified": true, "continuous_http2_through_tls_expiry": true, "profile_unchanged": true, "restart_recovered": true, "independent_refresh": true, "renewal_failure_gates": true, "negative_suite_passed": err == nil}
 	if err != nil {
 		summary["blocker"] = err.Error()
 	}

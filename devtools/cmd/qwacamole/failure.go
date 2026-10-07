@@ -80,7 +80,7 @@ func failureTest(dir string) error {
 			if e != nil {
 				return e
 			}
-			if e = binding.Verify(string(doc), "qwac.example.com", []*x509.Certificate{old}, qr, time.Now()); e != nil {
+			if e = verifyDemoBinding(dir, string(doc), []*x509.Certificate{old}, qr, time.Now()); e != nil {
 				return fmt.Errorf("previous binding unavailable during %s: %w", mode, e)
 			}
 			logs, e := os.ReadFile(logPath)

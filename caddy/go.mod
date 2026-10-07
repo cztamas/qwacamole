@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/caddyserver/caddy/v2 v2.10.2
 	github.com/caddyserver/certmagic v0.24.0
-	github.com/cztamas/qwacamole v0.0.0-20261006174406-ced6241dd061
+	github.com/cztamas/qwacamole v0.0.0-20261007082742-d576a2929a0f
 	go.uber.org/zap v1.27.0
 	golang.org/x/sys v0.34.0
 )

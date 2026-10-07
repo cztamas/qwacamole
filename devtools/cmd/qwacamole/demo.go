@@ -6,10 +6,13 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/cztamas/qwacamole/devtools/internal/cacheproxy"
 	"github.com/cztamas/qwacamole/devtools/internal/pki"
 	"github.com/miekg/dns"
 	"io"
+	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -128,6 +131,32 @@ func demo(dir string) error {
 		binding["firefox_compatibility"] = true
 	}
 	caddyConfig := map[string]any{"admin": map[string]any{"listen": "127.0.0.1:2019"}, "storage": map[string]any{"module": "file_system", "root": filepath.Join(dir, "caddy-storage")}, "apps": map[string]any{"tls": map[string]any{"automation": map[string]any{"renew_interval": "2s", "policies": []any{map[string]any{"subjects": []string{"qwac.example.com"}, "renewal_window_ratio": 0.8, "issuers": []any{map[string]any{"module": "qwac_demo", "binding": binding, "acme": map[string]any{"ca": "https://localhost:14000/dir", "test_ca": "https://localhost:14000/dir", "trusted_roots_pem_files": []string{filepath.Join(pkidir, "acme-root.pem")}, "challenges": map[string]any{"http": map[string]any{"alternate_port": 5002}, "tls-alpn": map[string]any{"disabled": true}}}}}}}}}, "http": map[string]any{"http_port": 5002, "https_port": 8443, "servers": map[string]any{"demo": map[string]any{"listen": []string{"127.0.0.1:8443"}, "automatic_https": map[string]any{"disable_redirects": true}, "tls_connection_policies": []any{map[string]any{}}, "protocols": []string{"h1", "h2"}, "routes": []any{map[string]any{"match": []any{map[string]any{"path": []string{"/init"}}}, "handle": []any{map[string]any{"handler": "qwac_demo", "binding": binding, "pki": pkidir}}}, map[string]any{"match": []any{map[string]any{"host": []string{"qwac.example.com"}}}, "handle": []any{map[string]any{"handler": "qwac_demo_binding", "binding": binding}, map[string]any{"handler": "qwac_demo", "binding": binding, "pki": pkidir}}}}}, "challenge": map[string]any{"listen": []string{"127.0.0.1:5002"}, "routes": []any{map[string]any{"handle": []any{map[string]any{"handler": "qwac_demo", "pki": pkidir, "public_pki_only": true}}}}}}}}}
+	// A separate loopback HTTP intermediary stores the origin response with its
+	// Link. The browser-facing /cached route bypasses binding middleware, proving
+	// that discovery survives without regenerating headers on cache hits.
+	cacheRoots := x509.NewCertPool()
+	if !cacheRoots.AppendCertsFromPEM(roots) {
+		return fmt.Errorf("cache TLS authority unavailable")
+	}
+	cacheTransport := &http.Transport{TLSClientConfig: &tls.Config{RootCAs: cacheRoots}, DialContext: func(ctx context.Context, network, _ string) (net.Conn, error) {
+		return (&net.Dialer{}).DialContext(ctx, network, "127.0.0.1:8443")
+	}, ForceAttemptHTTP2: true}
+	defer cacheTransport.CloseIdleConnections()
+	cache := &cacheproxy.Proxy{Origin: "https://qwac.example.com:8443/cache-origin", Client: &http.Client{Transport: cacheTransport, Timeout: 5 * time.Second}}
+	intermediary := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/counts" {
+			requests, hits := cache.Counts()
+			_ = json.NewEncoder(w).Encode(map[string]int{"requests": requests, "hits": hits})
+			return
+		}
+		cache.ServeHTTP(w, r)
+	}))
+	defer intermediary.Close()
+	if e = writeJSON(filepath.Join(dir, "evidence/cache-intermediary.json"), map[string]string{"address": intermediary.URL, "origin": cache.Origin}); e != nil {
+		return e
+	}
+	server := caddyConfig["apps"].(map[string]any)["http"].(map[string]any)["servers"].(map[string]any)["demo"].(map[string]any)
+	server["routes"] = append([]any{map[string]any{"match": []any{map[string]any{"host": []string{"qwac.example.com"}, "path": []string{"/cached"}}}, "handle": []any{map[string]any{"handler": "reverse_proxy", "upstreams": []any{map[string]any{"dial": intermediary.Listener.Addr().String()}}}}, "terminal": true}}, server["routes"].([]any)...)
 	if e = writeJSON(filepath.Join(dir, "caddy.json"), caddyConfig); e != nil {
 		return e
 	}

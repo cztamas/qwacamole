@@ -15,14 +15,14 @@ export GOPRIVATE=github.com/cztamas/qwacamole
 export GOEXPERIMENT=nojsonv2
 # Preserve other existing GOPRIVATE entries if you already have them.
 go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
-xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@f6261bde56fc8a536c8f8340be8e540915b2e46e
+xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@234f8d7e20a5863f3f2929e50a8e11f24650064e
 ```
 
-The implemented plugin resolves to `v0.0.0-20261007072646-f6261bde56fc`;
-the [dated evidence](evidence-review-20261007.md) records the fresh-cache remote
+The implemented plugin resolves to `v0.0.0-20261007085522-234f8d7e20a5`;
+the [dated evidence](evidence-hardening-20261007.md) records the fresh-cache remote
 build and module inventory. Repository examples and checks for this stage are on
-`codex/installable-caddy-plugin`; after an authenticated clone, use
-`git checkout codex/installable-caddy-plugin` to work with them. The immutable
+`codex/public-alpha-hardening`; after an authenticated clone, use
+`git checkout codex/public-alpha-hardening` to work with them. The immutable
 installation command above does not require a checkout.
 Use Go **1.27.1 or newer compatible toolchain** (tested 1.27.1), xcaddy **0.4.5**,
 Caddy **2.10.2**. The `nojsonv2` workaround preserves the reflected identity of
@@ -51,8 +51,8 @@ go version -m ./caddy
 
 Expect `tls.issuance.qwac` and `http.handlers.qwac`, no `qwac_demo` modules and no
 `qwacamole/devtools` dependency. The core dependency is the remotely resolved
-`v0.0.0-20261006174406-ced6241dd061` (commit
-`ced6241dd061c851af7972b20932680be66596fe`). Local development retains the root
+`v0.0.0-20261007082742-d576a2929a0f` (commit
+`d576a2929a0fc6105fd61668b7b31c18c1a20809`). Local development retains the root
 workspace; `make build` includes development adapters and `make plugin-build`
 builds only the integration using explicit local replacements.
 
@@ -85,7 +85,7 @@ qwac.example.com {
         chain_files /etc/caddy/qwac-chain.pem
         key_file /etc/caddy/qwac-key.pem
         trust_files /etc/caddy/qwac-authority.pem
-        lifetime 45s
+        lifetime 1h
         acme {
             dir https://acme-v02.api.letsencrypt.org/directory
             email admin@example.com
@@ -137,10 +137,12 @@ automatic enrollment are not supported. The supported certificate profile is
 QC compliance/web-type statements, SAN, AIA and CRL metadata. Presence of those
 fields does not establish revocation freshness or legal qualification.
 
-The binding lifetime defaults to **45s**, minimum **1s**. It is capped by QWAC
-leaf and latest retained TLS leaf validity; the worker independently refreshes
-when at most 15s remains. JSON accepts either `"45s"` or legacy numeric
-nanoseconds. Strict standard bindings are default. Set the explicit
+The binding lifetime defaults to **1h**, minimum **3s**. It is capped by QWAC
+leaf and latest retained TLS leaf validity. Refresh uses actual signed expiry,
+with a default margin of one third of the configured/effective lifetime. JSON
+accepts readable durations or legacy numeric nanoseconds. See the
+[operational policy](operations.md) for limits, diagnostics and offline retirement.
+Strict standard bindings are default. Set the explicit
 `firefox_compatibility` switch (JSON `true`) for the known Firefox crit-header
 compatibility variant; it is never chosen from User-Agent.
 
@@ -170,8 +172,9 @@ and only files change. Replace the leaf/bundle and its matching key consistently
 prefer atomic file replacement before reload, avoid in-place truncation of live
 files. Inconsistent files reject provisioning without installing the candidate.
 Each new configuration rereads and validates the supplied files. An overlapping
-config stages credentials; at first live use its replacement binding is signed,
-independently verified and durably published before advertisement. Old handlers
+config stages credentials and all retained/stored/new TLS leaves together; at
+first live use one complete replacement binding is signed, independently verified
+and durably published before switching signer, coverage or generation. Old handlers
 and issuance tasks continue sharing current material/state and cannot reinstall
 an older credential generation. Only one refresh worker exists per state owner;
 old cleanup cannot stop a new lease. Rejected validation/reload starts no new
@@ -188,16 +191,22 @@ retained coverage, and republishes before advertising recovered material.
 
 ## HTTP behavior and failure handling
 
-The reserved endpoint is **`/bindings/<64 lower-case hex SHA-256>.jose`**. GET
-returns independently verified, content-addressed, retained `application/jose`,
+The advertised discovery endpoint is **`/bindings/current.jose`**, stable across
+refresh, renewal and QWAC replacement. GET returns a verified copy of one committed
+current document, `application/jose`, `Cache-Control: no-store`. Expired/unavailable
+current state returns 503. Binding responses never advertise themselves.
+
+Immutable **`/bindings/<64 lower-case hex SHA-256>.jose`** artifacts remain separate
+for recovery and grace-protected historical access. GET returns independently
+verified, content-addressed, retained `application/jose`,
 `Cache-Control: no-store`. HEAD has identical response metadata without a body;
 other methods return 405 with `Allow: GET, HEAD`. Invalid names, traversal,
 symlinks, unknown files or modified/unverifiable documents return 404. Historical
-immutable documents remain available (including expired documents, whose signed
-expiry the consumer must evaluate); only a current unexpired binding is advertised.
+immutable documents remain available until collection eligibility (including
+expired documents, whose signed expiry the consumer must evaluate).
 The endpoint never maps arbitrary files/private material.
 
-For ordinary protected responses the middleware appends the current binding Link
+For ordinary protected responses the middleware appends the stable discovery Link
 at final response commit, after downstream headers. Other application Link values
 and Cache-Control survive. Status, bodies and streaming are passed through without
 buffering. Applications should reserve the binding relation for this middleware.
@@ -210,10 +219,19 @@ retry/independent refresh can recover; inspect Caddy logs before changing trust.
 
 Every published TLS leaf remains in binding coverage, including an authenticated
 HTTP/2 connection that outlives leaf expiry. This does not waive expiry checks on
-new handshakes. All immutable documents/history are retained for the state
-lifetime; disk and binding size grow with renewals. No garbage collection or
-distributed/multi-host storage is implemented. Back up and monitor growth, and do
-not delete history while protected connections may depend on it.
+new handshakes. Automatic document collection preserves current/staged artifacts
+and a default 24h grace after both signed expiry and file modification. It never
+prunes TLS coverage. Enforced defaults refuse additions beyond 256 retained leaves
+or publications above 1 MiB; exceeding capacity can prevent TLS renewal. Follow
+the [full drain/offline retirement procedure](operations.md#offline-tls-retirement)
+before capacity is reached. Distributed storage is unsupported; multiple
+independent single-host owners may run in one Caddy instance with separate state.
+
+Caddy evaluates `handle_errors` outside the normal middleware chain. Put a
+`qwac_binding` handler with identical settings first inside custom error routes
+that must advertise bindings. This preserves arbitrary error-handler Link/cache
+headers at commit; the site-level normal handler cannot wrap that separate chain.
+In advanced JSON, pair the same middleware in `servers.*.errors.routes`.
 
 ## Troubleshooting
 
@@ -234,15 +252,19 @@ not delete history while protected connections may depend on it.
 make test                 # race tests in core, Caddy and devtools; boundaries
 make plugin-smoke STATE=.local/plugin-smoke
 # Uses a fresh outside-checkout module cache and no replacements/devtools:
-scripts/check-remote-install.sh f6261bde56fc8a536c8f8340be8e540915b2e46e
+scripts/check-remote-install.sh 234f8d7e20a5863f3f2929e50a8e11f24650064e
 ```
 
 The portable smoke builds no browsers: it supplies synthetic TEST PEMs from
 **devtools**, runs real Pebble validation/issuance/automatic renewal, serves a real
 proxy/static application, exercises reload/replacement/rejection/restart, and
 records logs plus result JSON in a new state subdirectory. The `Caddyfile.pebble`
-example is adapted then only its renewal interval/ratio is shortened in JSON for
-this test. It uses local ports 8443, 5002, 8053/UDP, 14000, 15000 and 2019; stop
+example is adapted with accelerated renewal and explicit 6s binding lifetime/3s
+document grace. Checks include a real cache across expiry/renewal/replacement,
+conditional responses, redirects, WebSocket traffic, collection, two independent
+protected sites and an unprotected site, custom error routes, and full-stop offline
+retirement with preserved Caddy TLS storage. It uses local
+ports 8443, 5002, 8053/UDP, 14000, 15000 and 2019 plus temporary loopback ports; stop
 other owned demos before running. The CI workflow runs portable Go/plugin checks
 on Linux without the macOS bootstrap. Native Chrome/Firefox checks remain a
 separate supported-macOS check; see the README and dated evidence.

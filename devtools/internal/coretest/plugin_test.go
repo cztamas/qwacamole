@@ -256,10 +256,10 @@ func TestHeadersDocumentsStreamingAndUnrelatedHosts(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if w.Code != 201 || w.Body.String() != "firstsecond" || !w.Flushed || w.Header().Get("Cache-Control") != "public, max-age=321" || len(w.Header().Values("Link")) != 3 || !strings.Contains(strings.Join(w.Header().Values("Link"), ","), l.Manager().Snapshot().URL) {
+	if w.Code != 201 || w.Body.String() != "firstsecond" || !w.Flushed || w.Header().Get("Cache-Control") != "public, max-age=321" || len(w.Header().Values("Link")) != 3 || !strings.Contains(strings.Join(w.Header().Values("Link"), ","), store.DiscoveryURL) {
 		t.Fatal("application response changed", w)
 	}
-	url := l.Manager().Snapshot().URL
+	url := store.DiscoveryURL
 	get, e := request(h, url, "GET", nil)
 	if e != nil {
 		t.Fatal(e)

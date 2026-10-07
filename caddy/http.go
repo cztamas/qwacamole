@@ -10,11 +10,23 @@ import (
 )
 
 func (h *Handler) serveDocument(w http.ResponseWriter, r *http.Request) error {
+	// Error/method responses must not be cached either. Do not add a binding Link
+	// here: discovery responses must not advertise themselves recursively.
+	w.Header().Set("Cache-Control", "no-store")
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		w.Header().Set("Allow", "GET, HEAD")
 		return caddyhttp.Error(405, nil)
 	}
-	d, e := h.manager.Document(r.URL.Path)
+	var d []byte
+	var e error
+	if r.URL.Path == store.DiscoveryURL {
+		d, e = h.manager.CurrentDocument()
+		if e != nil {
+			return caddyhttp.Error(503, e)
+		}
+	} else {
+		d, e = h.manager.Document(r.URL.Path)
+	}
 	if e != nil {
 		return caddyhttp.Error(404, e)
 	}
@@ -54,7 +66,7 @@ func (w *bindingWriter) WriteHeader(status int) {
 		w.ResponseWriter.WriteHeader(503)
 		return
 	}
-	w.Header().Add("Link", fmt.Sprintf(`<%s>; rel="tls-certificate-binding"`, s.URL))
+	w.Header().Add("Link", fmt.Sprintf(`<%s>; rel="tls-certificate-binding"`, store.DiscoveryURL))
 	w.ResponseWriter.WriteHeader(status)
 }
 func (w *bindingWriter) Write(d []byte) (int, error) {

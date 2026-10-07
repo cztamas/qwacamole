@@ -22,4 +22,5 @@ Chrome's own Security panel should show <strong>EU Qualified Status</strong> and
 <p>This page reports server state. It cannot independently attest browser QWAC verification;
 that evidence comes from Chrome's native Security panel and Chromium NetLog.</p>{{end}}
 <h2>Published TLS identifiers</h2><ul>{{range .IDs}}<li><code>{{.}}</code></li>{{end}}</ul>
-<p>Binding: <a href="{{.URL}}">{{.URL}}</a></p><p>Expiry (Unix): {{.Expires}}</p></body></html>`))
+<p>Current binding: <a href="{{.DiscoveryURL}}">{{.DiscoveryURL}}</a></p>
+<p>Immutable artifact: <a href="{{.URL}}">{{.URL}}</a></p><p>Expiry (Unix): {{.Expires}}</p></body></html>`))
