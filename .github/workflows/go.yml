@@ -9,8 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOEXPERIMENT: nojsonv2
+      GOPRIVATE: github.com/cztamas/qwacamole
     steps:
       - uses: actions/checkout@v4
+      # Go resolves the real core version in its own VCS cache, outside the
+      # checkout. Reuse checkout's read-only repository credential there too.
+      - name: Scope private module authentication to this repository
+        run: git config --global http.https://github.com/cztamas/qwacamole.extraheader "$(git config --get http.https://github.com/.extraheader)"
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.1'
@@ -39,3 +44,6 @@ jobs:
         with:
           name: plugin-smoke-evidence
           path: .local/ci/**/evidence/
+      - name: Remove private module authentication
+        if: always()
+        run: git config --global --unset-all http.https://github.com/cztamas/qwacamole.extraheader || true

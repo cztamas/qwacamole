@@ -85,7 +85,7 @@ func lifecycle(dir string) error {
 		if e != nil {
 			return e
 		}
-		if e = binding.Verify(string(b), "qwac.example.com", []*x509.Certificate{oldCert}, qr, time.Now()); e != nil {
+		if e = verifyDemoBinding(dir, string(b), []*x509.Certificate{oldCert}, qr, time.Now()); e != nil {
 			return e
 		}
 		fresh, e := tls.Dial("tcp", "127.0.0.1:8443", &tls.Config{RootCAs: roots, ServerName: "qwac.example.com"})
@@ -97,7 +97,7 @@ func lifecycle(dir string) error {
 		if oldCert.Equal(newCert) {
 			continue
 		}
-		if e = binding.Verify(string(b), "qwac.example.com", []*x509.Certificate{oldCert, newCert}, qr, time.Now()); e != nil {
+		if e = verifyDemoBinding(dir, string(b), []*x509.Certificate{oldCert, newCert}, qr, time.Now()); e != nil {
 			return e
 		}
 		report := map[string]any{"old_tls_id": binding.ID(oldCert), "new_tls_id": binding.ID(newCert), "elapsed_seconds": time.Since(start).Seconds(), "existing_connection_tls_id": binding.ID(r.TLS.PeerCertificates[0]), "binding_url": state.URL, "old_and_new_bound": true}
@@ -109,4 +109,15 @@ func lifecycle(dir string) error {
 		return nil
 	}
 	return fmt.Errorf("automatic rotation not observed within five minutes")
+}
+
+// Compatibility is selected only by the explicit Firefox demo state marker.
+// Shared lifecycle checks otherwise keep the strict standard binding verifier.
+func verifyDemoBinding(dir, document string, certs []*x509.Certificate, root *x509.Certificate, now time.Time) error {
+	if _, e := os.Stat(filepath.Join(dir, "firefox-compatibility")); e == nil {
+		return binding.VerifyFirefox(document, "qwac.example.com", certs, root, now)
+	} else if !os.IsNotExist(e) {
+		return e
+	}
+	return binding.Verify(document, "qwac.example.com", certs, root, now)
 }

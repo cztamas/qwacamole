@@ -15,14 +15,14 @@ export GOPRIVATE=github.com/cztamas/qwacamole
 export GOEXPERIMENT=nojsonv2
 # Preserve other existing GOPRIVATE entries if you already have them.
 go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
-xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@f6261bde56fc8a536c8f8340be8e540915b2e46e
+xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@1ecccf0df725a9ae2a33c91a57375f97029618e3
 ```
 
-The implemented plugin resolves to `v0.0.0-20261007072646-f6261bde56fc`;
-the [dated evidence](evidence-review-20261007.md) records the fresh-cache remote
+The implemented plugin resolves to `v0.0.0-20261007083852-1ecccf0df725`;
+the [dated evidence](evidence-hardening-20261007.md) records the fresh-cache remote
 build and module inventory. Repository examples and checks for this stage are on
-`codex/installable-caddy-plugin`; after an authenticated clone, use
-`git checkout codex/installable-caddy-plugin` to work with them. The immutable
+`codex/public-alpha-hardening`; after an authenticated clone, use
+`git checkout codex/public-alpha-hardening` to work with them. The immutable
 installation command above does not require a checkout.
 Use Go **1.27.1 or newer compatible toolchain** (tested 1.27.1), xcaddy **0.4.5**,
 Caddy **2.10.2**. The `nojsonv2` workaround preserves the reflected identity of
@@ -51,8 +51,8 @@ go version -m ./caddy
 
 Expect `tls.issuance.qwac` and `http.handlers.qwac`, no `qwac_demo` modules and no
 `qwacamole/devtools` dependency. The core dependency is the remotely resolved
-`v0.0.0-20261006174406-ced6241dd061` (commit
-`ced6241dd061c851af7972b20932680be66596fe`). Local development retains the root
+`v0.0.0-20261007082742-d576a2929a0f` (commit
+`d576a2929a0fc6105fd61668b7b31c18c1a20809`). Local development retains the root
 workspace; `make build` includes development adapters and `make plugin-build`
 builds only the integration using explicit local replacements.
 

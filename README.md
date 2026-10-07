@@ -299,6 +299,21 @@ specific gap is accepted; any other failure, missing native result, trust error
 on a positive case, or timeout needs investigation. Inspect the printed run's
 `evidence/integration.json` and `evidence/browser-suite.json`.
 
+After Chrome exits and releases its ports, run the fresh Firefox counterpart:
+
+```sh
+make firefox-integration STATE=.local/firefox-acceptance
+```
+
+It uses one unchanged isolated profile and TLS trust across renewal, independent
+refresh, same-authority QWAC replacement, restart and failure recovery. A real
+HTTP intermediary caches `/cached` for ten minutes; Firefox must still show the
+native qualified owner after the original binding expires and the credentials
+change. Its eleven native fixture checks must all pass, and the command must
+exit zero. Results are under the printed `firefox-integration-*/evidence/` path,
+including `firefox-integration.json`, `cache-*.json`, `firefox-suite.json` and
+per-navigation native panel state. Stop any visible demo before running it.
+
 To select a browser/component explicitly, replace the paths with your installed
 pair (the metadata argument is the version directory, not its parent):
 
