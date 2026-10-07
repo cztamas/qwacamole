@@ -1,4 +1,4 @@
-name: Portable Go and plugin integration
+name: Portable Go, Caddy and Certbot Nginx integration
 on:
   push:
   pull_request:
@@ -20,13 +20,17 @@ jobs:
         with:
           go-version: '1.27.1'
           cache-dependency-path: |
+            agent/go.sum
             caddy/go.sum
             devtools/go.sum
       - name: All module race tests (transactions, crash recovery, cache, retention and concurrency)
         run: |
           go test -race ./...
+          (cd agent && go test -race ./...)
           (cd caddy && go test -race ./...)
           (cd devtools && go test -race ./...)
+      - name: Independently pinned module races (GOWORK=off, no replacements)
+        run: GO=go scripts/check-independent-modules.sh
       - name: Dependency boundaries
         run: GO=go scripts/check-boundaries.sh
       - name: Pinned portable tools and plugin-only binary
@@ -37,13 +41,24 @@ jobs:
           cp "$(go env GOPATH)/bin/pebble" .tools/bin/pebble
           GOWORK=off xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@v0.0.0="$PWD/caddy" --replace github.com/cztamas/qwacamole="$PWD" --output bin/caddy-plugin
           (cd devtools && go build -o ../bin/qwacamole ./cmd/qwacamole)
+      - name: Certbot and Nginx tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nginx
+          python3 -m venv .tools/certbot-venv
+          .tools/certbot-venv/bin/pip install 'certbot==5.8.0'
+          (cd agent && go build -o ../bin/qwacamole-agent ./cmd/qwacamole-agent)
+      - name: Real Certbot webroot issuance, controlled Nginx lifecycle and fail-closed gate
+        run: bin/qwacamole nginx-smoke -state .local/ci-nginx -nginx /usr/sbin/nginx
       - name: Real ACME multi-site cache, WebSocket, renewal and offline retirement checks
         run: bin/qwacamole plugin-smoke -state .local/ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: plugin-smoke-evidence
-          path: .local/ci/**/evidence/
+          path: |
+            .local/ci/**/evidence/
+            .local/ci-nginx/**/evidence/
       - name: Remove private module authentication
         if: always()
         run: git config --global --unset-all http.https://github.com/cztamas/qwacamole.extraheader || true

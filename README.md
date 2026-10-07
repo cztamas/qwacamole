@@ -31,6 +31,24 @@ For Firefox, start with [Firefox quickstart](#firefox-quickstart).
 [Architecture](#architecture-and-lifecycle), and
 [Browser trust and CT](#isolated-browser-trust-and-ct) explain the setup in detail.
 
+## Certbot + Nginx agent
+
+The feature branch `codex/certbot-nginx-agent` adds the production
+`qwacamole-agent` executable in `agent/`. It uses supplied QWAC credentials and
+controls Certbot deployment into Nginx through a private local socket, durable
+binding publication, immutable TLS generations, validated reload and fresh TLS
+confirmation. The [agent guide](docs/agent-nginx.md) covers configuration,
+permissions, service setup, hooks, recovery and retirement. Engineering acceptance
+is still in progress in the [agent ledger](docs/agent-nginx-plan.md); the
+[dated evidence](docs/evidence-agent-nginx-20261007.md) distinguishes executed
+checks from outstanding browser and installation gates.
+
+```sh
+make agent-build
+make bootstrap-nginx  # isolated development dependencies on macOS
+make nginx-smoke STATE=.local/nginx-smoke
+```
+
 ## Installable Caddy plugin
 
 The current hardening branch prepares an **unpublished public alpha**. It adds
@@ -588,7 +606,8 @@ NetLog chain and binding result supply browser verification evidence.
 
 | File / directory | Purpose |
 |---|---|
-| `binding/`, `profile/`, `credentials/`, `store/` | Reusable core; standard library only |
+| `binding/`, `profile/`, `credentials/`, `store/`, `lifecycle/`, `bindinghttp/` | Reusable core; standard library only |
+| `agent/` | Production `qwacamole-agent`, local Certbot control and durable Nginx deployment |
 | `caddy/modules.go` | Production ACME issuer gate and binding middleware |
 | `devtools/modules.go`, `page.go` | Development fault adapters and diagnostic HTTP components |
 | `devtools/internal/pki/` | Synthetic issuance and Mozilla's public test fixture |
@@ -606,7 +625,7 @@ Firefox demo, and `make firefox-test` runs its separately started fixture suite
 `make build` builds both binaries; `make browser-demo` builds, starts fresh local
 services, and opens visible Chrome with the selected owner data; `make demo`
 builds and starts services without a browser;
-`make test` runs Go race tests in all three modules and checks dependency boundaries (run `make build` first to install the pinned runtime); `make browser-check` checks
+`make test` runs Go race tests in all four modules and checks dependency boundaries (run `make build` first to install the pinned runtime); `make browser-check` checks
 an already running demo; `make browser-test` (also `make integration-test`) runs
 the complete fresh-state demonstration. `make fixture` starts the negative
 fixtures for an existing state's PKI. `make clean` and `make clean-all` use the
@@ -619,11 +638,12 @@ metadata paths. The bootstrap and supervisor depend on repository-relative
 
 ## Modules, APIs and local builds
 
-The versioned `go.work` connects three Go modules:
+The versioned `go.work` connects four Go modules:
 
 | Module | Packages and responsibility | Allowed dependencies |
 |---|---|---|
-| `github.com/cztamas/qwacamole` (root) | `credentials`, `profile`, `binding`, `store`: RS256 material loading, certificate profile, signing/verification, durable publication/recovery | Standard library |
+| `github.com/cztamas/qwacamole` (root) | `credentials`, `profile`, `binding`, `store`, `lifecycle`, `bindinghttp`: RS256 material loading, certificate profile, signing/verification, durable publication/recovery | Standard library |
+| `github.com/cztamas/qwacamole/agent` | `cmd/qwacamole-agent`, local control, Nginx deployment and journal reconciliation | Core and standard library |
 | `github.com/cztamas/qwacamole/caddy` | `Issuer`, `Handler`, `BindingConfig`: ACME gate and HTTP middleware | Core and Caddy/CertMagic |
 | `github.com/cztamas/qwacamole/devtools` | Development Caddy adapters, `cmd/qwacamole`, `internal/pki`, `internal/browser`, PKI-dependent integration tests | Core, plugin and test tools |
 

@@ -3,12 +3,13 @@ module github.com/cztamas/qwacamole/devtools
 go 1.27.1
 
 require (
- github.com/cztamas/qwacamole/agent v0.0.0
 	github.com/caddyserver/caddy/v2 v2.10.2
 	github.com/chromedp/cdproto v0.0.0-20250724212937-08a3db8b4327
 	github.com/chromedp/chromedp v0.14.2
-	github.com/cztamas/qwacamole v0.0.0
-	github.com/cztamas/qwacamole/caddy v0.0.0
+	github.com/cztamas/qwacamole v0.0.0-20261007193456-3c3fc434d5e4
+	github.com/cztamas/qwacamole/agent v0.0.0-20261007200511-2c78d367c557
+	github.com/cztamas/qwacamole/caddy v0.0.0-20261007200511-2c78d367c557
+	github.com/gobwas/ws v1.4.0
 	github.com/miekg/dns v1.1.63
 	google.golang.org/protobuf v1.36.10
 )
@@ -54,7 +55,6 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
-	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/cel-go v0.26.0 // indirect
