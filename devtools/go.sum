@@ -124,8 +124,8 @@ github.com/cpuguy83/go-md2man/v2 v2.0.7 h1:zbFlGlXEAKlwXpmvle3d8Oe3YnkKIK4xSRTd3
 github.com/cpuguy83/go-md2man/v2 v2.0.7/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6NIQQ7OS05n1F4g=
 github.com/cztamas/qwacamole v0.0.0-20261007193456-3c3fc434d5e4 h1:6+95ZafwUc+Y8uJmfks35yvKqot/vbXypaRHZd5QqzY=
 github.com/cztamas/qwacamole v0.0.0-20261007193456-3c3fc434d5e4/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
-github.com/cztamas/qwacamole/agent v0.0.0-20261007204144-a73695c94a9d h1:kGrzPd0Cdk2cJecUadn5r/wNPSXsb2MQBSOOjpyGiEI=
-github.com/cztamas/qwacamole/agent v0.0.0-20261007204144-a73695c94a9d/go.mod h1:ChhnlxGXXsgFnVcyh6Owu/Mi0ufFb/LL9PLRnv1JUbg=
+github.com/cztamas/qwacamole/agent v0.0.0-20261007214159-3170cc6a6ad0 h1:RaG/XlEslmZX/U3TB5Dlj1Cnrd1GW37E/ortaFWTwFg=
+github.com/cztamas/qwacamole/agent v0.0.0-20261007214159-3170cc6a6ad0/go.mod h1:ChhnlxGXXsgFnVcyh6Owu/Mi0ufFb/LL9PLRnv1JUbg=
 github.com/cztamas/qwacamole/caddy v0.0.0-20261007200511-2c78d367c557 h1:O8MwoQbbxOjwZHkSprUNiuuAApdldqLQ8NEDLoCw47s=
 github.com/cztamas/qwacamole/caddy v0.0.0-20261007200511-2c78d367c557/go.mod h1:k4Xhy3Nr5gzqxC6Wfmd/D2iSlqFzTylCjj6kH85Mv2o=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

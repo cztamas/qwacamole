@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -133,6 +134,9 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 	releaseHeld := make(chan struct{})
 	var cache atomic.Pointer[cacheproxy.Proxy]
 	app := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if nginxProxyOrigin(w, r) {
+			return
+		}
 		if r.URL.Path == "/cached" {
 			if p := cache.Load(); p != nil {
 				p.ServeHTTP(w, r)
@@ -316,6 +320,16 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 		}
 	}
 	c.pass("ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses")
+	// Both paths are real network requests. Nginx's unchanged default body limit
+	// is 1 MiB; the larger direct loopback request also forces agent backpressure.
+	proxyErr := errors.Join(
+		nginxWebSocketCheck(c, cfg, &tls.Config{RootCAs: roots, ServerName: cfg.Host}),
+		nginxUploadCheck(c, &http.Client{}, "agent-backpressure", "http://"+cfg.PublicListen+"/application/slow-body", 64<<20),
+		nginxUploadCheck(c, client, "nginx-buffered", "https://"+cfg.Host+":8443/slow-body", 1<<20),
+	)
+	if proxyErr != nil {
+		return proxyErr
+	}
 	for _, test := range []struct {
 		method string
 		code   int

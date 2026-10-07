@@ -59,7 +59,7 @@ jobs:
       - name: Production agent binary
         run: |
           (cd agent && go build -o ../bin/qwacamole-agent ./cmd/qwacamole-agent)
-      - name: Real Certbot webroot issuance, controlled Nginx lifecycle and fail-closed gate
+      - name: Real Nginx WebSocket, slow upload, Certbot lifecycle and fail-closed gate
         run: bin/qwacamole nginx-smoke -state .local/ci-nginx -nginx /usr/sbin/nginx
       - name: Real ACME multi-site cache, WebSocket, renewal and offline retirement checks
         run: bin/qwacamole plugin-smoke -state .local/ci

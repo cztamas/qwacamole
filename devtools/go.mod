@@ -7,7 +7,7 @@ require (
 	github.com/chromedp/cdproto v0.0.0-20250724212937-08a3db8b4327
 	github.com/chromedp/chromedp v0.14.2
 	github.com/cztamas/qwacamole v0.0.0-20261007193456-3c3fc434d5e4
-	github.com/cztamas/qwacamole/agent v0.0.0-20261007204144-a73695c94a9d
+	github.com/cztamas/qwacamole/agent v0.0.0-20261007214159-3170cc6a6ad0
 	github.com/cztamas/qwacamole/caddy v0.0.0-20261007200511-2c78d367c557
 	github.com/gobwas/ws v1.4.0
 	github.com/miekg/dns v1.1.63

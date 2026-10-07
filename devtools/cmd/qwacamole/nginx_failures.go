@@ -262,6 +262,20 @@ func nginxFailureChecks(c *pluginCheck, cfg agent.Config, cfgPath, agentBin, cer
 	if e != nil || code != 403 {
 		return fmt.Errorf("expired state gate bypassed: %d %v", code, e)
 	}
+	req, _ := http.NewRequest("GET", "https://"+cfg.Host+":8443/ws", nil)
+	req.Header.Set("Connection", "Upgrade")
+	req.Header.Set("Upgrade", "websocket")
+	req.Header.Set("Sec-WebSocket-Version", "13")
+	req.Header.Set("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==")
+	upgrade, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	upgrade.Body.Close()
+	if upgrade.StatusCode != 403 {
+		return fmt.Errorf("expired binding allowed Nginx WebSocket upgrade: %d", upgrade.StatusCode)
+	}
+	c.pass("actual signed expiry rejects new Nginx WebSocket upgrade with 403")
 	code, e = response(store.DiscoveryURL)
 	if e != nil || code != 503 {
 		return fmt.Errorf("expired binding delivered: %d %v", code, e)
