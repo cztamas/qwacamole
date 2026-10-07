@@ -43,13 +43,13 @@ report counts as newly executed acceptance.
 
 | Requirement | Evidence needed | Status |
 |---|---|---|
-| Production boundaries | Four modules, standard-library core, Caddy excludes agent/browser, production install | Pending |
-| Shared lifecycle and Caddy locking | Shared worker/delivery, cross-host stalled-signing race, generation/cleanup safety | Pending |
-| Agent operational/control interface | Validation/service/deploy/status/check, exclusive owner, protected socket, HTTP semantics | Pending |
-| Certbot deployment | Documented hook env, real initial/automatic renewal, controlled paths, durable pre-activation binding and verified confirmation | Pending |
-| Journal/reconciliation/failures | Every interruption boundary, invalid material/config, storage/sign/reload failure, rollback/retry and restart | Pending |
-| Nginx behavior/gate | Complete validated config, prerequisite detection, real unavailable/expired/agent-down rejection and app behavior | Pending |
-| Real full lifecycle | Challenge validation, refresh/replacement/cache/held connections/faults/restart/GC/capacity | Pending |
+| Production boundaries | Four modules and dependency checks pass; production agent builds; real remote agent install pending | Partial |
+| Shared lifecycle and Caddy locking | Shared core worker/delivery; cross-host stalled-signing and existing cleanup/generation race regressions pass; actual Caddy and native reruns pending | Partial |
+| Agent operational/control interface | CLI implemented, production daemon used by real smoke; private socket/exclusive owner and HTTP delivery checked; security/failure audit remains | Partial |
+| Certbot deployment | Real initial HTTP-01, normal automatic renew (no force), controlled immutable paths and fresh verified confirmation pass | Partial; final acceptance pending |
+| Journal/reconciliation/failures | Journal, distinct-leaf rollback/retry, publication failures, ownership and restart tests pass; stronger crash/interruption and actual failure coverage pending | Partial |
+| Nginx behavior/gate | Real headers/cache/conditional/redirect/error/binding semantics and agent-down gate pass; explicit expired-state and further fault checks pending | Partial |
+| Real full lifecycle | Thirteen real checks pass: issuance, independent refresh, automatic renewal, original held stream, expired cached discovery, same-authority replacement, GC and restart; faults/capacity remain | Partial |
 | Both native integrations | Fresh Caddy Chrome/Firefox and new Nginx Chrome/Firefox, initial/renewed/cache, unchanged trust, exact Chrome gap | Pending |
 | Independent CI/install | All-module races, workspace and real pinned independent consumers, clean remote Caddy and agent runtime | Pending |
 | Usable documentation | Installation/service/security/monitoring/backup/retirement and new dated report | Pending |

@@ -2,6 +2,7 @@ go 1.27.1
 
 use (
 	.
+	./agent
 	./caddy
 	./devtools
 )
@@ -10,3 +11,4 @@ use (
 replace github.com/cztamas/qwacamole v0.0.0 => .
 replace github.com/cztamas/qwacamole v0.0.0-20261006174406-ced6241dd061 => .
 replace github.com/cztamas/qwacamole/caddy v0.0.0 => ./caddy
+replace github.com/cztamas/qwacamole/agent v0.0.0 => ./agent

@@ -21,6 +21,9 @@ func main() {
 		log.Fatal("usage: qwacamole browser-demo|firefox-demo|firefox-check|firefox-suite|firefox-integration|demo|browser|browser-suite|integration-test|plugin-smoke|pki|fixture|lifecycle|refresh-test|failure-test|clean")
 	}
 	f := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
+	agentBin := f.String("agent-binary", "bin/qwacamole-agent", "production agent binary")
+	nginxBin := f.String("nginx", ".tools/nginx/sbin/nginx", "Nginx executable")
+	certbotBin := f.String("certbot", ".tools/certbot-venv/bin/certbot", "Certbot executable")
 	pluginBin := f.String("plugin-binary", "bin/caddy-plugin", "plugin-only Caddy binary for portable smoke")
 	dir := f.String("state", ".local", "state directory")
 	bin := f.String("browser", "", "stock browser executable")
@@ -45,6 +48,8 @@ func main() {
 	_ = f.Parse(os.Args[2:])
 	var e error
 	switch os.Args[1] {
+	case "nginx-smoke":
+		e = nginxSmoke(*dir, *agentBin, *nginxBin, *certbotBin)
 	case "firefox-integration":
 		e = firefoxIntegration(*dir, *bin, *driver, *certutil)
 	case "plugin-smoke":
