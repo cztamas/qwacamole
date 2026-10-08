@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -78,9 +79,29 @@ func nginxHTTPPolicyCheck(c *pluginCheck, cfg agent.Config, ready bool) error {
 func nginxServingCheck(c *pluginCheck, cfg agent.Config, client *http.Client) error {
 	// A distinct browser-side loopback address proves the agent does not replace
 	// Nginx's trusted client address with the 127.0.0.1 local delivery hop.
+	clientIP := net.ParseIP("127.0.0.2")
+	if runtime.GOOS == "darwin" {
+		// macOS requires an assigned address, unlike Linux's whole 127/8.
+		// Reuse an existing alias without modifying system interfaces.
+		addresses, err := net.InterfaceAddrs()
+		if err != nil {
+			return err
+		}
+		clientIP = nil
+		for _, address := range addresses {
+			ip, _, err := net.ParseCIDR(address.String())
+			if err == nil && ip.To4() != nil && ip.IsLoopback() && !ip.Equal(net.ParseIP("127.0.0.1")) {
+				clientIP = ip
+				break
+			}
+		}
+		if clientIP == nil {
+			return fmt.Errorf("metadata acceptance requires an assigned distinct IPv4 loopback alias on macOS")
+		}
+	}
 	inspectionTransport := client.Transport.(*http.Transport).Clone()
 	inspectionTransport.DialContext = func(ctx context.Context, network, _ string) (net.Conn, error) {
-		return (&net.Dialer{LocalAddr: &net.TCPAddr{IP: net.ParseIP("127.0.0.2")}}).DialContext(ctx, network, cfg.ProbeAddress)
+		return (&net.Dialer{LocalAddr: &net.TCPAddr{IP: clientIP}}).DialContext(ctx, network, cfg.ProbeAddress)
 	}
 	defer inspectionTransport.CloseIdleConnections()
 	inspectionClient := *client
@@ -102,7 +123,7 @@ func nginxServingCheck(c *pluginCheck, cfg agent.Config, client *http.Client) er
 		e = json.NewDecoder(resp.Body).Decode(&meta)
 		resp.Body.Close()
 		evidence = append(evidence, map[string]any{"forged": forged, "status": resp.StatusCode, "origin": meta, "headers": resp.Header})
-		if e != nil || resp.StatusCode != 200 || meta["host"] != cfg.PublicAuthority() || meta["forwarded"] != "" || meta["xff"] != "127.0.0.2" || meta["xfh"] != cfg.PublicAuthority() || meta["xfp"] != "https" || meta["uri"] != path || meta["url"] != "https://"+cfg.PublicAuthority()+"/done" || !strings.Contains(resp.Header.Get("Set-Cookie"), "Secure") {
+		if e != nil || resp.StatusCode != 200 || meta["host"] != cfg.PublicAuthority() || meta["forwarded"] != "" || meta["xff"] != clientIP.String() || meta["xfh"] != cfg.PublicAuthority() || meta["xfp"] != "https" || meta["uri"] != path || meta["url"] != "https://"+cfg.PublicAuthority()+"/done" || !strings.Contains(resp.Header.Get("Set-Cookie"), "Secure") {
 			return fmt.Errorf("origin trusted metadata mismatch: %v %v %v", meta, resp.Header, e)
 		}
 		wantHSTS := ""
