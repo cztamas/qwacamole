@@ -13,16 +13,16 @@ Subsequent PR review fixes and their separate regression evidence are recorded i
 
 One literal DNS hostname, one local Nginx master, supplied RSA QWAC credentials,
 RS256 bindings and exclusive local storage. Linux and macOS are supported by the
-process-lock implementation. Development testing currently uses Nginx 1.30.5,
-Certbot 5.8.0, Go 1.27.1 and Pebble 2.8.0; final acceptance is tracked in
-[the plan](agent-nginx-plan.md). Nginx requires its HTTP SSL and auth_request
+process-lock implementation. The 8 October Linux acceptance uses Nginx 1.28.0,
+Certbot 5.8.0, Go 1.27.1 and Pebble 2.8.0; executed acceptance is tracked in
+[the serving and upgrade report](evidence-agent-serving-20261008.md). Nginx requires its HTTP SSL and auth_request
 modules. `validate` detects missing build flags and modified top-level config.
 This is a dedicated Nginx instance owning one hostname and the complete top-level
 configuration. Existing multi-site configurations and arbitrary custom includes
 are unsupported; this module cannot be added to an existing shared Nginx master.
-Fresh native checks use Chrome 154.0.8037.98 / PKIMetadata 1798 and Firefox
+Fresh native checks use Chrome 155.0.8059.39 / PKIMetadata 1798 and Firefox
 157.0.1; exact commands, trust setup and raw-evidence locations are in
-[the dated report](evidence-agent-nginx-20261007.md).
+[the serving and upgrade report](evidence-agent-serving-20261008.md).
 
 Bind the TLS leaf actually presented to the browser. Arbitrary CDN TLS termination,
 distributed deployment, QWAC enrollment, HSMs and automatic TLS retirement are
@@ -100,9 +100,10 @@ Supply a JSON file with absolute paths (example addresses are production ports):
 ```
 
 The configured Nginx file must exactly match `render-nginx` output. It is a complete
-config, not an include to paste into another configuration. Initially it serves HTTP-01 challenges. Other HTTP requests return 404 with
+config, not an include to paste into another configuration. Initially it serves HTTP-01 challenges. With the agent running, other HTTP requests return 404 with
 redirects disabled, or uncached 503 with redirects enabled until HTTPS deployment
-is confirmed and bindings are available. The agent installs the HTTPS include
+is confirmed and bindings are available. If the agent is down, these requests
+receive Nginx's upstream failure (502); challenges remain available. The agent installs the HTTPS include
 after binding publication. `nginx_prefix` and webroot must exist with appropriate
 master/Certbot access. The state/runtime directories must be mode 0700.
 The generated config keeps buffered request-body temporary files under
@@ -200,6 +201,8 @@ TLS terminator or a trusted-forwarder IP list.
 | `public_https_port` | HTTPS listener port | 1–65535; 0 explicitly selects the listener port; 443 omits the port from the authority |
 | `hsts` | disabled | Object requiring explicit `max_age_seconds`: 0–63072000; optional `include_subdomains` defaults false |
 
+An omitted or null body limit selects the default; numeric zero is unlimited.
+Empty timeout and buffering strings also select their documented defaults.
 Timeout zero/unlimited values reject. These are **inactivity limits**, not total
 request-duration limits. A periodic stream can continue indefinitely. With
 request buffering off, Nginx can record 408 and close an incomplete upload
@@ -216,7 +219,8 @@ HTTP-01 routes are reserved with `^~` and remain available during bootstrap,
 redirects and binding outages. Redirects preserve escaped path and query and use
 only the configured public authority. Neither incoming Host nor forwarding
 headers choose their destination. An unavailable/unconfirmed deployment returns
-503 instead of redirecting to unusable protected HTTPS.
+503 instead of redirecting to unusable protected HTTPS when the agent is running;
+an unreachable agent produces Nginx's 502 upstream failure.
 
 HSTS appears only on HTTPS responses, including binding and error responses.
 The generated configuration owns this header and hides an origin's HSTS header.

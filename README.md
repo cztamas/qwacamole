@@ -12,7 +12,7 @@ TLS chain. Renewing TLS therefore requires publishing a new binding, while the
 owner's QWAC certificate can stay the same.
 
 The demonstration is accepted with one documented Chromium implementation gap:
-stock Chrome **154.0.8037.95 and 154.0.8037.98** accept an expired binding `exp`
+stock Chrome **154.0.8037.95, 154.0.8037.98 and 155.0.8059.39** accept an expired binding `exp`
 header. Chrome's native parser explicitly ignores that field. The browser suite
 retains the failing assertion so this limitation stays visible. Native verification before and after
 automatic renewal, real TLS validation, existing connections, trust separation,

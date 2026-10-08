@@ -1,0 +1,102 @@
+{
+  "checks": [
+    "isolated production agent and HTTP-only Nginx bootstrap",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=false)",
+    "private runtime/socket permissions and control methods/body validation; public control/file paths reject",
+    "real Certbot HTTP-01 issuance, deploy-hook publication and verified Nginx activation",
+    "fresh verified browser-facing TLS leaf covered by qualified binding",
+    "ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses",
+    "Nginx replaces forged forwarding metadata, preserves external port/encoded URL, origin secure cookies and absolute redirects; unsupported Host rejected",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=true)",
+    "configured body limit: 2 MiB upload status 200",
+    "configured client-body inactivity timeout: Nginx records 408 and closes incomplete unbuffered upload",
+    "configured upstream-read inactivity timeout returns 504",
+    "configured upstream-send inactivity timeout under origin backpressure returns 504",
+    "real Nginx TLS WebSocket 101, discovery/upstream Link and bidirectional frame traffic",
+    "binding GET/HEAD/no-store/method rejection and nonrecursive discovery",
+    "Nginx internal gate/control and invalid binding paths are inaccessible",
+    "independent signed binding refresh without TLS renewal",
+    "automatic Certbot renewal and fresh verified controlled activation",
+    "original active TLS stream survives Nginx reload with both leaves bound",
+    "agent-backpressure upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "nginx-buffered upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "real cache longer than original signed lifetime discovers renewed binding",
+    "same-authority QWAC replacement through unchanged cached discovery",
+    "authenticated automatic collection preserves current document and retained leaves",
+    "agent unavailability rejects protected application requests",
+    "agent restart reconciles files and actual verified served TLS",
+    "real Certbot candidate signing failure preserves prior TLS; hook error tracked separately from Certbot exit",
+    "mismatched TLS key and invalid supplied QWAC credentials preserve prior deployment",
+    "sign/document/manifest failures never stage or activate the unbound real candidate",
+    "reload failure and zero-exit nonactivation both restore fresh-verified prior TLS",
+    "invalid Nginx config repairs/reconciles and safe retry activates the already-bound candidate",
+    "protected response delayed across signed expiry rejects at response commitment",
+    "actual signed expiry rejects new Nginx WebSocket upgrade with 403",
+    "actual signed expiry closes Nginx protected-response gate and binding endpoint",
+    "repaired signer safely republishes and reopens Nginx gate",
+    "real ACME over-capacity candidate refuses before staging without pruning old TLS coverage"
+  ],
+  "error": "<nil>",
+  "exit_status": 0,
+  "held_renewal": {
+    "both_bound": true,
+    "chunks": 85,
+    "new_tls_id": "7c39061eb61a45d512e5fdf7a788e6d986db029a25053d576b5a51689742eef8",
+    "old_tls_id": "dd97d8ade6ba9b2d7d55aeb1d15a3dd3ddefb54fb922520b41f934765e597219",
+    "same_held_connection": true
+  },
+  "origin_metadata": [
+    {
+      "forged": false,
+      "hsts": [
+        "max-age=300; includeSubDomains"
+      ],
+      "origin": {
+        "forwarded": "",
+        "host": "qwac.example.com:8443",
+        "uri": "/metadata/a%2Fb?x=%2F&x=two;three",
+        "url": "https://qwac.example.com:8443/done",
+        "xff": "127.0.0.2",
+        "xfh": "qwac.example.com:8443",
+        "xfp": "https"
+      },
+      "secure_cookie": true,
+      "status": 200
+    },
+    {
+      "forged": true,
+      "hsts": [
+        "max-age=300; includeSubDomains"
+      ],
+      "origin": {
+        "forwarded": "",
+        "host": "qwac.example.com:8443",
+        "uri": "/metadata/a%2Fb?x=%2F&x=two;three",
+        "url": "https://qwac.example.com:8443/done",
+        "xff": "127.0.0.2",
+        "xfh": "qwac.example.com:8443",
+        "xfp": "https"
+      },
+      "secure_cookie": true,
+      "status": 200
+    }
+  ],
+  "serving_input": {
+    "client_body_timeout": "1500ms",
+    "hsts": {
+      "include_subdomains": true,
+      "max_age_seconds": 300
+    },
+    "max_request_body_bytes": 134217728,
+    "public_https_port": 8443,
+    "redirect_https": true,
+    "request_buffering": "off",
+    "upstream_read_timeout": "15s",
+    "upstream_send_timeout": "1500ms"
+  },
+  "source_commit": "72b69f4e37afee5712a183ea7d2010dfbca0a0d5",
+  "state_formats": {
+    "nginx_format_version": 1,
+    "state_version": 1
+  }
+}

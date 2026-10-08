@@ -1,0 +1,202 @@
+{
+  "commands": [
+    {
+      "command": [
+        "bin/qwacamole",
+        "plugin-smoke",
+        "-plugin-binary",
+        "bin/caddy-remote",
+        "-state",
+        ".local/final-caddy-runtime-20261008"
+      ],
+      "ended_at": "2026-10-08T15:43:16.337411+00:00",
+      "exit_status": 0,
+      "harness_commit": "61d5942f03443d69d9d2a3a68574df27af40a46b",
+      "name": "final-caddy-runtime"
+    },
+    {
+      "command": [
+        "bin/qwacamole",
+        "firefox-integration",
+        "-browser",
+        "/workspace/qwacamole/.tools/firefox/firefox",
+        "-geckodriver",
+        "/workspace/qwacamole/.tools/bin/geckodriver",
+        "-certutil",
+        "/usr/bin/certutil",
+        "-state",
+        ".local/final-caddy-firefox-20261008"
+      ],
+      "ended_at": "2026-10-08T15:51:04.453075+00:00",
+      "exit_status": 0,
+      "harness_commit": "61d5942f03443d69d9d2a3a68574df27af40a46b",
+      "name": "final-caddy-firefox"
+    },
+    {
+      "command": [
+        "scripts/check-independent-modules.sh"
+      ],
+      "ended_at": "2026-10-08T16:00:51.402413+00:00",
+      "exit_status": 0,
+      "harness_commit": "745a21e379c4cb640d910c4806c44bf206beacbf",
+      "name": "final-independent-races"
+    },
+    {
+      "command": [
+        "make",
+        "test"
+      ],
+      "ended_at": "2026-10-08T16:02:00.393615+00:00",
+      "exit_status": 0,
+      "harness_commit": "745a21e379c4cb640d910c4806c44bf206beacbf",
+      "name": "final-workspace-races"
+    },
+    {
+      "command": [
+        "GOWORK=off",
+        "go",
+        "test",
+        "-race",
+        "./cmd/qwacamole"
+      ],
+      "ended_at": "2026-10-08T16:06:36.307083+00:00",
+      "exit_status": 0,
+      "harness_commit": "4f34269cb7e90178b5f963b9bc8925925953fa4e",
+      "name": "implemented-client-address-independent-races",
+      "working_directory": "devtools"
+    },
+    {
+      "command": [
+        "bin/qwacamole",
+        "integration-test",
+        "-browser",
+        "/workspace/qwacamole/.tools/bin/chrome-test",
+        "-metadata",
+        "/workspace/qwacamole/.tools/pki-metadata",
+        "-state",
+        ".local/implemented-caddy-chrome-20261008"
+      ],
+      "ended_at": "2026-10-08T16:09:08.397622+00:00",
+      "exit_status": 1,
+      "harness_commit": "745a21e379c4cb640d910c4806c44bf206beacbf",
+      "name": "implemented-caddy-chrome"
+    },
+    {
+      "command": [
+        "/tmp/qwacamole-agent-remote.nk1orF/bin/qwacamole-agent",
+        "render-nginx",
+        "-config",
+        "/tmp/qwacamole-serving-exercise.vkHxIM/agent.json"
+      ],
+      "ended_at": "2026-10-08T16:10:49.547258+00:00",
+      "exit_status": 0,
+      "harness_commit": "4f34269cb7e90178b5f963b9bc8925925953fa4e",
+      "name": "implemented-installed-render",
+      "working_directory": "/tmp/qwacamole-serving-exercise.vkHxIM"
+    },
+    {
+      "command": [
+        "bin/qwacamole",
+        "nginx-smoke",
+        "-agent-binary",
+        "/tmp/qwacamole-agent-remote.nk1orF/bin/qwacamole-agent",
+        "-state",
+        ".local/implemented-nginx-default-20261008"
+      ],
+      "ended_at": "2026-10-08T16:11:10.507407+00:00",
+      "exit_status": 0,
+      "harness_commit": "4f34269cb7e90178b5f963b9bc8925925953fa4e",
+      "name": "implemented-nginx-default"
+    },
+    {
+      "command": [
+        "bin/qwacamole",
+        "nginx-serving-smoke",
+        "-agent-binary",
+        "/tmp/qwacamole-agent-remote.nk1orF/bin/qwacamole-agent",
+        "-state",
+        ".local/implemented-nginx-custom-20261008"
+      ],
+      "ended_at": "2026-10-08T16:13:44.672412+00:00",
+      "exit_status": 0,
+      "harness_commit": "4f34269cb7e90178b5f963b9bc8925925953fa4e",
+      "name": "implemented-nginx-custom"
+    },
+    {
+      "command": [
+        "bin/qwacamole",
+        "nginx-upgrade-smoke",
+        "-agent-binary",
+        "/tmp/qwacamole-agent-remote.nk1orF/bin/qwacamole-agent",
+        "-legacy-agent-binary",
+        "bin/qwacamole-agent-baseline",
+        "-state",
+        ".local/implemented-nginx-upgrade-20261008"
+      ],
+      "ended_at": "2026-10-08T16:16:14.529975+00:00",
+      "exit_status": 0,
+      "harness_commit": "4f34269cb7e90178b5f963b9bc8925925953fa4e",
+      "name": "implemented-nginx-upgrade"
+    },
+    {
+      "command": [
+        "bin/qwacamole",
+        "nginx-browser-integration",
+        "-native-browser",
+        "chrome",
+        "-agent-binary",
+        "/tmp/qwacamole-agent-remote.nk1orF/bin/qwacamole-agent",
+        "-browser",
+        "/workspace/qwacamole/.tools/bin/chrome-test",
+        "-metadata",
+        "/workspace/qwacamole/.tools/pki-metadata",
+        "-state",
+        ".local/implemented-nginx-chrome-20261008"
+      ],
+      "ended_at": "2026-10-08T16:17:54.867562+00:00",
+      "exit_status": 0,
+      "harness_commit": "4f34269cb7e90178b5f963b9bc8925925953fa4e",
+      "name": "implemented-nginx-chrome"
+    },
+    {
+      "command": [
+        "bin/qwacamole",
+        "nginx-browser-integration",
+        "-native-browser",
+        "firefox",
+        "-agent-binary",
+        "/tmp/qwacamole-agent-remote.nk1orF/bin/qwacamole-agent",
+        "-browser",
+        "/workspace/qwacamole/.tools/firefox/firefox",
+        "-geckodriver",
+        "/workspace/qwacamole/.tools/bin/geckodriver",
+        "-certutil",
+        "/usr/bin/certutil",
+        "-state",
+        ".local/implemented-nginx-firefox-20261008"
+      ],
+      "ended_at": "2026-10-08T16:19:35.078746+00:00",
+      "exit_status": 0,
+      "harness_commit": "4f34269cb7e90178b5f963b9bc8925925953fa4e",
+      "name": "implemented-nginx-firefox"
+    },
+    {
+      "command": [
+        "bin/qwacamole",
+        "agent-migration-policy-check",
+        "-config",
+        ".local/implemented-nginx-default-20261008/nginx-smoke-3432740067/agent.json",
+        "-agent-binary",
+        "/tmp/qwacamole-agent-remote.nk1orF/bin/qwacamole-agent",
+        "-state",
+        ".local/evidence/implemented-policy-migration-final-state"
+      ],
+      "ended_at": "2026-10-08T16:22:46.518690+00:00",
+      "exit_status": 0,
+      "harness_commit": "4f34269cb7e90178b5f963b9bc8925925953fa4e",
+      "name": "implemented-versioned-policy-migration-final"
+    }
+  ],
+  "final_harness_commit": "4f34269cb7e90178b5f963b9bc8925925953fa4e",
+  "production_commit": "72b69f4e37afee5712a183ea7d2010dfbca0a0d5"
+}

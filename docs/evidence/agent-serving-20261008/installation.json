@@ -1,0 +1,41 @@
+{
+  "GOWORK": "off",
+  "anonymous_public_installation_tested": false,
+  "authenticated_private_retrieval": true,
+  "binary_sha256": "b76b1b51e5abcc46eec0e72ffdb9be366ca68c21b3c045cc398bcc78eb26fb07",
+  "caddy_consumer": {
+    "GOWORK": "off",
+    "command": [
+      "scripts/check-remote-install.sh",
+      "acad18713597b461d5e0a1cefcd47a37f67fd7b7"
+    ],
+    "exit_status": 0,
+    "final_caddy_sources_unchanged": true,
+    "fresh_module_cache": true,
+    "metadata": [
+      "dep\tgithub.com/caddyserver/caddy/v2\tv2.10.2\th1:g/gTYjGMD0dec+UgMw8SnfmJ3I9+M2TdvoRL/Ovu6U8=",
+      "dep\tgithub.com/cztamas/qwacamole\tv0.0.0-20261007193456-3c3fc434d5e4\th1:6+95ZafwUc+Y8uJmfks35yvKqot/vbXypaRHZd5QqzY=",
+      "dep\tgithub.com/cztamas/qwacamole/caddy\tv0.0.0-20261008152059-acad18713597\th1:u9zfxhFRkjWAMvgPVjyk7QQqdR+oJvsmaaTxqZBPbiY="
+    ],
+    "production_only": true,
+    "replacements": false,
+    "source_commit": "acad18713597b461d5e0a1cefcd47a37f67fd7b7"
+  },
+  "command": [
+    "go",
+    "install",
+    "github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@72b69f4e37afee5712a183ea7d2010dfbca0a0d5"
+  ],
+  "exit_status": 0,
+  "fresh_module_cache": true,
+  "installed_binary_exercise": "render-nginx outside checkout",
+  "metadata": [
+    "bin/qwacamole-agent: go1.27.1-X:nojsonv2",
+    "path\tgithub.com/cztamas/qwacamole/agent/cmd/qwacamole-agent",
+    "mod\tgithub.com/cztamas/qwacamole/agent\tv0.0.0-20261008153622-72b69f4e37af\th1:Nuv+kbYr7/7d4YMLXMOutywLLXwCpf/+Qv8hIEQAhgc=",
+    "dep\tgithub.com/cztamas/qwacamole\tv0.0.0-20261007193456-3c3fc434d5e4\th1:6+95ZafwUc+Y8uJmfks35yvKqot/vbXypaRHZd5QqzY="
+  ],
+  "outside_checkout": true,
+  "replacements": false,
+  "source_commit": "72b69f4e37afee5712a183ea7d2010dfbca0a0d5"
+}
