@@ -339,7 +339,8 @@ func validateJournal(j Journal) error {
 	return nil
 }
 func copyState(source, dest string) error {
-	return filepath.WalkDir(source, func(path string, entry fs.DirEntry, err error) error {
+	directories := []string{dest}
+	err := filepath.WalkDir(source, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -358,7 +359,11 @@ func copyState(source, dest string) error {
 		}
 		target := filepath.Join(dest, rel)
 		if entry.IsDir() {
-			return os.Mkdir(target, 0700)
+			if e := os.Mkdir(target, 0700); e != nil {
+				return e
+			}
+			directories = append(directories, target)
+			return nil
 		}
 		if entry.Type()&os.ModeSymlink != 0 {
 			if rel != filepath.Join("enabled", "site.conf") {
@@ -379,12 +384,29 @@ func copyState(source, dest string) error {
 		}
 		return store.Atomic(target, data)
 	})
+	if err != nil {
+		return err
+	}
+	// File fsync alone cannot persist a newly created directory's entry in its
+	// parent. Sync the complete backup tree bottom-up before durable intent.
+	for i := len(directories) - 1; i >= 0; i-- {
+		if e := syncDir(directories[i]); e != nil {
+			return e
+		}
+	}
+	return nil
 }
 
 // A retry may replace only configuration files. Payload changes since the
 // snapshot require operator repair, so stale backup validation cannot bless a
 // different TLS key/certificate or a different binding manifest.
 func verifyMigrationPayloads(c Config, backup string) error {
+	want, wantErr := os.Readlink(filepath.Join(backup, "enabled", "site.conf"))
+	got, gotErr := os.Readlink(filepath.Join(c.StateDir, "enabled", "site.conf"))
+	if !(os.IsNotExist(wantErr) && os.IsNotExist(gotErr)) && (wantErr != nil || gotErr != nil || want != got) {
+		return fmt.Errorf("selected generation changed since migration backup; restore consistent state before retry")
+	}
+
 	for _, name := range []string{"bindings", "generations"} {
 		root := filepath.Join(backup, name)
 		if e := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
