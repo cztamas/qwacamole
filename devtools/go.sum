@@ -142,6 +142,8 @@ github.com/cztamas/qwacamole/caddy v0.0.0-20261008191952-02f7569a230a h1:qtrN5EF
 github.com/cztamas/qwacamole/caddy v0.0.0-20261008191952-02f7569a230a/go.mod h1:PhrZCRwKDkjJLslHBxI+a6VL2sOujpnbL8/BTrMp7Uc=
 github.com/cztamas/qwacamole/caddy v0.0.0-20261008203929-bdd733dc62ab h1:Rl7dF8r9LCkNiTz/CnWqyGwfl6GLGcfm1G2yPAfWqpM=
 github.com/cztamas/qwacamole/caddy v0.0.0-20261008203929-bdd733dc62ab/go.mod h1:WDaYCTES2AxVGL4/51rmXsmFGIZMcGHnsGv25+q7eRQ=
+github.com/cztamas/qwacamole/caddy v0.0.0-20261008204731-2089dd5b673e h1:qkM0Vp37MrKWolddPEi3LvNRCZl+9dBmXB111COtrlE=
+github.com/cztamas/qwacamole/caddy v0.0.0-20261008204731-2089dd5b673e/go.mod h1:WDaYCTES2AxVGL4/51rmXsmFGIZMcGHnsGv25+q7eRQ=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -261,10 +262,17 @@ func TestCaddyDelayedProtocolUpgradeRejectsAtCommit(t *testing.T) {
 		for time.Now().Unix() < end {
 			time.Sleep(10 * time.Millisecond)
 		}
+		w.WriteHeader(http.StatusCreated)
+		if _, err := w.Write([]byte("protected body")); err != nil {
+			t.Fatal("rejected body write would reset proxy response", err)
+		}
+		if _, err := w.(io.ReaderFrom).ReadFrom(strings.NewReader("protected copied body")); err != nil {
+			t.Fatal("rejected copy would reset proxy response", err)
+		}
 		_, _, err := http.NewResponseController(w).Hijack()
 		return err
 	}))
-	if err == nil || w.called || w.Code != 503 || w.Header().Get("Upgrade") != "" || w.Header().Get("Set-Cookie") != "" || w.Header().Get("Link") != "" || w.Header().Get("Cache-Control") != "no-store" {
+	if err == nil || w.called || w.Code != 503 || w.Body.Len() != 0 || w.Header().Get("Upgrade") != "" || w.Header().Get("Set-Cookie") != "" || w.Header().Get("Link") != "" || w.Header().Get("Cache-Control") != "no-store" {
 		t.Fatal("expired upgrade escaped gate", err, w.called, w.Code, w.Header())
 	}
 }

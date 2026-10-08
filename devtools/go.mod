@@ -8,7 +8,7 @@ require (
 	github.com/chromedp/chromedp v0.14.2
 	github.com/cztamas/qwacamole v0.0.0-20261008203612-8e62f4b8c340
 	github.com/cztamas/qwacamole/agent v0.0.0-20261008203929-bdd733dc62ab
-	github.com/cztamas/qwacamole/caddy v0.0.0-20261008203929-bdd733dc62ab
+	github.com/cztamas/qwacamole/caddy v0.0.0-20261008204731-2089dd5b673e
 	github.com/gobwas/ws v1.4.0
 	github.com/miekg/dns v1.1.63
 	google.golang.org/protobuf v1.36.10
