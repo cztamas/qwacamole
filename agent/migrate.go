@@ -197,9 +197,7 @@ func migrationSource(c Config, backup string) (Config, Journal, error) {
 	}
 	// Serving metadata/settings do not affect certificate identity, binding
 	// coverage, ownership or recovery. Other changes need a separate procedure.
-	a, b := canonicalConfig(old), canonicalConfig(c)
-	a.Serving, b.Serving = ServingConfig{}, ServingConfig{}
-	if !reflect.DeepEqual(a, b) {
+	if !compatibleConfiguration(old, c) {
 		return fail(fmt.Errorf("migration supports format and serving changes only; ownership, credentials paths and binding policy must stay identical"))
 	}
 	format, e := readFormat(backup)

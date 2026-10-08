@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"encoding/json"
 	"github.com/cztamas/qwacamole/store"
 	"os"
 	"path/filepath"
@@ -31,5 +32,29 @@ func TestUnknownFutureStateRejectedWithoutMutation(t *testing.T) {
 				t.Fatal("future state mutated")
 			}
 		})
+	}
+}
+
+func TestConfigurationChangesAreClassifiedBeforeMutation(t *testing.T) {
+	c := validConfig()
+	c.StateDir = t.TempDir()
+	os.Chmod(c.StateDir, 0700)
+	c.Version = 1
+	data, _ := json.Marshal(c)
+	os.WriteFile(filepath.Join(c.StateDir, "deployment-config.json"), data, 0600)
+	os.WriteFile(filepath.Join(c.StateDir, "format.json"), []byte(`{"state_version":1,"nginx_format_version":1}`), 0600)
+	changed := c
+	changed.Serving.RedirectHTTPS = true
+	if e := CheckStateFormat(changed); e == nil || !strings.Contains(e.Error(), "supported serving settings changed") {
+		t.Fatal(e)
+	}
+	changed = c
+	changed.Host = "other.test"
+	if e := CheckStateFormat(changed); e == nil || !strings.Contains(e.Error(), "incompatible") {
+		t.Fatal(e)
+	}
+	got, _ := os.ReadFile(filepath.Join(c.StateDir, "deployment-config.json"))
+	if string(got) != string(data) {
+		t.Fatal("configuration change mutated state")
 	}
 }

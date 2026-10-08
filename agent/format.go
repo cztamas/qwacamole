@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 )
 
 const StateVersion = 1
@@ -85,6 +86,22 @@ func CheckStateFormat(c Config) error {
 	} else if configErr != nil && !os.IsNotExist(configErr) {
 		return configErr
 	}
+	if configErr == nil {
+		data, e := os.ReadFile(filepath.Join(c.StateDir, "deployment-config.json"))
+		if e != nil {
+			return e
+		}
+		var prior Config
+		if e = decodeStrict(data, &prior); e != nil {
+			return e
+		}
+		if !reflect.DeepEqual(canonicalConfig(prior), canonicalConfig(c)) {
+			if compatibleConfiguration(prior, c) {
+				return fmt.Errorf("supported serving settings changed; fully stop Nginx and agent and run migrate -full-stop-confirmed without reconstructing state")
+			}
+			return fmt.Errorf("incompatible ownership, endpoint, credential or binding-policy change; retain state and plan the change separately")
+		}
+	}
 	return nil
 }
 func canonicalConfig(c Config) Config { c.Version = 1; return c }
@@ -118,4 +135,10 @@ func checkPersistedVersions(dir string) error {
 		return e
 	}
 	return nil
+}
+
+func compatibleConfiguration(old, next Config) bool {
+	a, b := canonicalConfig(old), canonicalConfig(next)
+	a.Serving, b.Serving = ServingConfig{}, ServingConfig{}
+	return reflect.DeepEqual(a, b)
 }
