@@ -1,0 +1,273 @@
+{
+  "harness_source": "934f4f9749763a8c265cdbb73441b853ebf522d0",
+  "core_source": "8e62f4b8c340e572584f6d71355a8f89a7d0be42",
+  "agent_source": "bdd733dc62ab94e01d17837070c1f286a5ceeb3c",
+  "caddy_source": "2089dd5b673e3358924179aa4700a56475356633",
+  "exit_code": 1,
+  "raw_evidence": ".local/lifecycle-caddy-chrome-accepted/integration-20261008-232045/evidence",
+  "integration": {
+    "blocker": "1 native browser acceptance tests failed; see .local/lifecycle-caddy-chrome-accepted/integration-20261008-232045/evidence/browser-suite.json",
+    "cached_discovery_after_expiry_renewal_replacement": true,
+    "continuous_http2_through_tls_expiry": true,
+    "independent_refresh": true,
+    "initial_native_verified": true,
+    "negative_suite_passed": false,
+    "profile_unchanged": true,
+    "renewal_failure_gates": true,
+    "renewal_native_verified": true,
+    "replacement_native_verified": true,
+    "restart_recovered": true
+  },
+  "fixtures": {
+    "ct-required": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "expired-binding": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "error": "BROWSER INCOMPATIBILITY: native verifier accepted expired exp header",
+      "passed": false
+    },
+    "no-qwac-trust": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "no-tls-trust": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "positive": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "qwac-hostname": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "qwac-profile": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "signature": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "tls-expiry": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "tls-hostname": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "wrong-tls": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    }
+  },
+  "native_phases": {
+    "initial": {
+      "version": "Google Chrome 154.0.8037.98",
+      "navigation_error": null,
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    },
+    "renewed": {
+      "version": "Google Chrome 154.0.8037.98",
+      "navigation_error": null,
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    },
+    "held-through-tls-expiry": {
+      "version": "Google Chrome 154.0.8037.98",
+      "navigation_error": null,
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        },
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    },
+    "restarted": {
+      "version": "Google Chrome 154.0.8037.98",
+      "navigation_error": null,
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    },
+    "failure-recovery": {
+      "version": "Google Chrome 154.0.8037.98",
+      "navigation_error": null,
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    }
+  },
+  "cached_native_phases": {
+    "native-chrome-cached-initial": {
+      "version": "Google Chrome 154.0.8037.98",
+      "navigation_error": null,
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ],
+      "identity_and_trust": {
+        "owner": [
+          "Qwacamole Synthetic Organization TEST"
+        ],
+        "qwac_id": "526e1e825da20ac191ef56a25699fa375f0deb4fec46e4eff1bfb0781b964cd3",
+        "tls_id": "a216692a094401a3e5a1a3cd04c3a9f2bf72edbee5fd672cfb63b58ae77fb4a8",
+        "unchanged_trust_sha256": "1d2bd67ea56c09bb1a1b77a1c7227622a5812aff07b1626f55fb99f90572b18e"
+      }
+    },
+    "native-chrome-renewed-cached-after-expiry": {
+      "version": "Google Chrome 154.0.8037.98",
+      "navigation_error": null,
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ],
+      "identity_and_trust": {
+        "owner": [
+          "Qwacamole Synthetic Organization TEST"
+        ],
+        "qwac_id": "526e1e825da20ac191ef56a25699fa375f0deb4fec46e4eff1bfb0781b964cd3",
+        "tls_id": "77c09c1217fe297a317a1bc376d561f2f1a1c636084a16668380a417a5736df9",
+        "unchanged_trust_sha256": "1d2bd67ea56c09bb1a1b77a1c7227622a5812aff07b1626f55fb99f90572b18e"
+      }
+    },
+    "native-chrome-replacement-cached-after-expiry": {
+      "version": "Google Chrome 154.0.8037.98",
+      "navigation_error": null,
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ],
+      "identity_and_trust": {
+        "owner": [
+          "Alpha Chromium Replacement TEST"
+        ],
+        "qwac_id": "43a03ef0f974769412607fee221c7f3abf4d58c46d940550e3839c48e5b96dfb",
+        "tls_id": "77c09c1217fe297a317a1bc376d561f2f1a1c636084a16668380a417a5736df9",
+        "unchanged_trust_sha256": "1d2bd67ea56c09bb1a1b77a1c7227622a5812aff07b1626f55fb99f90572b18e"
+      }
+    }
+  },
+  "held_connection": {
+    "initial_tls_id": "33ad87efe8d9b0c7bed5712ec7f52c0328c96fde80534f446fe19307233a5845",
+    "final_tls_id": "33ad87efe8d9b0c7bed5712ec7f52c0328c96fde80534f446fe19307233a5845",
+    "initial_not_after": "2026-10-08T21:25:34Z",
+    "checked_at": "2026-10-08T23:26:21.031485+02:00"
+  },
+  "held_http2_session": {
+    "session_ids": [
+      126
+    ],
+    "requests": 14,
+    "elapsed_seconds": 272.16,
+    "same_original_session": true
+  },
+  "cache": {
+    "cache-replacement-cached-after-expiry": {
+      "age": "332",
+      "body_sha256": "a34c62a47b7b1d37b320f7b0016bb800556f5eb2450fbc423444ff289cfb4e69",
+      "cache": "hit",
+      "link": "</bindings/current.jose>; rel=\"tls-certificate-binding\""
+    },
+    "cache-renewed-cached-after-expiry": {
+      "age": "326",
+      "body_sha256": "a34c62a47b7b1d37b320f7b0016bb800556f5eb2450fbc423444ff289cfb4e69",
+      "cache": "hit",
+      "link": "</bindings/current.jose>; rel=\"tls-certificate-binding\""
+    },
+    "cache-cached-initial": {
+      "age": "0",
+      "body_sha256": "a34c62a47b7b1d37b320f7b0016bb800556f5eb2450fbc423444ff289cfb4e69",
+      "cache": "miss",
+      "link": "</bindings/current.jose>; rel=\"tls-certificate-binding\""
+    }
+  }
+}

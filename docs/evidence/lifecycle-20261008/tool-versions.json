@@ -1,0 +1,59 @@
+[
+  {
+    "command": [
+      ".tools/go/bin/go",
+      "version"
+    ],
+    "exit_code": 0,
+    "output": "go version go1.27.1 darwin/arm64"
+  },
+  {
+    "command": [
+      "bin/caddy-remote",
+      "version"
+    ],
+    "exit_code": 0,
+    "output": "v2.10.2 h1:g/gTYjGMD0dec+UgMw8SnfmJ3I9+M2TdvoRL/Ovu6U8="
+  },
+  {
+    "command": [
+      ".tools/nginx/sbin/nginx",
+      "-v"
+    ],
+    "exit_code": 0,
+    "output": "nginx version: nginx/1.30.5"
+  },
+  {
+    "command": [
+      ".tools/certbot-venv/bin/certbot",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "certbot 5.8.0"
+  },
+  {
+    "command": [
+      ".tools/bin/geckodriver",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "geckodriver 0.37.1 (300705c65d1b 2026-07-17 09:25 +0000)\n\nThe source code of this program is available from\ntesting/geckodriver in https://hg.mozilla.org/mozilla-central.\n\nThis program is subject to the terms of the Mozilla Public License 2.0.\nYou can obtain a copy of the license at https://mozilla.org/MPL/2.0/."
+  },
+  {
+    "command": [
+      ".tools/bin/xcaddy",
+      "version"
+    ],
+    "exit_code": 0,
+    "output": "v0.4.5 h1:7E4b+3Gm2do/WpuDXh5MWIj+qgCCvQqR487Sm8C6hwc="
+  },
+  {
+    "command": [
+      ".tools/bin/pebble",
+      "-version"
+    ],
+    "exit_code": 0,
+    "output": "Pebble version: dev",
+    "module_source": "github.com/letsencrypt/pebble/v2 v2.8.0 (verified with go version -m)"
+  }
+]

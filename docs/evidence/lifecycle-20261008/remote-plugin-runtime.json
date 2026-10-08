@@ -1,0 +1,49 @@
+{
+  "checks": [
+    "plugin-only inventory",
+    "all three Caddyfile examples adapt and validate",
+    "invalid syntax, missing trust, inconsistent pairing and bypass policies reject",
+    "first matching wildcard policy cannot bypass issuer gate; unrelated policies remain valid",
+    "legacy numeric JSON duration migration",
+    "real reverse_proxy status/body/streaming and header preservation",
+    "binding GET/HEAD, methods, path validation and no-store isolation",
+    "conditional cache headers and redirect status/location preserved",
+    "real WebSocket upgrade advertises binding and preserves bidirectional traffic",
+    "two real automatic renewals freshly verified while original connection remains bound",
+    "real automatic Pebble renewal and durable binding coverage",
+    "real caching intermediary outlives binding expiry and discovers renewed TLS coverage",
+    "automatic document collection preserves current binding and retained TLS coverage",
+    "three unchanged forced Caddy reloads",
+    "conflicting process rejected by exclusive state lock",
+    "same-key QWAC replacement with stable cached discovery and retained TLS",
+    "same-path QWAC leaf/key replacement under same authority",
+    "unchanged cached Link discovers same-authority QWAC replacement",
+    "invalid credentials and inconsistent config reloads reject; old application remains active",
+    "actual QWAC expiry rejects delayed response, WebSocket upgrade and fresh handshake",
+    "restored QWAC inputs recover verified Caddy service without process restart",
+    "real process restart and recovered binding history",
+    "real file_server application and reachable binding endpoints",
+    "two independent protected sites alongside unchanged unprotected site",
+    "Caddy error-handler status/body/application headers with paired binding middleware",
+    "full process stop/offline state archive retains TLS storage and rebuilds current coverage"
+  ],
+  "error": "<nil>",
+  "plugin_binary": "/Users/cztamas/.codex/worktrees/b54b/qwacamole/bin/caddy-remote",
+  "harness_source": "85a7335b9de98427520c3aed7a7318fdecbb49c8",
+  "core_source": "8e62f4b8c340e572584f6d71355a8f89a7d0be42",
+  "agent_source": "bdd733dc62ab94e01d17837070c1f286a5ceeb3c",
+  "caddy_source": "2089dd5b673e3358924179aa4700a56475356633",
+  "exit_code": 0,
+  "raw_evidence": ".local/lifecycle-remote-plugin-accepted/plugin-smoke-3030565894/evidence",
+  "repeated_renewal_held": {
+    "held_tls_id": "782408cb495da1004e75e23bdad7c580f6342522e8c1a97e89cf6fba32976287",
+    "renewals": 2,
+    "retained_certificates": 3,
+    "same_held_connection": true,
+    "served_tls_ids": [
+      "782408cb495da1004e75e23bdad7c580f6342522e8c1a97e89cf6fba32976287",
+      "a083309b948ebd447199d4091168191d54e1bd78cded342d501c90aa6bc0936b",
+      "daee1998dea18a7260de71bf9686d55466ac7a30b859fa826fce96ad07c6ab9c"
+    ]
+  }
+}

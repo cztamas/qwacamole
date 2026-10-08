@@ -1,0 +1,176 @@
+{
+  "cached_discovery_after_expiry_renewal_replacement": true,
+  "fixture_checks": 11,
+  "independent_refresh": true,
+  "initial_native_verified": true,
+  "profile_trust_unchanged": true,
+  "renewal_failure_gates": true,
+  "renewal_native_verified": true,
+  "restart_recovered": true,
+  "harness_source": "85a7335b9de98427520c3aed7a7318fdecbb49c8",
+  "core_source": "8e62f4b8c340e572584f6d71355a8f89a7d0be42",
+  "agent_source": "bdd733dc62ab94e01d17837070c1f286a5ceeb3c",
+  "caddy_source": "2089dd5b673e3358924179aa4700a56475356633",
+  "exit_code": 0,
+  "raw_evidence": ".local/lifecycle-caddy-firefox/firefox-integration-1670999494/evidence",
+  "fixtures": {
+    "critical-header": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "expired-binding": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "no-qwac-trust": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "no-tls-trust": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "positive": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "qwac-hostname": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "qwac-profile": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "signature": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "tls-expiry": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "tls-hostname": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "wrong-tls": {
+      "browser_version": "157.0.1",
+      "passed": true
+    }
+  },
+  "native_phases": {
+    "firefox-cached-initial": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox TEST",
+        "country": "HU",
+        "qwac_fingerprint": "6E:CD:4D:25:F2:75:97:BC:72:2D:2B:BB:28:62:B3:F5:C2:97:D8:F5:37:25:23:9D:D7:88:18:C4:2F:DB:4F:44",
+        "tls_fingerprint": "80:B0:11:93:DE:D7:F8:2E:5B:32:89:5D:5B:0F:6A:B6:7A:2A:41:B9:C8:37:08:D5:AC:DA:8D:16:07:AB:87:69",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    },
+    "firefox-cached-renewed": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox TEST",
+        "country": "HU",
+        "qwac_fingerprint": "6E:CD:4D:25:F2:75:97:BC:72:2D:2B:BB:28:62:B3:F5:C2:97:D8:F5:37:25:23:9D:D7:88:18:C4:2F:DB:4F:44",
+        "tls_fingerprint": "26:28:8A:75:38:1E:5B:D6:2D:B0:89:04:33:85:21:E3:A0:0F:88:80:75:42:5A:1A:3B:10:1D:6A:A1:72:9B:A6",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    },
+    "firefox-cached-replacement": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox Replacement TEST",
+        "country": "HU",
+        "qwac_fingerprint": "2B:F2:68:12:C8:5D:C8:E2:F6:00:7C:D8:73:48:91:AB:86:C4:00:95:F0:B3:90:CD:7B:78:95:BC:C5:03:EB:58",
+        "tls_fingerprint": "26:28:8A:75:38:1E:5B:D6:2D:B0:89:04:33:85:21:E3:A0:0F:88:80:75:42:5A:1A:3B:10:1D:6A:A1:72:9B:A6",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    },
+    "firefox-failure-recovery": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox Replacement TEST",
+        "country": "HU",
+        "qwac_fingerprint": "2B:F2:68:12:C8:5D:C8:E2:F6:00:7C:D8:73:48:91:AB:86:C4:00:95:F0:B3:90:CD:7B:78:95:BC:C5:03:EB:58",
+        "tls_fingerprint": "44:13:27:16:57:43:09:D6:FE:69:CA:D6:8A:67:EA:BC:5A:20:61:68:63:BA:C4:9D:AB:BA:3A:F8:11:EE:5B:2E",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    },
+    "firefox-initial": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox TEST",
+        "country": "HU",
+        "qwac_fingerprint": "6E:CD:4D:25:F2:75:97:BC:72:2D:2B:BB:28:62:B3:F5:C2:97:D8:F5:37:25:23:9D:D7:88:18:C4:2F:DB:4F:44",
+        "tls_fingerprint": "80:B0:11:93:DE:D7:F8:2E:5B:32:89:5D:5B:0F:6A:B6:7A:2A:41:B9:C8:37:08:D5:AC:DA:8D:16:07:AB:87:69",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    },
+    "firefox-restarted": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox Replacement TEST",
+        "country": "HU",
+        "qwac_fingerprint": "2B:F2:68:12:C8:5D:C8:E2:F6:00:7C:D8:73:48:91:AB:86:C4:00:95:F0:B3:90:CD:7B:78:95:BC:C5:03:EB:58",
+        "tls_fingerprint": "26:28:8A:75:38:1E:5B:D6:2D:B0:89:04:33:85:21:E3:A0:0F:88:80:75:42:5A:1A:3B:10:1D:6A:A1:72:9B:A6",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    }
+  },
+  "cache": {
+    "cache-renewed": {
+      "age": "72",
+      "binding_exp": 1791493216,
+      "binding_iat": 1791493171,
+      "body_sha256": "e2dc210852605104c3ea1219a49e8741692afac75a2b8a144edf877cf70d36a2",
+      "cache": "hit",
+      "connection_tls_id": "26288a75381e5bd62db08904338521e3a00f888075425a1a3b101d6aa1729ba6",
+      "initial_binding_exp": 1791493142,
+      "link": "</bindings/current.jose>; rel=\"tls-certificate-binding\""
+    },
+    "cache-replacement": {
+      "age": "101",
+      "binding_exp": 1791493247,
+      "binding_iat": 1791493202,
+      "body_sha256": "e2dc210852605104c3ea1219a49e8741692afac75a2b8a144edf877cf70d36a2",
+      "cache": "hit",
+      "connection_tls_id": "26288a75381e5bd62db08904338521e3a00f888075425a1a3b101d6aa1729ba6",
+      "initial_binding_exp": 1791493142,
+      "link": "</bindings/current.jose>; rel=\"tls-certificate-binding\""
+    }
+  }
+}

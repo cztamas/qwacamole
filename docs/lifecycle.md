@@ -92,7 +92,8 @@ logs out of reports.
 
 ## Acceptance matrix
 
-The dated lifecycle report records **fresh** commands/revisions/results. Prior
+The [8 October lifecycle report](evidence-lifecycle-20261008.md) records **fresh**
+commands/revisions/results. Prior
 credential/agent reports remain inherited evidence, not substitutes for reruns.
 
 | Guarantee | Focused synthetic evidence | Real integration/native evidence |

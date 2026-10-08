@@ -1,0 +1,40 @@
+{
+  "harness_source": "85a7335b9de98427520c3aed7a7318fdecbb49c8",
+  "core_source": "8e62f4b8c340e572584f6d71355a8f89a7d0be42",
+  "agent_source": "bdd733dc62ab94e01d17837070c1f286a5ceeb3c",
+  "caddy_source": "2089dd5b673e3358924179aa4700a56475356633",
+  "started_at": "2026-10-08T20:50:14.357288+00:00",
+  "completed_at": "2026-10-08T20:58:15.194048+00:00",
+  "exit_code": 1,
+  "raw_log": ".local/evidence/lifecycle-caddy-chrome.log",
+  "browser_version": "Google Chrome 154.0.8037.98",
+  "error": "browser reconnected; expired connection coverage was not tested",
+  "held_connection": {
+    "initial_tls_id": "723a14c339ea7feca2aca48d538ac608ce3f2730d12f5d02747515feeb71e903",
+    "final_tls_id": "d795551ed90798eae5c76d93a99acdc4519f2ef327e101483f2a80658fc7ac73",
+    "initial_not_after": "2026-10-08T20:57:27Z",
+    "checked_at": "2026-10-08T22:58:14.032853+02:00"
+  },
+  "native_binding_verdicts": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "observation": "Chrome recreated certificate verifiers and retired the original HTTP/2 session after a network-time response. No server GOAWAY appeared for that session. This attempt did not prove held coverage and did not reach the fixture suite.",
+  "raw_evidence": ".local/lifecycle-caddy-chrome/integration-20261008-225014/evidence"
+}

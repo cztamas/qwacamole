@@ -1,0 +1,54 @@
+{
+  "agent": {
+    "path": "github.com/cztamas/qwacamole/agent",
+    "version": "v0.0.0-20261008203929-bdd733dc62ab",
+    "commit": "bdd733dc62ab94e01d17837070c1f286a5ceeb3c",
+    "dependencies": [
+      [
+        "path",
+        "github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent"
+      ],
+      [
+        "mod",
+        "github.com/cztamas/qwacamole/agent",
+        "v0.0.0-20261008203929-bdd733dc62ab",
+        "h1:YkbYCBeO+AmHTuHW4lYTWIAJxbLXStcIjiP/v6Z2vuw="
+      ],
+      [
+        "dep",
+        "github.com/cztamas/qwacamole",
+        "v0.0.0-20261008203612-8e62f4b8c340",
+        "h1:S/2dbYa6hxLZNqL0SwvVxd2bkDvKmTxHbHvHR6gTq3w="
+      ]
+    ],
+    "gowork": "off",
+    "replacements": false,
+    "development_dependencies": false,
+    "fresh_module_cache": true,
+    "raw_evidence": ".local/evidence/remote-agent"
+  },
+  "caddy": {
+    "path": "github.com/cztamas/qwacamole/caddy",
+    "version": "v0.0.0-20261008204731-2089dd5b673e",
+    "commit": "2089dd5b673e3358924179aa4700a56475356633",
+    "dependencies": [
+      [
+        "dep",
+        "github.com/cztamas/qwacamole",
+        "v0.0.0-20261008203612-8e62f4b8c340",
+        "h1:S/2dbYa6hxLZNqL0SwvVxd2bkDvKmTxHbHvHR6gTq3w="
+      ],
+      [
+        "dep",
+        "github.com/cztamas/qwacamole/caddy",
+        "v0.0.0-20261008204731-2089dd5b673e",
+        "h1:qkM0Vp37MrKWolddPEi3LvNRCZl+9dBmXB111COtrlE="
+      ]
+    ],
+    "gowork": "off",
+    "replacements": false,
+    "development_dependencies": false,
+    "fresh_module_cache": true,
+    "raw_evidence": ".local/evidence/remote-install"
+  }
+}
