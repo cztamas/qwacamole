@@ -61,6 +61,15 @@ jobs:
           (cd agent && go build -o ../bin/qwacamole-agent ./cmd/qwacamole-agent)
       - name: Real Nginx WebSocket, slow upload, Certbot lifecycle and fail-closed gate
         run: bin/qwacamole nginx-smoke -state .local/ci-nginx -nginx /usr/sbin/nginx
+      - name: Nondefault Nginx body, buffering, inactivity timeout, redirect and HSTS policy
+        run: bin/qwacamole nginx-serving-smoke -state .local/ci-nginx-custom -nginx /usr/sbin/nginx
+      - name: Install merged-main upgrade baseline from its immutable remote ref
+        run: |
+          GOWORK=off GOBIN="$PWD/bin" go install github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@4a93ce6c43bf4a728a69625ac7ed567d54db53f1
+          mv bin/qwacamole-agent bin/qwacamole-agent-baseline
+          (cd agent && go build -o ../bin/qwacamole-agent ./cmd/qwacamole-agent)
+      - name: Real Nginx offline migration, interruption, repeated execution and lifecycle
+        run: bin/qwacamole nginx-upgrade-smoke -state .local/ci-nginx-upgrade -nginx /usr/sbin/nginx
       - name: Real ACME multi-site cache, WebSocket, renewal and offline retirement checks
         run: bin/qwacamole plugin-smoke -state .local/ci
       - uses: actions/upload-artifact@v4
@@ -70,6 +79,8 @@ jobs:
           path: |
             .local/ci/**/evidence/
             .local/ci-nginx/**/evidence/
+            .local/ci-nginx-custom/**/evidence/
+            .local/ci-nginx-upgrade/**/evidence/
             .local/ci-nginx/**/agent.log
             .local/ci-nginx/**/agent-faults.log
             .local/ci-nginx/**/nginx/error.log

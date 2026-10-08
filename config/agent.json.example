@@ -1,0 +1,27 @@
+{
+  "config_version": 1,
+  "hostname": "example.com",
+  "state_directory": "/var/lib/qwacamole/example.com",
+  "runtime_directory": "/run/qwacamole-example",
+  "qwac_chain_files": ["/etc/qwacamole/qwac-chain-with-root.pem"],
+  "qwac_key_file": "/etc/qwacamole/qwac-key.pem",
+  "qwac_trust_file": "/etc/qwacamole/qwac-root.pem",
+  "certbot_lineage": "/etc/letsencrypt/live/example.com",
+  "binding_listen": "127.0.0.1:18081",
+  "http_listen": "0.0.0.0:80",
+  "https_listen": "0.0.0.0:443",
+  "probe_address": "127.0.0.1:443",
+  "application": "http://127.0.0.1:8080",
+  "challenge_webroot": "/var/lib/acme",
+  "nginx_binary": "/usr/sbin/nginx",
+  "nginx_prefix": "/var/lib/nginx/qwacamole",
+  "nginx_config": "/etc/nginx/qwacamole.conf",
+  "serving": {
+    "max_request_body_bytes": 1048576,
+    "client_body_timeout": "60s",
+    "upstream_send_timeout": "60s",
+    "upstream_read_timeout": "60s",
+    "request_buffering": "on",
+    "redirect_https": true
+  }
+}

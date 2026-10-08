@@ -78,3 +78,13 @@ nginx-firefox-test: bootstrap-firefox agent-build
 	bin/qwacamole nginx-browser-integration -native-browser firefox -state $(STATE) $(BROWSER_ARGS)
 remote-agent-check:
 	./scripts/check-remote-agent.sh $(REF)
+
+.PHONY: nginx-serving-smoke nginx-upgrade-smoke
+nginx-serving-smoke: agent-build
+	cd devtools && $(GO) build -o ../bin/qwacamole ./cmd/qwacamole
+	bin/qwacamole nginx-serving-smoke -state $(STATE)
+nginx-upgrade-smoke: agent-build
+	GOWORK=off GOBIN="$(CURDIR)/.local/legacy-install/bin" $(GO) install github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@4a93ce6c43bf4a728a69625ac7ed567d54db53f1
+	cp .local/legacy-install/bin/qwacamole-agent bin/qwacamole-agent-baseline
+	cd devtools && $(GO) build -o ../bin/qwacamole ./cmd/qwacamole
+	bin/qwacamole nginx-upgrade-smoke -state $(STATE)

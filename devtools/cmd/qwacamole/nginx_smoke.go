@@ -32,9 +32,9 @@ import (
 // nginxSmoke owns every process and directory it creates. Certbot performs real
 // HTTP-01 validation through Nginx; the agent is a separate production binary.
 func nginxSmoke(parent, agentBin, nginxBin, certbotBin string) error {
-	return nginxLifecycle(parent, agentBin, nginxBin, certbotBin, nil)
+	return nginxLifecycle(parent, agentBin, nginxBin, certbotBin, nil, nil, "")
 }
-func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginxNative) (retErr error) {
+func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginxNative, policy *agent.ServingConfig, legacyBin string) (retErr error) {
 	if e := checkDemoPorts(); e != nil {
 		return e
 	}
@@ -200,6 +200,20 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 	go app.Serve(appLn)
 	defer app.Close()
 	cfg := agent.Config{Host: "qwac.example.com", RuntimeDir: runtimeDir, StateDir: filepath.Join(dir, "agent"), ChainFiles: []string{filepath.Join(pkidir, "qwac-leaf.pem"), filepath.Join(pkidir, "qwac-intermediate.pem"), filepath.Join(pkidir, "qwac-root.pem")}, KeyFile: filepath.Join(pkidir, "qwac-leaf-key.pem"), TrustFile: filepath.Join(pkidir, "qwac-root.pem"), TLSRoots: rootPath, CertbotLineage: filepath.Join(dir, "certbot", "live", "qwac.example.com"), PublicListen: "127.0.0.1:18081", HTTPListen: "127.0.0.1:5002", HTTPSListen: "127.0.0.1:8443", ProbeAddress: "127.0.0.1:8443", Application: "http://" + appLn.Addr().String(), Webroot: filepath.Join(dir, "webroot"), NginxBinary: nginxBin, NginxPrefix: filepath.Join(dir, "nginx"), NginxConfig: filepath.Join(dir, "nginx.conf"), Lifetime: "45s", DocumentGrace: "2s", FirefoxCompatibility: native != nil && native.mode == "firefox"}
+	if policy != nil {
+		cfg.Serving = *policy
+	}
+	if legacyBin != "" {
+		legacyBin, e = filepath.Abs(legacyBin)
+		if e != nil {
+			return e
+		}
+		cfg.NginxBinary = filepath.Join(dir, "nginx-upgrade-wrapper")
+		if e = writeUpgradeWrapper(cfg.NginxBinary, nginxBin, dir); e != nil {
+			return e
+		}
+	}
+
 	for _, path := range []string{cfg.StateDir, filepath.Join(cfg.StateDir, "enabled"), cfg.NginxPrefix, cfg.Webroot} {
 		if e = os.MkdirAll(path, 0700); e != nil {
 			return e
@@ -215,6 +229,24 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 	if e = writeJSON(cfgPath, cfg); e != nil {
 		return e
 	}
+	if legacyBin != "" {
+		data, _ := json.Marshal(cfg)
+		var old map[string]any
+		json.Unmarshal(data, &old)
+		delete(old, "serving")
+		delete(old, "config_version")
+		if e = writeJSON(cfgPath, old); e != nil {
+			return e
+		}
+		rendered, err := exec.Command(legacyBin, "render-nginx", "-config", cfgPath).Output()
+		if err != nil {
+			return err
+		}
+		if e = os.WriteFile(cfg.NginxConfig, rendered, 0600); e != nil {
+			return e
+		}
+	}
+
 	verify := binding.Verify
 	if cfg.FirefoxCompatibility {
 		verify = binding.VerifyFirefox
@@ -225,7 +257,11 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 		}
 	}
 
-	if e = (agent.Nginx{Config: cfg}).Validate(context.Background()); e != nil {
+	if legacyBin != "" {
+		if out, err := exec.Command(legacyBin, "validate", "-config", cfgPath).CombinedOutput(); err != nil {
+			return fmt.Errorf("legacy validation: %s: %w", out, err)
+		}
+	} else if e = (agent.Nginx{Config: cfg}).Validate(context.Background()); e != nil {
 		return e
 	}
 	nginx, e = c.start(nginxBin, "nginx", "-p", cfg.NginxPrefix, "-c", cfg.NginxConfig, "-g", "daemon off;")
@@ -234,7 +270,11 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 	}
 	startAgent := func() error {
 		var err error
-		daemon, err = c.start(agentBin, "agent", "serve", "-config", cfgPath)
+		binary := agentBin
+		if legacyBin != "" {
+			binary = legacyBin
+		}
+		daemon, err = c.start(binary, "agent", "serve", "-config", cfgPath)
 		return err
 	}
 	if e = startAgent(); e != nil {
@@ -252,6 +292,11 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 		time.Sleep(100 * time.Millisecond)
 	}
 	c.pass("isolated production agent and HTTP-only Nginx bootstrap")
+	if legacyBin == "" {
+		if e = nginxHTTPPolicyCheck(c, cfg, false); e != nil {
+			return e
+		}
+	}
 	if e = checkAgentControlBoundary(ctx, cfg); e != nil {
 		return e
 	}
@@ -281,6 +326,39 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 		return e
 	}
 	c.pass("fresh verified browser-facing TLS leaf covered by qualified binding")
+	if legacyBin != "" {
+		stopChild(daemon)
+		daemon = nil
+		stopChild(nginx)
+		nginx = nil
+		if e = nginxUpgradeCheck(c, cfg, cfgPath, agentBin); e != nil {
+			return e
+		}
+		legacyBin = ""
+		nginx, e = c.start(nginxBin, "nginx-upgraded", "-p", cfg.NginxPrefix, "-c", cfg.NginxConfig, "-g", "daemon off;")
+		if e != nil {
+			return e
+		}
+		if e = startAgent(); e != nil {
+			return e
+		}
+		for end := time.Now().Add(15 * time.Second); ; {
+			raw, err := agent.Control(ctx, cfg, "status")
+			var got agent.Status
+			if err == nil && json.Unmarshal(raw, &got) == nil && got.Ready {
+				break
+			}
+			if time.Now().After(end) {
+				return fmt.Errorf("migrated restart not ready: %s %v", raw, err)
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		if e = agent.Check(ctx, cfg); e != nil {
+			return e
+		}
+		c.pass("migrated agent reconciles same retained TLS with fresh normally verified connection")
+	}
+
 	roots := x509.NewCertPool()
 	roots.AppendCertsFromPEM(tlsRoot)
 	transport := &http.Transport{TLSClientConfig: &tls.Config{RootCAs: roots}, DialContext: func(ctx context.Context, network, _ string) (net.Conn, error) {
@@ -320,6 +398,9 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 		}
 	}
 	c.pass("ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses")
+	if e = nginxServingCheck(c, cfg, client); e != nil {
+		return e
+	}
 	if e = nginxWebSocketCheck(c, cfg, &tls.Config{RootCAs: roots, ServerName: cfg.Host}); e != nil {
 		return e
 	}

@@ -23,8 +23,37 @@ import (
 // ten-second body deadline. A large direct request fills transport buffers;
 // the Nginx request separately exercises its default buffered-upload policy.
 func nginxProxyOrigin(w http.ResponseWriter, r *http.Request) bool {
-	switch r.URL.Path {
-	case "/ws":
+	switch {
+	case strings.HasPrefix(r.URL.Path, "/metadata"):
+		w.Header().Set("Strict-Transport-Security", "max-age=999999; preload")
+		if r.Header.Get("X-Forwarded-Proto") == "https" {
+			http.SetCookie(w, &http.Cookie{Name: "session", Value: "test", Secure: true, HttpOnly: true, Path: "/"})
+		}
+		absolute := r.Header.Get("X-Forwarded-Proto") + "://" + r.Header.Get("X-Forwarded-Host") + "/done"
+		if r.URL.Path == "/metadata-url" {
+			w.Header().Set("Location", absolute)
+			w.WriteHeader(307)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]string{"host": r.Host, "forwarded": r.Header.Get("Forwarded"), "xff": r.Header.Get("X-Forwarded-For"), "xfh": r.Header.Get("X-Forwarded-Host"), "xfp": r.Header.Get("X-Forwarded-Proto"), "uri": r.URL.RequestURI(), "url": absolute})
+		return true
+	case r.URL.Path == "/upload":
+		n, e := io.Copy(io.Discard, r.Body)
+		if e != nil {
+			w.WriteHeader(400)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"bytes": n, "error": fmt.Sprint(e)})
+		return true
+	case r.URL.Path == "/timeout-read":
+		select {
+		case <-time.After(17 * time.Second):
+			w.Write([]byte("too late"))
+		case <-r.Context().Done():
+		}
+		return true
+	case r.URL.Path == "/timeout-send":
+		<-r.Context().Done()
+		return true
+	case r.URL.Path == "/ws":
 		u := ws.HTTPUpgrader{Header: http.Header{"Link": {`</style>; rel="preload"`}}}
 		conn, _, _, err := u.Upgrade(r, w)
 		if err == nil {
@@ -36,7 +65,7 @@ func nginxProxyOrigin(w http.ResponseWriter, r *http.Request) bool {
 			}
 		}
 		return true
-	case "/slow-body":
+	case r.URL.Path == "/slow-body":
 		start := time.Now()
 		select {
 		case <-time.After(12 * time.Second):

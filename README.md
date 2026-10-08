@@ -33,7 +33,7 @@ For Firefox, start with [Firefox quickstart](#firefox-quickstart).
 
 ## Certbot + Nginx agent
 
-The feature branch `codex/certbot-nginx-agent` adds the production
+The merged agent module provides the production
 `qwacamole-agent` executable in `agent/`. It uses supplied QWAC credentials and
 controls Certbot deployment into Nginx through a private local socket, durable
 binding publication, immutable TLS generations, validated reload and fresh TLS
@@ -50,6 +50,13 @@ The [PR review follow-up](docs/evidence-agent-review-20261007.md) fixes Nginx
 WebSocket forwarding and the agent's application-body deadline, with **28** real
 Nginx lifecycle/fault checks. The agent owns a dedicated single-host Nginx
 configuration; existing multi-site Nginx integration is outside its current scope.
+The configurable serving policy establishes trusted client/HTTPS metadata for
+ordinary applications, body limits, inactivity timeouts, buffering, redirects and
+optional HSTS. [Versioned offline migration](docs/agent-migration.md) upgrades
+merged unversioned state while preserving its certificate and binding history.
+See [the 8 October serving/upgrade report](docs/evidence-agent-serving-20261008.md)
+for exact implemented sources and newly executed acceptance evidence.
+
 
 ```sh
 make agent-build
