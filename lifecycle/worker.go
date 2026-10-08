@@ -55,6 +55,8 @@ func Run(ctx context.Context, m *store.Manager, observe func(Event)) {
 		case <-m.Changed():
 			t.Stop()
 			retryAt = time.Time{}
+			failures = 0
+			m.Maintenance(retryAt, failures, nil)
 		case now := <-gc.C:
 			t.Stop()
 			result, err := m.Collect(now)
@@ -68,8 +70,10 @@ func Run(ctx context.Context, m *store.Manager, observe func(Event)) {
 					delay = remaining / 2
 				}
 				retryAt = time.Now().Add(delay)
+				m.Maintenance(retryAt, failures, err)
 				emit(Event{Kind: "refresh_failed", Err: err, RetryAfter: delay})
 			} else {
+				m.Maintenance(time.Time{}, 0, nil)
 				if failures > 0 {
 					emit(Event{Kind: "refresh_recovered"})
 				}

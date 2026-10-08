@@ -47,14 +47,17 @@ type State struct {
 	BindingProfile string               `json:"binding_profile,omitempty"`
 }
 type Manager struct {
-	mu          sync.RWMutex
-	cfg         Config
-	material    *credentials.Credentials
-	operations  Operations
-	current     State
-	currentDoc  []byte
-	changed     chan struct{}
-	lastFailure string
+	mu              sync.RWMutex
+	cfg             Config
+	material        *credentials.Credentials
+	operations      Operations
+	current         State
+	currentDoc      []byte
+	changed         chan struct{}
+	lastFailure     string
+	retryAt         time.Time
+	refreshFailures int
+	refreshFailure  string
 }
 
 // DiscoveryURL is stable across publication, renewal and credential replacement.
@@ -233,6 +236,7 @@ func (m *Manager) Activate(mat *credentials.Credentials, additional ...*x509.Cer
 		m.notifyLocked()
 	}
 	m.material = mat
+	m.notifyLocked()
 	return nil
 }
 

@@ -33,5 +33,9 @@ func TestOperationalPolicyValidationAndDefaults(t *testing.T) {
 		if !m.NextRefresh().Equal(time.Unix(102, 0)) {
 			t.Fatal("refresh margin ignored effective lifetime")
 		}
+		m.current.Expires = 102
+		if !m.NextRefresh().Equal(time.Unix(102, 0)) {
+			t.Fatal("near-expiry signing would spin instead of waiting for expiry")
+		}
 	}
 }

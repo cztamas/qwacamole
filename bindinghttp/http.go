@@ -5,7 +5,6 @@ package bindinghttp
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/cztamas/qwacamole/store"
 )
@@ -19,10 +18,11 @@ type Error struct {
 func (e *Error) Error() string { return fmt.Sprintf("binding HTTP %d: %v", e.Status, e.Cause) }
 func (e *Error) Unwrap() error { return e.Cause }
 
-// Available reports the same signed-expiry gate used by protected integrations.
+// Available checks the committed document, including its signature, coverage and
+// complete QWAC chain validity. A timestamp alone is not availability evidence.
 func Available(m *store.Manager) bool {
-	s := m.Snapshot()
-	return s.URL != "" && s.Expires > time.Now().Unix()
+	_, err := m.CurrentDocument()
+	return err == nil
 }
 
 // Serve writes GET/HEAD binding bytes from one committed manager snapshot.

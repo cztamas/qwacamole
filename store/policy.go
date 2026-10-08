@@ -138,21 +138,65 @@ func (m *Manager) Collect(now time.Time) (Collection, error) {
 // Status supplies local diagnostics for logs/tools; it is not browser evidence.
 // Storage includes unknown files so unexpected growth remains observable.
 type Status struct {
-	QWACExpires          int64  `json:"qwac_expires"`
-	BindingExpires       int64  `json:"binding_expires"`
-	NextRefresh          int64  `json:"next_refresh"`
-	RetainedCertificates int    `json:"retained_certificates"`
-	MaxCertificates      int    `json:"max_certificates"`
-	DocumentBytes        int    `json:"current_document_bytes"`
-	Files                int    `json:"storage_files"`
-	StorageBytes         int64  `json:"storage_bytes"`
-	LastFailure          string `json:"last_publication_failure,omitempty"`
+	SignerID             string   `json:"active_qwac_sha256,omitempty"`
+	CredentialID         string   `json:"configured_qwac_sha256"`
+	ReplacementPending   bool     `json:"replacement_pending"`
+	TLSIDs               []string `json:"covered_tls_sha256"`
+	QWACExpires          int64    `json:"qwac_expires"`
+	QWACChainExpires     int64    `json:"qwac_chain_expires"`
+	BindingExpires       int64    `json:"binding_expires"`
+	NextRefresh          int64    `json:"next_refresh"`
+	RetainedCertificates int      `json:"retained_certificates"`
+	MaxCertificates      int      `json:"max_certificates"`
+	DocumentBytes        int      `json:"current_document_bytes"`
+	Files                int      `json:"storage_files"`
+	StorageBytes         int64    `json:"storage_bytes"`
+	LastFailure          string   `json:"last_publication_failure,omitempty"`
+	MaxDocumentBytes     int64    `json:"max_document_bytes"`
+	RefreshFailures      int      `json:"refresh_failures"`
+	RetryAt              int64    `json:"refresh_retry_at,omitempty"`
+	RefreshFailure       string   `json:"last_refresh_failure,omitempty"`
+}
+
+// Maintenance records the single worker's retry state for local diagnostics.
+// It does not alter signed state, schedule work or notify the worker.
+func (m *Manager) Maintenance(retryAt time.Time, failures int, err error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.retryAt, m.refreshFailures = retryAt, failures
+	m.refreshFailure = ""
+	if err != nil {
+		m.refreshFailure = err.Error()
+	}
 }
 
 func (m *Manager) Status() (Status, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	s := Status{QWACExpires: m.material.Chain[0].NotAfter.Unix(), BindingExpires: m.current.Expires, NextRefresh: m.nextRefreshLocked().Unix(), RetainedCertificates: len(m.current.Certs), MaxCertificates: m.cfg.MaxCertificates, DocumentBytes: len(m.currentDoc), LastFailure: m.lastFailure}
+	s.CredentialID = binding.ID(m.material.Chain[0])
+	s.TLSIDs = append([]string(nil), m.current.IDs...)
+	s.MaxDocumentBytes = m.cfg.MaxDocumentBytes
+	s.RefreshFailures, s.RefreshFailure = m.refreshFailures, m.refreshFailure
+	if !m.retryAt.IsZero() {
+		s.RetryAt = m.retryAt.Unix()
+	}
+	chain := m.material.Chain
+	if len(m.currentDoc) > 0 {
+		h, committed, _, _, err := binding.Decode(string(m.currentDoc))
+		if err != nil {
+			return s, err
+		}
+		s.SignerID, chain = h.Kid, committed
+		s.QWACExpires = chain[0].NotAfter.Unix()
+	}
+	s.ReplacementPending = s.SignerID != "" && s.SignerID != s.CredentialID
+	s.QWACChainExpires = chain[0].NotAfter.Unix()
+	for _, c := range chain {
+		if c.NotAfter.Unix() < s.QWACChainExpires {
+			s.QWACChainExpires = c.NotAfter.Unix()
+		}
+	}
 	es, e := os.ReadDir(m.cfg.Dir)
 	if e != nil {
 		return s, e
