@@ -39,7 +39,7 @@ func ReadKey(path string) (*rsa.PrivateKey, error) {
 		return nil, e
 	}
 	b, rest := pem.Decode(d)
-	if b == nil {
+	if b == nil || !bytes.HasPrefix(bytes.TrimSpace(d), []byte("-----BEGIN ")) {
 		return nil, fmt.Errorf("not PEM key")
 	}
 	if len(bytes.TrimSpace(rest)) != 0 || len(b.Headers) != 0 {
@@ -58,6 +58,53 @@ func ReadKey(path string) (*rsa.PrivateKey, error) {
 		}
 	}
 	return nil, fmt.Errorf("only unencrypted PKCS#1 or PKCS#8 RSA keys supported")
+}
+
+// LoadFor is the shared production entry point. ChainFiles is leaf-first PEM;
+// the root may be omitted, but must be configured separately in trustFiles.
+// One explicit authority is supported by the binding store. No system roots,
+// network retrieval, trusted-list qualification or revocation checks are implied.
+func LoadFor(chainFiles []string, keyFile string, trustFiles, hosts []string, now time.Time) (*Credentials, error) {
+	if len(trustFiles) != 1 {
+		return nil, fmt.Errorf("one explicit QWAC trust authority file required")
+	}
+	anchors, e := ReadCertificates(trustFiles[0])
+	if e != nil {
+		return nil, fmt.Errorf("QWAC trust: %w", e)
+	}
+	if len(anchors) != 1 || !anchors[0].IsCA {
+		return nil, fmt.Errorf("one QWAC CA authority certificate required")
+	}
+	m := &Credentials{}
+	for _, path := range chainFiles {
+		cs, err := ReadCertificates(path)
+		if err != nil {
+			return nil, fmt.Errorf("QWAC chain: %w", err)
+		}
+		m.Chain = append(m.Chain, cs...)
+	}
+	if len(m.Chain) == 0 {
+		return nil, fmt.Errorf("QWAC leaf certificate required")
+	}
+	if !m.Chain[len(m.Chain)-1].Equal(anchors[0]) {
+		m.Chain = append(m.Chain, anchors[0])
+	}
+	m.Key, e = ReadKey(keyFile)
+	if e != nil {
+		return nil, fmt.Errorf("QWAC signing key: %w", e)
+	}
+	if len(hosts) == 0 {
+		return nil, fmt.Errorf("at least one binding hostname required")
+	}
+	for _, host := range hosts {
+		if host == "" {
+			return nil, fmt.Errorf("empty binding hostname")
+		}
+		if e = m.ValidateFor(host, anchors[0], now); e != nil {
+			return nil, fmt.Errorf("QWAC credential for %s: %w", host, e)
+		}
+	}
+	return m, nil
 }
 
 // ReadCertificates reads every certificate in an ordinary PEM bundle.
@@ -155,6 +202,9 @@ func (m *Credentials) Validate() error {
 	}
 	if e := m.Key.Validate(); e != nil {
 		return e
+	}
+	if m.Key.N.BitLen() < 2048 {
+		return fmt.Errorf("RS256 signing requires an RSA key of at least 2048 bits")
 	}
 	pub, ok := m.Chain[0].PublicKey.(*rsa.PublicKey)
 	if !ok || !pub.Equal(&m.Key.PublicKey) {
