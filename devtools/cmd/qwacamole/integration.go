@@ -33,7 +33,13 @@ func integration(dir, binary, metadata string) error {
 		return e
 	}
 	start := func(sub string) (*exec.Cmd, error) {
-		c := exec.Command(exe, sub, "-state", dir)
+		args := []string{sub, "-state", dir}
+		if sub == "demo" {
+			// Preserve the same native held-connection/expiry assertions while
+			// keeping this synthetic lifetime below unrelated background updates.
+			args = append(args, "-tls-lifetime", "2m")
+		}
+		c := exec.Command(exe, args...)
 		f, e := os.OpenFile(filepath.Join(dir, "evidence", sub+"-console.log"), os.O_CREATE|os.O_WRONLY, 0600)
 		if e != nil {
 			return nil, e

@@ -30,6 +30,7 @@ func main() {
 	certbotBin := f.String("certbot", ".tools/certbot-venv/bin/certbot", "Certbot executable")
 	pluginBin := f.String("plugin-binary", "bin/caddy-plugin", "plugin-only Caddy binary for portable smoke")
 	dir := f.String("state", ".local", "state directory")
+	tlsLifetime := f.Duration("tls-lifetime", 6*time.Minute, "demo-only synthetic TLS certificate lifetime (one to nine minutes)")
 	bin := f.String("browser", "", "stock browser executable")
 	metadata := f.String("metadata", "", "genuine PKIMetadata version directory")
 	driver := f.String("geckodriver", "", "Firefox geckodriver executable")
@@ -146,7 +147,7 @@ func main() {
 	case "lifecycle":
 		e = lifecycle(*dir)
 	case "demo":
-		e = demo(*dir)
+		e = demo(*dir, *tlsLifetime)
 	case "pki":
 		e = pki.Generate(filepath.Join(*dir, "pki"), pki.Identity{Host: "qwac.example.com", Organization: *org, Country: *country, Locality: *locality, Registration: *registration})
 	case "fixture":

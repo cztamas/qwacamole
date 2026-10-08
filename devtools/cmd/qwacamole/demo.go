@@ -28,7 +28,10 @@ func writeJSON(path string, v any) error {
 	}
 	return os.WriteFile(path, b, 0600)
 }
-func demo(dir string) error {
+func demo(dir string, lifetime time.Duration) error {
+	if lifetime < time.Minute || lifetime > 9*time.Minute || lifetime%time.Second != 0 {
+		return fmt.Errorf("synthetic TLS lifetime must be whole seconds between one and nine minutes")
+	}
 	abs, e := filepath.Abs(dir)
 	if e != nil {
 		return e
@@ -48,7 +51,7 @@ func demo(dir string) error {
 	}
 	_ = os.MkdirAll(filepath.Join(dir, "evidence"), 0700)
 	_ = os.MkdirAll(filepath.Join(dir, "bindings"), 0700)
-	config := map[string]any{"pebble": map[string]any{"listenAddress": "127.0.0.1:14000", "managementListenAddress": "127.0.0.1:15000", "certificate": filepath.Join(pkidir, "acme-leaf.pem"), "privateKey": filepath.Join(pkidir, "acme-leaf-key.pem"), "httpPort": 5002, "tlsPort": 5001, "profiles": map[string]any{"default": map[string]any{"description": "Qwacamole short-lived local test", "validityPeriod": 360}}, "retryAfter": map[string]int{"authz": 1, "order": 1}}}
+	config := map[string]any{"pebble": map[string]any{"listenAddress": "127.0.0.1:14000", "managementListenAddress": "127.0.0.1:15000", "certificate": filepath.Join(pkidir, "acme-leaf.pem"), "privateKey": filepath.Join(pkidir, "acme-leaf-key.pem"), "httpPort": 5002, "tlsPort": 5001, "profiles": map[string]any{"default": map[string]any{"description": "Qwacamole short-lived local test", "validityPeriod": int(lifetime / time.Second)}}, "retryAfter": map[string]int{"authz": 1, "order": 1}}}
 	if e = writeJSON(filepath.Join(dir, "pebble.json"), config); e != nil {
 		return e
 	}
