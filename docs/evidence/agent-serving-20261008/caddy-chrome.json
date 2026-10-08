@@ -1,0 +1,206 @@
+{
+  "exit_status": 1,
+  "expected_incompatibility": "Chromium native verifier accepts an expired binding exp header",
+  "fixtures": {
+    "ct-required": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "passed": true
+    },
+    "expired-binding": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "error": "BROWSER INCOMPATIBILITY: native verifier accepted expired exp header",
+      "passed": false
+    },
+    "no-qwac-trust": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "passed": true
+    },
+    "no-tls-trust": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "passed": true
+    },
+    "positive": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "passed": true
+    },
+    "qwac-hostname": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "passed": true
+    },
+    "qwac-profile": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "passed": true
+    },
+    "signature": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "passed": true
+    },
+    "tls-expiry": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "passed": true
+    },
+    "tls-hostname": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "passed": true
+    },
+    "wrong-tls": {
+      "browser_version": "Google Chrome 155.0.8059.39 \n",
+      "passed": true
+    }
+  },
+  "held_renewal": {
+    "binding_url": "/bindings/fc4d72977e682d3970dc36998e9845d5f58886de16b2d97f0df822593f2a6343.jose",
+    "elapsed_seconds": 66.085772313,
+    "existing_connection_tls_id": "3b670c4995b426d85f32529aff32184650834720728344b3622c9b375bab4099",
+    "new_tls_id": "a8db7db44ac22da55931e54e1a72b8600c065bc0a3a04de74dd43bd41a64c55e",
+    "old_and_new_bound": true,
+    "old_tls_id": "3b670c4995b426d85f32529aff32184650834720728344b3622c9b375bab4099"
+  },
+  "lifecycle": {
+    "blocker": "1 native browser acceptance tests failed; see .local/implemented-caddy-chrome-20261008/integration-20261008-155402/evidence/browser-suite.json",
+    "continuous_http2_through_tls_expiry": true,
+    "independent_refresh": true,
+    "initial_native_verified": true,
+    "negative_suite_passed": false,
+    "profile_unchanged": true,
+    "renewal_failure_gates": true,
+    "renewal_native_verified": true,
+    "restart_recovered": true
+  },
+  "native_phases": {
+    "ct-required-result": {
+      "native_binding_verified": false,
+      "ordinary_tls_verified": false,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "expired-binding-result": {
+      "native_binding_verified": true,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "failure-recovery-result": {
+      "native_binding_verified": true,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "held-through-tls-expiry-result": {
+      "expiry_check": {
+        "checked_at": "2026-10-08T16:02:02.024278892Z",
+        "final_tls_id": "a8db7db44ac22da55931e54e1a72b8600c065bc0a3a04de74dd43bd41a64c55e",
+        "initial_not_after": "2026-10-08T16:01:15Z",
+        "initial_tls_id": "a8db7db44ac22da55931e54e1a72b8600c065bc0a3a04de74dd43bd41a64c55e"
+      },
+      "native_binding_verified": true,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "initial-result": {
+      "native_binding_verified": true,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "no-qwac-trust-result": {
+      "native_binding_verified": false,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "no-tls-trust-result": {
+      "native_binding_verified": false,
+      "ordinary_tls_verified": false,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "positive-result": {
+      "native_binding_verified": true,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "qwac-hostname-result": {
+      "native_binding_verified": false,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "qwac-profile-result": {
+      "native_binding_verified": false,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "renewed-result": {
+      "native_binding_verified": true,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "restarted-result": {
+      "native_binding_verified": true,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "signature-result": {
+      "native_binding_verified": false,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "tls-expiry-result": {
+      "native_binding_verified": false,
+      "ordinary_tls_verified": false,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "tls-hostname-result": {
+      "native_binding_verified": false,
+      "ordinary_tls_verified": false,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    },
+    "wrong-tls-result": {
+      "native_binding_verified": false,
+      "ordinary_tls_verified": true,
+      "root_versions": [
+        1000000
+      ],
+      "version": "Google Chrome 155.0.8059.39"
+    }
+  }
+}

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/cztamas/qwacamole/agent"
 	"github.com/cztamas/qwacamole/devtools/internal/browser"
 	"github.com/cztamas/qwacamole/devtools/internal/pki"
 	"log"
@@ -23,6 +24,7 @@ func main() {
 	f := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
 	nativeBrowser := f.String("native-browser", "chrome", "Nginx acceptance browser: chrome or firefox")
 	agentConfig := f.String("config", "", "deployment config for development fault service")
+	legacyAgentBin := f.String("legacy-agent-binary", "bin/qwacamole-agent-baseline", "merged-main immutable binary for offline upgrade acceptance")
 	agentBin := f.String("agent-binary", "bin/qwacamole-agent", "production agent binary")
 	nginxBin := f.String("nginx", ".tools/nginx/sbin/nginx", "Nginx executable")
 	certbotBin := f.String("certbot", ".tools/certbot-venv/bin/certbot", "Certbot executable")
@@ -50,10 +52,18 @@ func main() {
 	_ = f.Parse(os.Args[2:])
 	var e error
 	switch os.Args[1] {
+	case "agent-migration-policy-check":
+		e = agentMigrationPolicyCheck(*agentConfig, *agentBin, *dir)
 	case "agent-fault-service":
 		e = agentFaultService(*agentConfig, *dir)
 	case "nginx-browser-integration":
-		e = nginxLifecycle(*dir, *agentBin, *nginxBin, *certbotBin, &nginxNative{mode: *nativeBrowser, binary: *bin, metadata: *metadata, driver: *driver, certutil: *certutil})
+		e = nginxLifecycle(*dir, *agentBin, *nginxBin, *certbotBin, &nginxNative{mode: *nativeBrowser, binary: *bin, metadata: *metadata, driver: *driver, certutil: *certutil}, nil, "")
+	case "nginx-upgrade-smoke":
+		e = nginxLifecycle(*dir, *agentBin, *nginxBin, *certbotBin, nil, nil, *legacyAgentBin)
+	case "nginx-serving-smoke":
+		limit := int64(128 << 20)
+		policy := agent.ServingConfig{MaxBodyBytes: &limit, ClientBodyTimeout: "1500ms", UpstreamSendTimeout: "1500ms", UpstreamReadTimeout: "15s", RequestBuffering: "off", RedirectHTTPS: true, HTTPSPort: 8443, HSTS: &agent.HSTSConfig{MaxAgeSeconds: 300, IncludeSubdomains: true}}
+		e = nginxLifecycle(*dir, *agentBin, *nginxBin, *certbotBin, nil, &policy, "")
 	case "nginx-smoke":
 		e = nginxSmoke(*dir, *agentBin, *nginxBin, *certbotBin)
 	case "firefox-integration":

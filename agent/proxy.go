@@ -16,15 +16,25 @@ import (
 // continue once their response has committed, as in the Caddy integration.
 func applicationProxy(origin string, available func() bool) http.Handler {
 	u, _ := url.Parse(origin) // Config.Validate has checked the single HTTP origin.
-	proxy := httputil.NewSingleHostReverseProxy(u)
-	director := proxy.Director
-	proxy.Director = func(r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/application")
-		if r.URL.RawPath != "" {
-			r.URL.RawPath = strings.TrimPrefix(r.URL.RawPath, "/application")
+	proxy := &httputil.ReverseProxy{Rewrite: func(p *httputil.ProxyRequest) {
+		p.Out.URL.Path = strings.TrimPrefix(p.Out.URL.Path, "/application")
+		if p.Out.URL.RawPath != "" {
+			p.Out.URL.RawPath = strings.TrimPrefix(p.Out.URL.RawPath, "/application")
 		}
-		director(r)
-	}
+		p.SetURL(u)
+		// Preserve the origin request target, including raw query ordering/escapes.
+		p.Out.URL.RawQuery = p.In.URL.RawQuery
+		p.Out.URL.ForceQuery = p.In.URL.ForceQuery
+		p.Out.Host = p.In.Host
+		// Rewrite removes forwarding headers before this callback. Nginx replaces
+		// these values at ingress; local processes are part of the trusted boundary.
+		// Do not derive HTTPS or the client IP from this loopback HTTP connection.
+		for _, key := range []string{"X-Forwarded-For", "X-Forwarded-Host", "X-Forwarded-Proto"} {
+			if value := p.In.Header.Get(key); value != "" {
+				p.Out.Header.Set(key, value)
+			}
+		}
+	}}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !available() {
 			unavailableResponse(w)

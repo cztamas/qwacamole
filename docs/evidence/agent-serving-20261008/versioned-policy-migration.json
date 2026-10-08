@@ -1,0 +1,20 @@
+{
+  "activation_attempted": false,
+  "expired_generations_preserved": 3,
+  "nginx_validated": true,
+  "repeated": true,
+  "retained_generations": 3,
+  "same_journal": true,
+  "same_payload_hashes": true,
+  "target_serving": {
+    "client_body_timeout": "120s",
+    "hsts": {
+      "max_age_seconds": 0
+    },
+    "max_request_body_bytes": 33554432,
+    "redirect_https": true,
+    "request_buffering": "off",
+    "upstream_read_timeout": "120s",
+    "upstream_send_timeout": "90s"
+  }
+}

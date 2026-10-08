@@ -25,6 +25,7 @@ import (
 // Journal records intent before every externally observable deployment boundary.
 // Extra bound candidates survive rollback and are never automatically pruned.
 type Journal struct {
+	Version   int       `json:"state_version,omitempty"`
 	Phase     string    `json:"phase"`
 	Active    string    `json:"active,omitempty"`
 	Candidate string    `json:"candidate,omitempty"`
@@ -52,6 +53,9 @@ type Agent struct {
 // Open acquires exclusive ownership and verifies durable binding recovery. Call
 // Reconcile before readiness; public delivery alone cannot select certificates.
 func Open(c Config, target Target, ops store.Operations) (*Agent, error) {
+	if e := CheckStateFormat(c); e != nil {
+		return nil, e
+	}
 	if e := c.Validate(); e != nil {
 		return nil, e
 	}
@@ -89,9 +93,9 @@ func Open(c Config, target Target, ops store.Operations) (*Agent, error) {
 			return fail(e)
 		}
 	}
-	// Deployment settings cannot silently change across a retained state. A
-	// full Nginx+agent stop and offline reconstruction is required for migration.
-	configBytes, e := json.Marshal(c)
+	// Deployment settings cannot silently change across retained state. Offline
+	// migration supports serving/format changes without reconstructing coverage.
+	configBytes, e := json.Marshal(canonicalConfig(c))
 	if e != nil {
 		return fail(e)
 	}
@@ -99,13 +103,17 @@ func Open(c Config, target Target, ops store.Operations) (*Agent, error) {
 	priorConfig, e := os.ReadFile(configPath)
 	if e == nil {
 		if !bytes.Equal(priorConfig, configBytes) {
-			return fail(fmt.Errorf("deployment settings changed; full-stop offline migration required"))
+			return fail(fmt.Errorf("supported deployment settings changed; use offline migrate to update serving policy; ownership/coverage changes require a separately planned migration"))
 		}
 	} else if os.IsNotExist(e) {
 		if e = store.Atomic(configPath, configBytes); e != nil {
 			return fail(e)
 		}
 	} else {
+		return fail(e)
+	}
+	formatBytes, _ := json.Marshal(stateFormat{StateVersion, NginxFormatVersion})
+	if e = store.Atomic(filepath.Join(c.StateDir, "format.json"), formatBytes); e != nil {
 		return fail(e)
 	}
 	mat, e := c.Material()
@@ -123,27 +131,20 @@ func Open(c Config, target Target, ops store.Operations) (*Agent, error) {
 	if target == nil {
 		target = Nginx{Config: c}
 	}
-	a := &Agent{Config: c, Manager: m, target: target, lock: lock, controlLock: controlLock, journal: Journal{Phase: "empty"}}
+	a := &Agent{Config: c, Manager: m, target: target, lock: lock, controlLock: controlLock, journal: Journal{Version: StateVersion, Phase: "empty"}}
 	d, e := os.ReadFile(a.journalPath())
 	if e == nil {
-		if e = json.Unmarshal(d, &a.journal); e != nil {
+		if e = decodeStrict(d, &a.journal); e != nil {
 			return fail(e)
 		}
 	} else if !os.IsNotExist(e) {
 		return fail(e)
 	}
-	switch a.journal.Phase {
-	case "empty", "prepared", "bound", "activating", "reloading", "confirming", "rolling_back", "rolled_back", "committed", "needs_deploy":
-	default:
-		return fail(fmt.Errorf("unsupported deployment journal phase"))
+	if a.journal.Version != StateVersion {
+		return fail(fmt.Errorf("unsupported journal state_version %d; offline migration required", a.journal.Version))
 	}
-	if a.journal.Phase == "committed" && (a.journal.Active == "" || a.journal.Active != a.journal.Candidate) {
-		return fail(fmt.Errorf("inconsistent committed deployment journal"))
-	}
-	for _, id := range []string{a.journal.Active, a.journal.Previous, a.journal.Candidate} {
-		if id != "" && !generationID.MatchString(id) {
-			return fail(fmt.Errorf("invalid journal generation"))
-		}
+	if e = validateJournal(a.journal); e != nil {
+		return fail(e)
 	}
 	return a, nil
 }
@@ -153,6 +154,7 @@ func (a *Agent) Close() error {
 }
 func (a *Agent) journalPath() string { return filepath.Join(a.Config.StateDir, "deployment.json") }
 func (a *Agent) save(j Journal) error {
+	j.Version = StateVersion
 	j.Updated = time.Now().UTC()
 	d, e := json.MarshalIndent(j, "", "  ")
 	if e != nil {

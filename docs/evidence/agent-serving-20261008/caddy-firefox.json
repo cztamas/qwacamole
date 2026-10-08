@@ -1,0 +1,184 @@
+{
+  "cached_discovery": {
+    "cache-renewed": {
+      "age": "75",
+      "binding_exp": 1791474415,
+      "binding_iat": 1791474370,
+      "body_sha256": "109da503844aa979cb089b82f218462a507b74f1eef294929fe3e6c244f49fce",
+      "cache": "hit",
+      "connection_tls_id": "8872f6192345dbadca3d40f05071e6043d42f50b0fd1910df68586b235b31dbc",
+      "initial_binding_exp": 1791474341,
+      "link": "</bindings/current.jose>; rel=\"tls-certificate-binding\""
+    },
+    "cache-replacement": {
+      "age": "106",
+      "binding_exp": 1791474447,
+      "binding_iat": 1791474402,
+      "body_sha256": "109da503844aa979cb089b82f218462a507b74f1eef294929fe3e6c244f49fce",
+      "cache": "hit",
+      "connection_tls_id": "8872f6192345dbadca3d40f05071e6043d42f50b0fd1910df68586b235b31dbc",
+      "initial_binding_exp": 1791474341,
+      "link": "</bindings/current.jose>; rel=\"tls-certificate-binding\""
+    }
+  },
+  "exit_status": 0,
+  "fixtures": {
+    "critical-header": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "expired-binding": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "no-qwac-trust": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "no-tls-trust": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "positive": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "qwac-hostname": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "qwac-profile": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "signature": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "tls-expiry": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "tls-hostname": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "wrong-tls": {
+      "browser_version": "157.0.1",
+      "passed": true
+    }
+  },
+  "held_renewal": {
+    "binding_url": "/bindings/2880f3704e1b187ab68d504d321b4109fe437ac089ca777cdf7abb9f721591f0.jose",
+    "elapsed_seconds": 69.085148806,
+    "existing_connection_tls_id": "c681eb04f599b306e8f6b45807d083d5d72f47bcefb7cef091821b65ba9fc410",
+    "new_tls_id": "8872f6192345dbadca3d40f05071e6043d42f50b0fd1910df68586b235b31dbc",
+    "old_and_new_bound": true,
+    "old_tls_id": "c681eb04f599b306e8f6b45807d083d5d72f47bcefb7cef091821b65ba9fc410"
+  },
+  "independent_refresh": {
+    "after_document": "/bindings/e84bae26ec0b2dc31629099128101812543c32ac157b92d69019d24ab2c258e0.jose",
+    "after_exp": 1791474445,
+    "after_iat": 1791474400,
+    "before_document": "/bindings/2880f3704e1b187ab68d504d321b4109fe437ac089ca777cdf7abb9f721591f0.jose",
+    "before_exp": 1791474415,
+    "before_iat": 1791474370,
+    "discovery_url": "/bindings/current.jose",
+    "elapsed_seconds": 25.012289996,
+    "independent_refresh": true,
+    "same_tls_ids": [
+      "c681eb04f599b306e8f6b45807d083d5d72f47bcefb7cef091821b65ba9fc410",
+      "8872f6192345dbadca3d40f05071e6043d42f50b0fd1910df68586b235b31dbc"
+    ]
+  },
+  "lifecycle": {
+    "cached_discovery_after_expiry_renewal_replacement": true,
+    "fixture_checks": 11,
+    "independent_refresh": true,
+    "initial_native_verified": true,
+    "profile_trust_unchanged": true,
+    "renewal_failure_gates": true,
+    "renewal_native_verified": true,
+    "restart_recovered": true
+  },
+  "native_phases": {
+    "firefox-cached-initial": {
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "certificate_overridden": false,
+        "connection": "secure-etsi",
+        "country": "HU",
+        "organization": "Alpha Firefox TEST",
+        "qualified_visible": true,
+        "qwac_fingerprint": "61:0B:0B:1E:0C:CE:15:00:1D:0C:22:35:43:62:1C:77:0D:00:25:D5:6E:AA:E5:91:F1:5C:2B:08:68:20:E0:EF",
+        "tls_fingerprint": "C6:81:EB:04:F5:99:B3:06:E8:F6:B4:58:07:D0:83:D5:D7:2F:47:BC:EF:B7:CE:F0:91:82:1B:65:BA:9F:C4:10"
+      },
+      "version": "157.0.1"
+    },
+    "firefox-cached-renewed": {
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "certificate_overridden": false,
+        "connection": "secure-etsi",
+        "country": "HU",
+        "organization": "Alpha Firefox TEST",
+        "qualified_visible": true,
+        "qwac_fingerprint": "61:0B:0B:1E:0C:CE:15:00:1D:0C:22:35:43:62:1C:77:0D:00:25:D5:6E:AA:E5:91:F1:5C:2B:08:68:20:E0:EF",
+        "tls_fingerprint": "88:72:F6:19:23:45:DB:AD:CA:3D:40:F0:50:71:E6:04:3D:42:F5:0B:0F:D1:91:0D:F6:85:86:B2:35:B3:1D:BC"
+      },
+      "version": "157.0.1"
+    },
+    "firefox-cached-replacement": {
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "certificate_overridden": false,
+        "connection": "secure-etsi",
+        "country": "HU",
+        "organization": "Alpha Firefox Replacement TEST",
+        "qualified_visible": true,
+        "qwac_fingerprint": "07:7D:93:93:59:1E:EC:83:27:0D:A8:AA:58:45:70:BA:21:23:F9:C3:17:BB:46:CD:D2:B8:6F:1B:63:32:EC:04",
+        "tls_fingerprint": "88:72:F6:19:23:45:DB:AD:CA:3D:40:F0:50:71:E6:04:3D:42:F5:0B:0F:D1:91:0D:F6:85:86:B2:35:B3:1D:BC"
+      },
+      "version": "157.0.1"
+    },
+    "firefox-failure-recovery": {
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "certificate_overridden": false,
+        "connection": "secure-etsi",
+        "country": "HU",
+        "organization": "Alpha Firefox Replacement TEST",
+        "qualified_visible": true,
+        "qwac_fingerprint": "07:7D:93:93:59:1E:EC:83:27:0D:A8:AA:58:45:70:BA:21:23:F9:C3:17:BB:46:CD:D2:B8:6F:1B:63:32:EC:04",
+        "tls_fingerprint": "5D:96:2D:3C:8C:9F:3C:85:EE:67:CB:B9:94:D2:91:99:13:B8:D5:D9:29:39:F8:97:94:7C:95:62:C1:51:07:32"
+      },
+      "version": "157.0.1"
+    },
+    "firefox-initial": {
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "certificate_overridden": false,
+        "connection": "secure-etsi",
+        "country": "HU",
+        "organization": "Alpha Firefox TEST",
+        "qualified_visible": true,
+        "qwac_fingerprint": "61:0B:0B:1E:0C:CE:15:00:1D:0C:22:35:43:62:1C:77:0D:00:25:D5:6E:AA:E5:91:F1:5C:2B:08:68:20:E0:EF",
+        "tls_fingerprint": "C6:81:EB:04:F5:99:B3:06:E8:F6:B4:58:07:D0:83:D5:D7:2F:47:BC:EF:B7:CE:F0:91:82:1B:65:BA:9F:C4:10"
+      },
+      "version": "157.0.1"
+    },
+    "firefox-restarted": {
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "certificate_overridden": false,
+        "connection": "secure-etsi",
+        "country": "HU",
+        "organization": "Alpha Firefox Replacement TEST",
+        "qualified_visible": true,
+        "qwac_fingerprint": "07:7D:93:93:59:1E:EC:83:27:0D:A8:AA:58:45:70:BA:21:23:F9:C3:17:BB:46:CD:D2:B8:6F:1B:63:32:EC:04",
+        "tls_fingerprint": "88:72:F6:19:23:45:DB:AD:CA:3D:40:F0:50:71:E6:04:3D:42:F5:0B:0F:D1:91:0D:F6:85:86:B2:35:B3:1D:BC"
+      },
+      "version": "157.0.1"
+    }
+  }
+}

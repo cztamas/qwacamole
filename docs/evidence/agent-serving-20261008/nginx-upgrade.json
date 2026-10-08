@@ -1,0 +1,102 @@
+{
+  "checks": [
+    "isolated production agent and HTTP-only Nginx bootstrap",
+    "private runtime/socket permissions and control methods/body validation; public control/file paths reject",
+    "real Certbot HTTP-01 issuance, deploy-hook publication and verified Nginx activation",
+    "fresh verified browser-facing TLS leaf covered by qualified binding",
+    "merged-main unversioned state explicitly identified; migration requires operator full-stop assertion",
+    "killed migration retains durable restricted backup/source and blocks agent startup",
+    "killed migration after configuration activation still blocks startup and resumes from original backup",
+    "migration resume/repeat validates real Nginx, preserves journal meaning, every binding artifact and TLS/QWAC key; backups remain private",
+    "migrated agent reconciles same retained TLS with fresh normally verified connection",
+    "ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses",
+    "Nginx replaces forged forwarding metadata, preserves external port/encoded URL, origin secure cookies and absolute redirects; unsupported Host rejected",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=true)",
+    "configured body limit: 2 MiB upload status 413",
+    "real Nginx TLS WebSocket 101, discovery/upstream Link and bidirectional frame traffic",
+    "binding GET/HEAD/no-store/method rejection and nonrecursive discovery",
+    "Nginx internal gate/control and invalid binding paths are inaccessible",
+    "independent signed binding refresh without TLS renewal",
+    "automatic Certbot renewal and fresh verified controlled activation",
+    "original active TLS stream survives Nginx reload with both leaves bound",
+    "agent-backpressure upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "nginx-buffered upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "real cache longer than original signed lifetime discovers renewed binding",
+    "same-authority QWAC replacement through unchanged cached discovery",
+    "authenticated automatic collection preserves current document and retained leaves",
+    "agent unavailability rejects protected application requests",
+    "agent restart reconciles files and actual verified served TLS",
+    "real Certbot candidate signing failure preserves prior TLS; hook error tracked separately from Certbot exit",
+    "mismatched TLS key and invalid supplied QWAC credentials preserve prior deployment",
+    "sign/document/manifest failures never stage or activate the unbound real candidate",
+    "reload failure and zero-exit nonactivation both restore fresh-verified prior TLS",
+    "invalid Nginx config repairs/reconciles and safe retry activates the already-bound candidate",
+    "protected response delayed across signed expiry rejects at response commitment",
+    "actual signed expiry rejects new Nginx WebSocket upgrade with 403",
+    "actual signed expiry closes Nginx protected-response gate and binding endpoint",
+    "repaired signer safely republishes and reopens Nginx gate",
+    "real ACME over-capacity candidate refuses before staging without pruning old TLS coverage"
+  ],
+  "error": "<nil>",
+  "exit_status": 0,
+  "held_renewal": {
+    "both_bound": true,
+    "chunks": 120,
+    "new_tls_id": "e30a16532d7d881b3cfba49f752a692085c42faea7ca82351c5bd09e745c64bc",
+    "old_tls_id": "fec9aa1037f4589eb7b4051e630819602efc79253927930e3d9cc777bc36076a",
+    "same_held_connection": true
+  },
+  "migration": {
+    "all_artifact_hashes_unchanged": true,
+    "interrupted": true,
+    "journal": {
+      "active": "fec9aa1037f4589eb7b4051e630819602efc79253927930e3d9cc777bc36076a",
+      "candidate": "fec9aa1037f4589eb7b4051e630819602efc79253927930e3d9cc777bc36076a",
+      "phase": "confirming",
+      "previous": "fec9aa1037f4589eb7b4051e630819602efc79253927930e3d9cc777bc36076a",
+      "updated": "2026-10-08T16:13:48.813674045Z"
+    },
+    "preserved_artifact_count": 8,
+    "repeated": true,
+    "retained_backups": 2,
+    "source": "4a93ce6c43bf4a728a69625ac7ed567d54db53f1"
+  },
+  "origin_metadata": [
+    {
+      "forged": false,
+      "hsts": [],
+      "origin": {
+        "forwarded": "",
+        "host": "qwac.example.com:8443",
+        "uri": "/metadata/a%2Fb?x=%2F&x=two;three",
+        "url": "https://qwac.example.com:8443/done",
+        "xff": "127.0.0.2",
+        "xfh": "qwac.example.com:8443",
+        "xfp": "https"
+      },
+      "secure_cookie": true,
+      "status": 200
+    },
+    {
+      "forged": true,
+      "hsts": [],
+      "origin": {
+        "forwarded": "",
+        "host": "qwac.example.com:8443",
+        "uri": "/metadata/a%2Fb?x=%2F&x=two;three",
+        "url": "https://qwac.example.com:8443/done",
+        "xff": "127.0.0.2",
+        "xfh": "qwac.example.com:8443",
+        "xfp": "https"
+      },
+      "secure_cookie": true,
+      "status": 200
+    }
+  ],
+  "serving_input": {},
+  "source_commit": "72b69f4e37afee5712a183ea7d2010dfbca0a0d5",
+  "state_formats": {
+    "nginx_format_version": 1,
+    "state_version": 1
+  }
+}

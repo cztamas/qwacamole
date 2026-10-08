@@ -1,6 +1,6 @@
 # Supplied-QWAC agent with Certbot and Nginx
 
-Acceptance of `codex/certbot-nginx-agent` is recorded in
+The merged single-host agent baseline is recorded in
 [the dated report](evidence-agent-nginx-20261007.md), including real remote
 installation, hosted CI and fresh native checks for both integrations. The production executable
 is `qwacamole-agent`, in the single `agent/` module. It contains no synthetic PKI,
@@ -13,16 +13,16 @@ Subsequent PR review fixes and their separate regression evidence are recorded i
 
 One literal DNS hostname, one local Nginx master, supplied RSA QWAC credentials,
 RS256 bindings and exclusive local storage. Linux and macOS are supported by the
-process-lock implementation. Development testing currently uses Nginx 1.30.5,
-Certbot 5.8.0, Go 1.27.1 and Pebble 2.8.0; final acceptance is tracked in
-[the plan](agent-nginx-plan.md). Nginx requires its HTTP SSL and auth_request
+process-lock implementation. The 8 October Linux acceptance uses Nginx 1.28.0,
+Certbot 5.8.0, Go 1.27.1 and Pebble 2.8.0; executed acceptance is tracked in
+[the serving and upgrade report](evidence-agent-serving-20261008.md). Nginx requires its HTTP SSL and auth_request
 modules. `validate` detects missing build flags and modified top-level config.
 This is a dedicated Nginx instance owning one hostname and the complete top-level
 configuration. Existing multi-site configurations and arbitrary custom includes
 are unsupported; this module cannot be added to an existing shared Nginx master.
-Fresh native checks use Chrome 154.0.8037.98 / PKIMetadata 1798 and Firefox
+Fresh native checks use Chrome 155.0.8059.39 / PKIMetadata 1798 and Firefox
 157.0.1; exact commands, trust setup and raw-evidence locations are in
-[the dated report](evidence-agent-nginx-20261007.md).
+[the serving and upgrade report](evidence-agent-serving-20261008.md).
 
 Bind the TLS leaf actually presented to the browser. Arbitrary CDN TLS termination,
 distributed deployment, QWAC enrollment, HSMs and automatic TLS retirement are
@@ -42,39 +42,27 @@ access to that socket or the agent state directory.
 
 ## Installation and configuration
 
-Go 1.27.1 and authenticated repository access are required for the current private
-feature branch. The independently tested production agent ref is
-`072fa57bb58b1171fc21cf241c5822af018df3d4`, resolved as
-`v0.0.0-20261007220001-072fa57bb58b`. Use an independent consumer manifest:
+Go 1.27.1 and authenticated access are required while the repository is private.
+The implemented production source is
+`72b69f4e37afee5712a183ea7d2010dfbca0a0d5`. Ordinary exact-ref installation works
+now that `agent/` exists on `main`; no consumer-manifest workaround is required:
 
 ```sh
 agent_install_dir=$(mktemp -d)
 cd "$agent_install_dir"
-cat > go.mod <<'EOF'
-module example.invalid/qwacamole-agent-install
-
-go 1.27.1
-
-require github.com/cztamas/qwacamole/agent v0.0.0-20261007220001-072fa57bb58b
-EOF
 GOWORK=off GOEXPERIMENT=nojsonv2 GOPRIVATE=github.com/cztamas/qwacamole \
-  GOBIN="$agent_install_dir/bin" go install -mod=mod \
-  github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent
+  GOMODCACHE="$agent_install_dir/modules" GOBIN="$agent_install_dir/bin" \
+  go install github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@72b69f4e37afee5712a183ea7d2010dfbca0a0d5
 go version -m "$agent_install_dir/bin/qwacamole-agent"
 sudo install -m 0755 "$agent_install_dir/bin/qwacamole-agent" /usr/local/bin/qwacamole-agent
 ```
 
-This is a real remote installation with no local replacements. Direct
-`go install package@ref` currently fails its default-branch deprecation lookup
-because the new nested module exists only on the feature branch. The explicit
-consumer manifest avoids that lookup and pins both the agent and its real core
-dependency. The checked installer is `scripts/check-remote-agent.sh REF`.
-
-For development, from the feature branch:
-
-```sh
-make agent-build
-```
+Use your authorized HTTPS credential helper or SSH URL rewrite. This is
+**authenticated private-repository installation**, not evidence of anonymous
+public installation. `scripts/check-remote-agent.sh REF` runs outside the checkout
+with a fresh module cache, `GOWORK=off`, no replacements, and inspects binary
+metadata. The installed binary is also used in actual Nginx acceptance.
+For development on the feature branch, use `make agent-build`.
 
 Install the built binary under `/usr/local/bin` before following the service
 commands. Create the supplied inputs and config below before rendering Nginx.
@@ -83,6 +71,7 @@ Supply a JSON file with absolute paths (example addresses are production ports):
 
 ```json
 {
+  "config_version": 1,
   "hostname": "example.com",
   "state_directory": "/var/lib/qwacamole/example.com",
   "runtime_directory": "/run/qwacamole-example",
@@ -98,13 +87,23 @@ Supply a JSON file with absolute paths (example addresses are production ports):
   "challenge_webroot": "/var/lib/acme",
   "nginx_binary": "/usr/sbin/nginx",
   "nginx_prefix": "/var/lib/nginx/qwacamole",
-  "nginx_config": "/etc/nginx/qwacamole.conf"
+  "nginx_config": "/etc/nginx/qwacamole.conf",
+  "serving": {
+    "max_request_body_bytes": 1048576,
+    "client_body_timeout": "60s",
+    "upstream_send_timeout": "60s",
+    "upstream_read_timeout": "60s",
+    "request_buffering": "on",
+    "redirect_https": true
+  }
 }
 ```
 
 The configured Nginx file must exactly match `render-nginx` output. It is a complete
-config, not an include to paste into another configuration. Initially it serves
-HTTP-01 challenges and HTTP 404 elsewhere. The agent installs the HTTPS include
+config, not an include to paste into another configuration. Initially it serves HTTP-01 challenges. With the agent running, other HTTP requests return 404 with
+redirects disabled, or uncached 503 with redirects enabled until HTTPS deployment
+is confirmed and bindings are available. If the agent is down, these requests
+receive Nginx's upstream failure (502); challenges remain available. The agent installs the HTTPS include
 after binding publication. `nginx_prefix` and webroot must exist with appropriate
 master/Certbot access. The state/runtime directories must be mode 0700.
 The generated config keeps buffered request-body temporary files under
@@ -115,9 +114,9 @@ there. Keep the prefix traversable by the worker. These temporary files contain
 application request bodies and belong to Nginx, outside the agent's private state.
 
 A short runtime path is required: Unix socket paths above 100 bytes reject at validation.
-Do not share the runtime directory or state with another deployment. Persisted
-deployment settings must remain identical across restart; changed settings require
-the full-stop offline migration described below. Same-path QWAC replacement does
+Do not share the runtime directory or state with another deployment. Persisted deployment settings are versioned.
+Compatible serving changes use the full-stop migration below without reconstructing
+state or deleting retained coverage. Same-path QWAC replacement does
 not change deployment settings.
 
 Run the configuration, service and Certbot commands below from a root shell
@@ -160,18 +159,78 @@ through both local proxy hops, including on Nginx 1.24. The availability gate al
 applies to new upgrades. An established tunnel may continue after binding expiry,
 just like an already committed application stream.
 
-Request policy follows the generated Nginx configuration: request buffering stays
-enabled, the default maximum client body is 1 MiB, and Nginx's default client-body,
-proxy-send and proxy-read inactivity timeouts are 60 seconds. These are inactivity
-limits, not a total request-duration limit. The agent allows five seconds for
-request headers and thirty seconds between keep-alive requests. Application bodies
-and committed response streams have no additional fixed duration deadline in the
-agent; cancellation/disconnection and Nginx's inactivity limits still apply.
-This permits forwarding a buffered upload when a slow origin applies backpressure
-for longer than ten seconds. Binding/gate requests retain a ten-second read
-deadline and their small responses have a ten-second write deadline; private
-control retains its separate bounded policy. Changing body limits or per-site
-timeouts requires configuration support beyond the current fixed template.
+## Client metadata and serving policy
+
+The path is **browser → dedicated Nginx TLS boundary → loopback agent → HTTP
+application**. Nginx accepts only the configured hostname and supported port
+(case-insensitive hostname). HTTP also accepts the hostname without a port and
+its HTTP listener port; HTTPS uses the public authority, allowing an omitted
+`:443` only when the external HTTPS port is 443. Unsupported authorities receive
+421. `public_https_port` selects the external port when port mapping differs from
+`https_listen`; it must describe the same directly terminated TLS service.
+
+Nginx discards `Forwarded`, replaces `X-Forwarded-For` with `$remote_addr`, replaces
+`X-Forwarded-Host` and application `Host` with the configured public authority,
+and sets `X-Forwarded-Proto: https`. It does not append any browser-supplied chain
+or accept another reverse proxy's claimed IP/protocol. The agent uses
+`ReverseProxy.Rewrite`, leaves `Forwarded` absent, and deliberately copies these
+three trusted headers instead of reporting the local HTTP hop through
+`SetXForwarded`. Applications can use them for secure cookies and absolute URLs;
+encoded paths and raw query strings are preserved through both hops. Origin
+responses retain their headers, cookies, status, bodies, streaming and upgrades,
+with the availability checks at admission and response commitment.
+
+**Local processes are trusted.** The loopback delivery listener does not
+authenticate Nginx. Any process that can reach it can supply the same metadata;
+a loopback peer alone is not Nginx identity. Use a host without untrusted local
+tenants and restrict origin access to trusted local callers. The private 0600
+control socket is a separate permission boundary and cannot be reached through
+application or binding requests. This deployment does not support an upstream
+TLS terminator or a trusted-forwarder IP list.
+
+`serving` is typed operator configuration, never request-controlled:
+
+| JSON setting | Omitted value | Explicit values |
+|---|---|---|
+| `max_request_body_bytes` | 1048576 (1 MiB) | 0 means unlimited; 1 through 1099511627776 bytes (1 TiB) |
+| `client_body_timeout` | `60s` | Inactivity between client body reads; whole milliseconds, `1ms` through `24h` |
+| `upstream_send_timeout` | `60s` | Inactivity while Nginx sends to the agent; same range |
+| `upstream_read_timeout` | `60s` | Inactivity between Nginx reads from the agent; same range |
+| `request_buffering` | `on` | `on` buffers before forwarding, spilling under the dedicated prefix; `off` streams with backpressure |
+| `redirect_https` | false | true enables fixed-authority HTTP 308 redirects after confirmed deployment |
+| `public_https_port` | HTTPS listener port | 1–65535; 0 explicitly selects the listener port; 443 omits the port from the authority |
+| `hsts` | disabled | Object requiring explicit `max_age_seconds`: 0–63072000; optional `include_subdomains` defaults false |
+
+An omitted or null body limit selects the default; numeric zero is unlimited.
+Empty timeout and buffering strings also select their documented defaults.
+Timeout zero/unlimited values reject. These are **inactivity limits**, not total
+request-duration limits. A periodic stream can continue indefinitely. With
+request buffering off, Nginx can record 408 and close an incomplete upload
+without returning a response body. Upstream timeouts can terminate a committed
+stream, or return 504 if headers have not committed. The agent keeps a five-second
+request-header deadline and thirty-second keep-alive idle limit, clears the
+application-body read deadline, and applies no total application-response timeout.
+Binding/gate requests retain separate ten-second deadlines; private control uses
+its own five-second read and two-minute write limits. Origin backpressure beyond
+ten seconds remains supported. Send/read settings govern the **Nginx-to-agent**
+hop: origin stalls propagate through the agent's transport and backpressure.
+
+HTTP-01 routes are reserved with `^~` and remain available during bootstrap,
+redirects and binding outages. Redirects preserve escaped path and query and use
+only the configured public authority. Neither incoming Host nor forwarding
+headers choose their destination. An unavailable/unconfirmed deployment returns
+503 instead of redirecting to unusable protected HTTPS when the agent is running;
+an unreachable agent produces Nginx's 502 upstream failure.
+
+HSTS appears only on HTTPS responses, including binding and error responses.
+The generated configuration owns this header and hides an origin's HSTS header.
+No `preload` option is supported or enabled. `include_subdomains` covers every
+subdomain in the browser, so enable it only when all those services support HTTPS.
+Browsers retain HSTS after server rollback/removal; reverting the binary or
+configuration cannot erase a stored policy. An explicit `max_age_seconds: 0`
+over working verified HTTPS requests clears policy only for browsers that receive
+it. HSTS may make an HTTP bootstrap or rollback unavailable to previous visitors;
+plan that recovery before enabling it.
 
 Bindings are served on `/bindings/`, always uncached and without recursive Link.
 `/__qwac_gate` is internal, `/__qwac_control` reserved; private control is never
@@ -189,12 +248,37 @@ before a manual start. Ensure ports 80/443 are available; start only one master.
 /usr/local/bin/qwacamole-agent serve -config /etc/qwacamole/agent.json
 ```
 
-A Linux systemd service can use:
+Use separate Linux services for the dedicated master and agent; do not reuse the
+system's multi-site `nginx.service`. Example
+`/etc/systemd/system/qwacamole-nginx.service`:
 
 ```ini
 [Unit]
-Description=Qwacamole controlled Nginx certificate deployment
-After=network.target nginx.service
+Description=Dedicated Qwacamole Nginx master
+After=network.target
+
+[Service]
+Type=simple
+User=root
+UMask=0077
+ExecStart=/usr/sbin/nginx -p /var/lib/nginx/qwacamole -c /etc/nginx/qwacamole.conf -g 'daemon off;'
+ExecReload=/usr/sbin/nginx -p /var/lib/nginx/qwacamole -c /etc/nginx/qwacamole.conf -s reload
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target
+```
+
+`/etc/systemd/system/qwacamole-agent.service`:
+
+```ini
+[Unit]
+Description=Qwacamole binding and deployment agent
+Wants=qwacamole-nginx.service
+After=network.target qwacamole-nginx.service
 
 [Service]
 Type=simple
@@ -211,10 +295,36 @@ TimeoutStopSec=120
 WantedBy=multi-user.target
 ```
 
-Configure your Nginx service to use exactly the prefix/config above, rather than
-starting a second master. Create the private state directory before enabling the
-service. The systemd example is an operator template; the macOS demonstration
-uses owned foreground processes rather than system services.
+Nginx starts its HTTP-only bootstrap before the agent. On agent restart, readiness
+stays closed until reconciliation validates coverage and freshly served TLS.
+Nginx can start with retained HTTPS files while the agent is down; protected
+application requests fail closed until the agent returns. If Nginx restarts after
+a failed reconciliation, explicitly run `reconcile` and inspect private status.
+Certbot's renewal service should order `After=qwacamole-agent.service` and
+`Wants=qwacamole-agent.service`; invoke the same saved deploy hook and monitor
+its result independently. Install/enable after supplying credentials and rendering
+configuration:
+
+```sh
+systemctl daemon-reload
+systemctl enable --now qwacamole-nginx.service qwacamole-agent.service
+systemctl enable --now certbot.timer
+journalctl -u qwacamole-agent.service -u qwacamole-nginx.service
+# Generated Nginx logs (keep root-readable and rotate under your retention policy):
+tail -f /var/lib/nginx/qwacamole/error.log
+```
+
+Protect request-body temporary storage as well as keys: the root master must
+create/chown its body directory, and its worker needs write/traverse access under
+the prefix. Do not point it at the agent's 0700 state. Monitor available disk
+space; temporary buffered bodies can exceed memory and contain private uploads.
+Do not log request bodies, Authorization/Cookie values or credentials in hooks.
+Nginx's standard request/error logs may contain URLs; keep them private and avoid
+putting credentials in URLs. The agent's structured logs/status contain no keys
+or request bodies. The Linux runtime tests exercise foreground ownership, real
+renewals, temporary upload files, socket permissions, failure and restart. The
+selected environment's PID 1 is not systemd, so these unit examples have **not**
+been validated by running systemd services.
 
 Create an executable root-owned deploy hook:
 
@@ -344,9 +454,7 @@ valid Certbot lineage through `deploy`. Restart the renewal timer after verified
 activation. Never prune binding coverage or generations while any Nginx worker
 can still serve a held connection.
 
-The WebSocket fix changes both the top-level template and immutable HTTPS
-generation templates. State created with the earlier agent cannot be reused
-unchanged by this version: validation/reconciliation will reject its old config.
-Use the full-stop reconstruction above when upgrading an existing demonstration
-or deployment; preserve the archived state and supplied credentials. Do not patch
-live immutable generations to bypass validation.
+For upgrades and compatible serving changes, use
+[the versioned migration procedure](agent-migration.md). Unlike offline TLS
+retirement, migration preserves every retained certificate, binding document and
+recoverable generation. Do not reconstruct state to make a new template pass.

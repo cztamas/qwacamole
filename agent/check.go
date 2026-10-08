@@ -26,7 +26,7 @@ func Check(ctx context.Context, c Config) error {
 		return (&net.Dialer{}).DialContext(ctx, network, c.ProbeAddress)
 	}}
 	defer tr.CloseIdleConnections()
-	req, e := http.NewRequestWithContext(ctx, "GET", "https://"+c.Host+store.DiscoveryURL, nil)
+	req, e := http.NewRequestWithContext(ctx, "GET", "https://"+c.PublicAuthority()+store.DiscoveryURL, nil)
 	if e != nil {
 		return e
 	}

@@ -149,3 +149,29 @@ Before reaching the limit:
 
 Raising capacity instead preserves all old coverage but increases document size,
 CPU and storage costs. It is an explicit availability/resource decision.
+
+## Dedicated Nginx agent operations
+
+The production `agent/` integration preserves the same shared storage/lifecycle
+invariants with a separate fixed private Unix control interface. Its complete
+single-host Nginx configuration and retained deployment journal are versioned.
+See [serving settings and Linux installation](agent-nginx.md) and
+[offline migration](agent-migration.md). The migration preserves certificate
+history; it does not claim to detect old-connection drain.
+
+Use private `qwacamole-agent status` and structured service logs to alert on:
+
+| Condition | Evidence and response |
+|---|---|
+| Failed deploy hook even with Certbot exit 0 | `deployment.last_error`, `phase`, `active/candidate/previous`, `updated`; successful publication alone is insufficient. Require committed/fresh checked activation. |
+| Binding refresh failure or impending expiry | `binding.last_publication_failure`, `binding.binding_expires`, `binding.next_refresh` and `binding maintenance` failure/retry events; repair signing/storage and alert before signed expiry closes availability. |
+| QWAC expiry | `binding.qwac_expires`; supply a validated same-authority replacement before expiry and invoke `replace-qwac`. |
+| Retained-certificate capacity pressure | `binding.retained_certificates/max_certificates`, `binding.current_document_bytes`, and the configured `max_document_bytes`; capacity refusal must preserve coverage. Increase limits only with a reviewed plan or retire offline after full shutdown. |
+| Recovery needed | Journal `prepared/bound/activating/reloading/confirming/rolling_back` needs reconciliation; `needs_deploy` requires a fresh valid lineage. Never force `ready` or delete old IDs. |
+| Version/migration failure | Startup/validate/migrate stderr is nonzero and actionable; `migration.json` blocks startup until retry/consistent restoration. Unknown future versions require a compatible binary. |
+
+Status is only on the permission-protected local socket. Do not proxy it into the
+public site. The daemon's structured events report maintenance failures and
+recovery without logging private keys, request bodies or credentials. Monitor
+Nginx process/log and disk state separately; service-manager examples remain
+operator procedures unless the acceptance report records an actual execution.

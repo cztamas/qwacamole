@@ -46,3 +46,30 @@ func TestNginxTemplateHasNoMovingCertbotTLSPaths(t *testing.T) {
 		t.Fatal("bootstrap activated HTTPS")
 	}
 }
+
+func TestServingSettingsAreTypedAndBounded(t *testing.T) {
+	zero := int64(0)
+	big := int64(2 << 20)
+	bad := int64(-1)
+	c := validConfig()
+	for _, s := range []ServingConfig{{}, {MaxBodyBytes: &zero}, {MaxBodyBytes: &big, ClientBodyTimeout: "1500ms", UpstreamSendTimeout: "10s", UpstreamReadTimeout: "24h", RequestBuffering: "off", HTTPSPort: 8443, HSTS: &HSTSConfig{MaxAgeSeconds: 0}}} {
+		c.Serving = s
+		if e := c.Validate(); e != nil {
+			t.Fatal(e)
+		}
+	}
+	for _, s := range []ServingConfig{{MaxBodyBytes: &bad}, {ClientBodyTimeout: "0s"}, {UpstreamReadTimeout: "25h"}, {UpstreamSendTimeout: "1us"}, {RequestBuffering: "on; include bad"}, {HTTPSPort: 65536}, {HSTS: &HSTSConfig{MaxAgeSeconds: -1}}} {
+		c.Serving = s
+		if e := c.Validate(); e == nil {
+			t.Fatal("accepted", s)
+		}
+	}
+	c = validConfig()
+	if c.PublicAuthority() != "example.test" {
+		t.Fatal(c.PublicAuthority())
+	}
+	c.Serving.HTTPSPort = 8443
+	if c.PublicAuthority() != "example.test:8443" {
+		t.Fatal(c.PublicAuthority())
+	}
+}

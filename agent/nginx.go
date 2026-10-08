@@ -47,6 +47,9 @@ func (n Nginx) Prerequisites(ctx context.Context) error {
 			return fmt.Errorf("nginx requires %s", flag)
 		}
 	}
+	if e := validateEnabled(n.Config); e != nil {
+		return e
+	}
 	d, e := os.ReadFile(n.Config.NginxConfig)
 	if e != nil {
 		return e
@@ -85,39 +88,63 @@ func quote(s string) string { return `"` + s + `"` }
 // agent selects the HTTPS include only after binding publication. auth_request
 // failure (including agent unavailability) never permits an application request.
 func RenderNginx(c Config) string {
-	return fmt.Sprintf(`worker_processes 1;
+	v, _ := c.Serving.values()
+	_, httpPort, _ := net.SplitHostPort(c.HTTPListen)
+	return fmt.Sprintf(`# qwacamole nginx-format: 1
+worker_processes 1;
 pid %s;
 error_log %s info;
 events { worker_connections 1024; }
 http {
   access_log %s;
   client_body_temp_path %s;
-  default_type application/octet-stream;
+  client_max_body_size %d;
+  client_body_timeout %dms;
+  proxy_send_timeout %dms;
+  proxy_read_timeout %dms;
+  proxy_request_buffering %s;
   map $http_upgrade $qwac_connection_upgrade {
     default upgrade;
     '' close;
   }
   server {
-    listen %s;
+    listen %s default_server;
     server_name %s;
-    location /.well-known/acme-challenge/ { root %s; }
-    location / { return 404; }
+    if ($http_host !~* "^%s(?::%s)?$") { return 421; }
+    location ^~ /.well-known/acme-challenge/ { root %s; }
+    location / {
+      proxy_pass http://%s/redirect$request_uri;
+      proxy_set_header Host %s;
+      proxy_set_header Forwarded "";
+      proxy_set_header X-Forwarded-For "";
+      proxy_set_header X-Forwarded-Host "";
+      proxy_set_header X-Forwarded-Proto "";
+    }
   }
   include %s;
 }
-`, quote(filepath.Join(c.NginxPrefix, "nginx.pid")), quote(filepath.Join(c.NginxPrefix, "error.log")), quote(filepath.Join(c.NginxPrefix, "access.log")), quote(filepath.Join(c.NginxPrefix, "client_body_temp")), c.HTTPListen, c.Host, quote(c.Webroot), quote(filepath.Join(c.StateDir, "enabled", "*.conf")))
+`, quote(filepath.Join(c.NginxPrefix, "nginx.pid")), quote(filepath.Join(c.NginxPrefix, "error.log")), quote(filepath.Join(c.NginxPrefix, "access.log")), quote(filepath.Join(c.NginxPrefix, "client_body_temp")), v.body, v.client, v.send, v.read, v.buffering, c.HTTPListen, c.Host, strings.ReplaceAll(c.Host, ".", `\.`), httpPort, quote(c.Webroot), c.PublicListen, c.Host, quote(filepath.Join(c.StateDir, "enabled", "*.conf")))
 }
 func (c Config) httpsConfig(generation string) string {
-	return fmt.Sprintf(`server {
-  listen %s ssl;
+	authorityPattern := strings.ReplaceAll(c.PublicAuthority(), ".", `\.`)
+	if c.PublicAuthority() == c.Host {
+		authorityPattern += "(?::443)?"
+	}
+	return fmt.Sprintf(`# qwacamole nginx-format: 1
+server {
+  listen %s ssl default_server;
   server_name %s;
+  if ($http_host !~* "^%s$") { return 421; }
   ssl_certificate %s;
   ssl_certificate_key %s;
   ssl_session_cache off;
   ssl_session_tickets off;
+  proxy_hide_header Strict-Transport-Security;
+  %s
   location ^~ /bindings/ {
     proxy_pass http://%s;
     add_header Cache-Control no-store always;
+    %s
     proxy_buffering off;
     proxy_cache off;
   }
@@ -132,14 +159,36 @@ func (c Config) httpsConfig(generation string) string {
   location / {
     auth_request /__qwac_gate;
     add_header Link '</bindings/current.jose>; rel="tls-certificate-binding"' always;
-    proxy_pass http://%s/application/;
+    %s
+    proxy_pass http://%s/application$request_uri;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection $qwac_connection_upgrade;
     proxy_buffering off;
     proxy_intercept_errors off;
-    proxy_set_header Host $host;
+    proxy_set_header Host %s;
+    proxy_set_header Forwarded "";
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Host %s;
+    proxy_set_header X-Forwarded-Proto https;
   }
 }
-`, c.HTTPSListen, c.Host, quote(filepath.Join(generation, "fullchain.pem")), quote(filepath.Join(generation, "privkey.pem")), c.PublicListen, c.PublicListen, c.PublicListen)
+`, c.HTTPSListen, c.Host, authorityPattern, quote(filepath.Join(generation, "fullchain.pem")), quote(filepath.Join(generation, "privkey.pem")), c.hstsHeader(), c.PublicListen, c.hstsHeader(), c.PublicListen, c.hstsHeader(), c.PublicListen, c.PublicAuthority(), c.PublicAuthority())
+}
+
+func validateEnabled(c Config) error {
+	entries, e := os.ReadDir(filepath.Join(c.StateDir, "enabled"))
+	if os.IsNotExist(e) {
+		return nil
+	}
+	if e != nil {
+		return e
+	}
+	for _, entry := range entries {
+		if entry.Name() != "site.conf" && entry.Name() != "site.conf.staging" {
+			return fmt.Errorf("unmanaged enabled file %s", entry.Name())
+		}
+	}
+	_, e = selectedFor(c)
+	return e
 }
