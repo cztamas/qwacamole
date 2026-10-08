@@ -2,11 +2,10 @@ go 1.27.1
 
 use (
 	.
+	./agent
 	./caddy
 	./devtools
 )
 
-// Local development overrides the immutable core pin and devtools placeholders.
-replace github.com/cztamas/qwacamole v0.0.0 => .
-replace github.com/cztamas/qwacamole v0.0.0-20261006174406-ced6241dd061 => .
-replace github.com/cztamas/qwacamole/caddy v0.0.0 => ./caddy
+// Workspace development uses local modules. Independent CI disables this file
+// and verifies the real pinned dependencies in each module.

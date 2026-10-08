@@ -3,6 +3,7 @@ package qwacamole
 import (
 	"fmt"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
+	"github.com/cztamas/qwacamole/bindinghttp"
 	"github.com/cztamas/qwacamole/store"
 	"io"
 	"net/http"
@@ -10,35 +11,13 @@ import (
 )
 
 func (h *Handler) serveDocument(w http.ResponseWriter, r *http.Request) error {
-	// Error/method responses must not be cached either. Do not add a binding Link
-	// here: discovery responses must not advertise themselves recursively.
-	w.Header().Set("Cache-Control", "no-store")
-	if r.Method != http.MethodGet && r.Method != http.MethodHead {
-		w.Header().Set("Allow", "GET, HEAD")
-		return caddyhttp.Error(405, nil)
-	}
-	var d []byte
-	var e error
-	if r.URL.Path == store.DiscoveryURL {
-		d, e = h.manager.CurrentDocument()
-		if e != nil {
-			return caddyhttp.Error(503, e)
+	if err := bindinghttp.Serve(w, r, h.manager); err != nil {
+		if e, ok := err.(*bindinghttp.Error); ok {
+			return caddyhttp.Error(e.Status, e.Cause)
 		}
-	} else {
-		d, e = h.manager.Document(r.URL.Path)
+		return err
 	}
-	if e != nil {
-		return caddyhttp.Error(404, e)
-	}
-	w.Header().Set("Content-Type", "application/jose")
-	w.Header().Set("Cache-Control", "no-store")
-	w.Header().Set("Content-Length", fmt.Sprint(len(d)))
-	if r.Method == http.MethodHead {
-		w.WriteHeader(200)
-		return nil
-	}
-	_, e = w.Write(d)
-	return e
+	return nil
 }
 
 // Commit-time advertisement survives downstream Header.Set and streams without

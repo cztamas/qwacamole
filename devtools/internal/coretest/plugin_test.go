@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -27,13 +28,16 @@ import (
 )
 
 func supplied(t *testing.T) (plugin.BindingConfig, *x509.Certificate) {
+	return suppliedHost(t, "qwac.example.com")
+}
+func suppliedHost(t *testing.T, host string) (plugin.BindingConfig, *x509.Certificate) {
 	t.Helper()
 	dir := t.TempDir()
 	pkidir := filepath.Join(dir, "pki")
-	if e := pki.Generate(pkidir, pki.Identity{Host: "qwac.example.com", Organization: "Supplied TEST", Country: "HU", Locality: "Budapest", Registration: "NTRHU-TEST"}); e != nil {
+	if e := pki.Generate(pkidir, pki.Identity{Host: host, Organization: "Supplied TEST", Country: "HU", Locality: "Budapest", Registration: "NTRHU-TEST"}); e != nil {
 		t.Fatal(e)
 	}
-	cfg := plugin.BindingConfig{Config: store.Config{Dir: filepath.Join(dir, "bindings"), Host: "qwac.example.com", Lifetime: time.Minute}, ChainFiles: []string{filepath.Join(pkidir, "qwac-leaf.pem"), filepath.Join(pkidir, "qwac-intermediate.pem")}, KeyFile: filepath.Join(pkidir, "qwac-leaf-key.pem"), TrustFiles: []string{filepath.Join(pkidir, "qwac-root.pem")}}
+	cfg := plugin.BindingConfig{Config: store.Config{Dir: filepath.Join(dir, "bindings"), Host: host, Lifetime: time.Minute}, ChainFiles: []string{filepath.Join(pkidir, "qwac-leaf.pem"), filepath.Join(pkidir, "qwac-intermediate.pem")}, KeyFile: filepath.Join(pkidir, "qwac-leaf-key.pem"), TrustFiles: []string{filepath.Join(pkidir, "qwac-root.pem")}}
 	tls, e := pki.ReadCert(filepath.Join(pkidir, "tls-leaf.pem"))
 	if e != nil {
 		t.Fatal(e)
@@ -396,5 +400,79 @@ func TestSuppliedCredentialsRejectBeforeIssuance(t *testing.T) {
 	bad.ChainFiles = []string{cfg.ChainFiles[0]}
 	if _, e := plugin.Acquire(ctx, bad, store.Operations{}); e == nil {
 		t.Fatal("missing intermediate accepted")
+	}
+}
+
+// A deliberately stalled signer must not hold registry for other deployments.
+func TestUnrelatedHostProgressDuringBlockedPublication(t *testing.T) {
+	a, leafA := suppliedHost(t, "a.example.com")
+	b, leafB := suppliedHost(t, "b.example.com")
+	ca, stopA := newContext()
+	defer stopA()
+	cb, stopB := newContext()
+	defer stopB()
+	entered, unblock := make(chan struct{}), make(chan struct{})
+	var blocked atomic.Bool
+	ops := store.Operations{Sign: func(mat *credentials.Credentials, cs []*x509.Certificate, now time.Time, lifetime time.Duration, _ bool) (string, binding.Header, error) {
+		if blocked.CompareAndSwap(false, true) {
+			close(entered)
+			<-unblock
+		}
+		return binding.Sign(mat, cs, now, lifetime)
+	}}
+	la, e := plugin.Acquire(ca, a, ops)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer la.Release()
+	// Always unblock on test exit, including timeout failures.
+	var unblockOnce sync.Once
+	releaseSigner := func() { unblockOnce.Do(func() { close(unblock) }) }
+	defer releaseSigner()
+	doneA := make(chan error, 1)
+	go func() { doneA <- la.Publish(leafA) }()
+	select {
+	case <-entered:
+	case <-time.After(5 * time.Second):
+		t.Fatal("signer did not block")
+	}
+	doneB := make(chan error, 1)
+	go func() {
+		lb, e := plugin.Acquire(cb, b, store.Operations{})
+		if e != nil {
+			doneB <- e
+			return
+		}
+		defer lb.Release()
+		if e = lb.Publish(leafB); e != nil {
+			doneB <- e
+			return
+		}
+		// Same generation must not re-sign or change the committed artifact.
+		before := lb.Manager().Snapshot().URL
+		for range 10 {
+			if e = lb.Activate(); e != nil {
+				doneB <- e
+				return
+			}
+		}
+		if lb.Manager().Snapshot().URL != before {
+			doneB <- fmt.Errorf("unchanged generation republished")
+			return
+		}
+		_, e = lb.Manager().CurrentDocument()
+		doneB <- e
+	}()
+	select {
+	case e := <-doneB:
+		if e != nil {
+			t.Fatal(e)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("unrelated hostname blocked on registry")
+	}
+	releaseSigner()
+	if e := <-doneA; e != nil {
+		t.Fatal(e)
 	}
 }

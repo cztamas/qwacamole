@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
-	"math/rand/v2"
+	"github.com/cztamas/qwacamole/lifecycle"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -27,6 +27,12 @@ var registry = struct {
 }{entries: map[string]*owner{}}
 
 type owner struct {
+	// mu serializes this deployment only. registry protects references/map entries;
+	// no signing, storage, worker shutdown or owner-lock wait holds registry.
+	mu                                    sync.Mutex
+	initErr                               error
+	closing                               bool
+	closed                                chan struct{}
 	cfg                                   BindingConfig
 	manager                               *store.Manager
 	lock                                  *os.File
@@ -66,58 +72,76 @@ func Acquire(ctx caddy.Context, cfg BindingConfig, ops store.Operations) (*Lease
 	if e != nil {
 		return nil, e
 	}
-	registry.Lock()
-	defer registry.Unlock()
-	o := registry.entries[cfg.Dir]
-	if o == nil {
-		if e = os.MkdirAll(cfg.Dir, 0700); e != nil {
-			return nil, e
-		}
-		// Resolve symlinks so aliases cannot acquire independent in-process owners.
-		actual, e := filepath.EvalSymlinks(cfg.Dir)
-		if e != nil {
-			return nil, e
-		}
-		cfg.Dir = actual
-		o = registry.entries[actual]
+	if e = os.MkdirAll(cfg.Dir, 0700); e != nil {
+		return nil, e
 	}
-	if o == nil {
-		lock, e := lockState(filepath.Join(cfg.Dir, ".qwac-owner.lock"))
-		if e != nil {
-			return nil, e
+	actual, e := filepath.EvalSymlinks(cfg.Dir)
+	if e != nil {
+		return nil, e
+	}
+	cfg.Dir = actual
+	var o *owner
+	var created bool
+	for {
+		registry.Lock()
+		o = registry.entries[cfg.Dir]
+		if o != nil && o.closing {
+			done := o.closed
+			registry.Unlock()
+			select {
+			case <-done:
+				continue
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			}
 		}
-		m, e := store.Recover(cfg.Config, mat, ops)
-		if e != nil {
-			lock.Close()
-			return nil, fmt.Errorf("recover binding state: %w", e)
+		created = o == nil
+		if created {
+			o = &owner{cfg: cfg, sessions: map[context.Context]*session{}, closed: make(chan struct{}), customSign: ops.Sign != nil, customCommit: ops.CommitManifest != nil, customWrite: ops.WriteDocument != nil}
+			o.mu.Lock() // reserve initialization before exposing the owner
+			registry.entries[cfg.Dir] = o
 		}
-		o = &owner{cfg: cfg, manager: m, lock: lock, sessions: map[context.Context]*session{}, customSign: ops.Sign != nil, customCommit: ops.CommitManifest != nil, customWrite: ops.WriteDocument != nil}
-		registry.entries[cfg.Dir] = o
+		o.refs++
+		registry.Unlock()
+		break
+	}
+	if !created {
+		o.mu.Lock()
+	} else {
+		o.lock, e = lockState(filepath.Join(cfg.Dir, ".qwac-owner.lock"))
+		if e == nil {
+			o.manager, e = store.Recover(cfg.Config, mat, ops)
+		}
+		o.initErr = e
+	}
+	fail := func(err error) (*Lease, error) { o.mu.Unlock(); o.releaseReference(); return nil, err }
+	if o.initErr != nil {
+		return fail(fmt.Errorf("recover binding state: %w", o.initErr))
 	}
 	if !reflect.DeepEqual(o.cfg.Config, cfg.Config) || o.customSign != (ops.Sign != nil) || o.customCommit != (ops.CommitManifest != nil) || o.customWrite != (ops.WriteDocument != nil) {
-		return nil, fmt.Errorf("conflicting binding state ownership/settings for %s", cfg.Dir)
+		return fail(fmt.Errorf("conflicting binding state ownership/settings for %s", cfg.Dir))
 	}
 	s := o.sessions[ctx.Context]
 	if s != nil {
 		if !reflect.DeepEqual(s.cfg, cfg) || binding.ID(s.material.Chain[0]) != binding.ID(mat.Chain[0]) {
-			return nil, fmt.Errorf("issuer/handler binding configuration or credentials mismatch")
+			return fail(fmt.Errorf("issuer/handler binding configuration or credentials mismatch"))
 		}
 	} else {
 		if e = o.manager.PrepareReplacement(mat); e != nil {
-			if o.refs == 0 {
-				delete(registry.entries, cfg.Dir)
-				o.lock.Close()
-			}
-			return nil, fmt.Errorf("prepare QWAC replacement: %w", e)
+			return fail(fmt.Errorf("prepare QWAC replacement: %w", e))
 		}
+		registry.Lock()
 		registry.generation++
-		s = &session{cfg: cfg, material: mat, generation: registry.generation}
+		generation := registry.generation
+		registry.Unlock()
+		s = &session{cfg: cfg, material: mat, generation: generation}
 		o.sessions[ctx.Context] = s
 	}
 	s.refs++
-	o.refs++
+	o.mu.Unlock()
 	return &Lease{owner: o, session: s, ctx: ctx.Context, logger: ctx.Logger()}, nil
 }
+
 func (l *Lease) Manager() *store.Manager { return l.owner.manager }
 
 // borrow keeps state ownership and refresh alive for an in-flight request or
@@ -125,18 +149,18 @@ func (l *Lease) Manager() *store.Manager { return l.owner.manager }
 func (l *Lease) borrow() (func(), error) {
 	registry.Lock()
 	defer registry.Unlock()
-	if l.ctx.Err() != nil {
+	if l.ctx.Err() != nil || l.owner.closing {
 		return nil, fmt.Errorf("QWAC configuration has been unloaded")
 	}
 	l.owner.refs++
 	var once sync.Once
 	return func() {
-		once.Do(func() { registry.Lock(); defer registry.Unlock(); l.owner.refs--; l.owner.closeIfUnused() })
+		once.Do(func() { l.owner.releaseReference() })
 	}, nil
 }
 func (l *Lease) SetStoredTLS(c *x509.Certificate) {
-	registry.Lock()
-	defer registry.Unlock()
+	l.owner.mu.Lock()
+	defer l.owner.mu.Unlock()
 	l.session.storedTLS = c
 }
 
@@ -153,8 +177,8 @@ func (l *Lease) Publish(c *x509.Certificate) error {
 }
 
 func (l *Lease) activate(issued *x509.Certificate) error {
-	registry.Lock()
-	defer registry.Unlock()
+	l.owner.mu.Lock()
+	defer l.owner.mu.Unlock()
 	if l.ctx.Err() != nil {
 		return fmt.Errorf("QWAC configuration has been unloaded")
 	}
@@ -195,72 +219,17 @@ func (l *Lease) activate(issued *x509.Certificate) error {
 func (l *Lease) runWorker(ctx context.Context) {
 	o := l.owner
 	defer close(o.done)
-	gc := time.NewTicker(o.manager.CollectionInterval())
-	defer gc.Stop()
-	var retryAt time.Time
-	failures := 0
-	for {
-		due := o.manager.NextRefresh()
-		if retryAt.After(due) {
-			due = retryAt
+	lifecycle.Run(ctx, o.manager, func(e lifecycle.Event) {
+		fields := []zap.Field{zap.String("state", o.cfg.Dir), zap.Any("binding", e.Status)}
+		if e.Err != nil {
+			l.logger.Error("QWAC maintenance "+e.Kind, append(fields, zap.Error(e.Err), zap.Duration("retry_after", e.RetryAfter))...)
+		} else {
+			l.logger.Info("QWAC maintenance "+e.Kind, append(fields, zap.Any("collection", e.Collection))...)
 		}
-		delay := time.Until(due)
-		if delay < time.Millisecond {
-			delay = time.Millisecond
-		}
-		t := time.NewTimer(delay)
-		select {
-		case <-ctx.Done():
-			t.Stop()
-			return
-		case <-o.manager.Changed():
-			t.Stop()
-			retryAt = time.Time{}
-		case now := <-gc.C:
-			t.Stop()
-			if result, e := o.manager.Collect(now); e != nil {
-				l.logger.Error("QWAC document collection failed", zap.String("state", o.cfg.Dir), zap.Error(e))
-			} else if result.Documents > 0 {
-				l.logger.Info("QWAC historical documents collected", zap.Int("documents", result.Documents), zap.Int64("bytes", result.Bytes))
-			}
-			l.logStatus("QWAC binding operational state")
-		case <-t.C:
-			if e := o.manager.Refresh(); e != nil {
-				failures++
-				delay := retryDelay(failures)
-				// Before expiry, retry within half of the remaining validity where
-				// possible. After expiry, bounded backoff avoids a busy failure loop.
-				remaining := time.Until(time.Unix(o.manager.Snapshot().Expires, 0))
-				if remaining > 2*time.Second && delay > remaining/2 {
-					delay = remaining / 2
-				}
-				retryAt = time.Now().Add(delay)
-				l.logger.Error("QWAC refresh failed; protected responses fail closed when current binding expires", zap.String("state", o.cfg.Dir), zap.Duration("retry_after", delay), zap.Error(e))
-				l.logStatus("QWAC refresh failure state")
-			} else {
-				if failures > 0 {
-					l.logger.Info("QWAC refresh recovered", zap.String("state", o.cfg.Dir))
-				}
-				failures = 0
-				retryAt = time.Time{}
-			}
-		}
-	}
+	})
 }
 
-func retryDelay(failures int) time.Duration {
-	if failures < 1 {
-		failures = 1
-	}
-	if failures > 7 {
-		failures = 7
-	}
-	base := time.Second * time.Duration(1<<(failures-1))
-	if base > 48*time.Second {
-		base = 48 * time.Second
-	}
-	return time.Duration(float64(base) * (1 + rand.Float64()/4))
-}
+func retryDelay(failures int) time.Duration { return lifecycle.RetryDelay(failures) }
 
 func (l *Lease) logStatus(message string) {
 	s, e := l.owner.manager.Status()
@@ -275,29 +244,44 @@ func (l *Lease) Release() {
 		return
 	}
 	l.once.Do(func() {
-		registry.Lock()
-		defer registry.Unlock()
 		o := l.owner
-		o.refs--
+		o.mu.Lock()
 		l.session.refs--
 		if l.session.refs == 0 {
 			delete(o.sessions, l.ctx)
 		}
-		if o.refs == 0 {
-			o.closeIfUnused()
-		}
+		o.mu.Unlock()
+		o.releaseReference()
 	})
 }
 
-// registry lock is held by the caller.
-func (o *owner) closeIfUnused() {
+// Last-reference cleanup keeps a closing tombstone in registry. A new owner
+// waits outside the global lock until the worker and process lock are released.
+func (o *owner) releaseReference() {
+	registry.Lock()
+	o.refs--
 	if o.refs != 0 {
+		registry.Unlock()
 		return
 	}
+	o.closing = true
+	if o.closed == nil {
+		o.closed = make(chan struct{})
+	}
+	registry.Unlock()
+	o.mu.Lock()
 	if o.cancel != nil {
 		o.cancel()
 		<-o.done
 	}
-	o.lock.Close()
-	delete(registry.entries, o.cfg.Dir)
+	if o.lock != nil {
+		o.lock.Close()
+	}
+	o.mu.Unlock()
+	registry.Lock()
+	if registry.entries[o.cfg.Dir] == o {
+		delete(registry.entries, o.cfg.Dir)
+	}
+	close(o.closed)
+	registry.Unlock()
 }

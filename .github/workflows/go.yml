@@ -1,4 +1,4 @@
-name: Portable Go and plugin integration
+name: Portable Go, Caddy and Certbot Nginx integration
 on:
   push:
   pull_request:
@@ -20,13 +20,17 @@ jobs:
         with:
           go-version: '1.27.1'
           cache-dependency-path: |
+            agent/go.sum
             caddy/go.sum
             devtools/go.sum
       - name: All module race tests (transactions, crash recovery, cache, retention and concurrency)
         run: |
           go test -race ./...
+          (cd agent && go test -race ./...)
           (cd caddy && go test -race ./...)
           (cd devtools && go test -race ./...)
+      - name: Independently pinned module races (GOWORK=off, no replacements)
+        run: GO=go scripts/check-independent-modules.sh
       - name: Dependency boundaries
         run: GO=go scripts/check-boundaries.sh
       - name: Pinned portable tools and plugin-only binary
@@ -37,13 +41,38 @@ jobs:
           cp "$(go env GOPATH)/bin/pebble" .tools/bin/pebble
           GOWORK=off xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@v0.0.0="$PWD/caddy" --replace github.com/cztamas/qwacamole="$PWD" --output bin/caddy-plugin
           (cd devtools && go build -o ../bin/qwacamole ./cmd/qwacamole)
+      - name: Nginx package
+        timeout-minutes: 5
+        run: |
+          # The runner mirrorlist selected Azure HTTP for package indexes and
+          # stalled despite successful official HTTPS metadata downloads.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
+          fi
+          sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y nginx
+      - name: Certbot tools
+        timeout-minutes: 5
+        run: |
+          python3 -m venv .tools/certbot-venv
+          .tools/certbot-venv/bin/pip install --timeout 30 --retries 1 'certbot==5.8.0'
+      - name: Production agent binary
+        run: |
+          (cd agent && go build -o ../bin/qwacamole-agent ./cmd/qwacamole-agent)
+      - name: Real Nginx WebSocket, slow upload, Certbot lifecycle and fail-closed gate
+        run: bin/qwacamole nginx-smoke -state .local/ci-nginx -nginx /usr/sbin/nginx
       - name: Real ACME multi-site cache, WebSocket, renewal and offline retirement checks
         run: bin/qwacamole plugin-smoke -state .local/ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: plugin-smoke-evidence
-          path: .local/ci/**/evidence/
+          path: |
+            .local/ci/**/evidence/
+            .local/ci-nginx/**/evidence/
+            .local/ci-nginx/**/agent.log
+            .local/ci-nginx/**/agent-faults.log
+            .local/ci-nginx/**/nginx/error.log
       - name: Remove private module authentication
         if: always()
         run: git config --global --unset-all http.https://github.com/cztamas/qwacamole.extraheader || true

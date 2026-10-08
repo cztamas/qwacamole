@@ -3,6 +3,7 @@ export PATH := $(CURDIR)/.tools/go/bin:$(PATH)
 export GOPATH := $(CURDIR)/.tools/gopath
 export GOCACHE := $(CURDIR)/.tools/gocache
 export GOEXPERIMENT := nojsonv2
+export GOPRIVATE := github.com/cztamas/qwacamole,$(GOPRIVATE)
 export XDG_DATA_HOME := $(CURDIR)/.local/xdg-data
 export XDG_CONFIG_HOME := $(CURDIR)/.local/xdg-config
 STATE ?= .local
@@ -32,6 +33,7 @@ firefox-integration: bootstrap-firefox build
 	bin/qwacamole firefox-integration -state $(STATE) $(BROWSER_ARGS)
 test:
 	$(GO) test -race ./...
+	cd agent && $(GO) test -race ./...
 	cd caddy && $(GO) test -race ./...
 	cd devtools && $(GO) test -race ./...
 	./scripts/check-boundaries.sh
@@ -59,3 +61,20 @@ plugin-smoke: plugin-build
 	bin/qwacamole plugin-smoke -state $(STATE)
 remote-install-check:
 	./scripts/check-remote-install.sh $(REF)
+
+.PHONY: agent-build bootstrap-nginx nginx-smoke nginx-chrome-test nginx-firefox-test remote-agent-check
+agent-build: bootstrap
+	cd agent && $(GO) build -o ../bin/qwacamole-agent ./cmd/qwacamole-agent
+bootstrap-nginx:
+	./scripts/bootstrap-nginx.sh
+nginx-smoke: agent-build
+	cd devtools && $(GO) build -o ../bin/qwacamole ./cmd/qwacamole
+	bin/qwacamole nginx-smoke -state $(STATE)
+nginx-chrome-test: agent-build
+	cd devtools && $(GO) build -o ../bin/qwacamole ./cmd/qwacamole
+	bin/qwacamole nginx-browser-integration -native-browser chrome -state $(STATE) $(BROWSER_ARGS)
+nginx-firefox-test: bootstrap-firefox agent-build
+	cd devtools && $(GO) build -o ../bin/qwacamole ./cmd/qwacamole
+	bin/qwacamole nginx-browser-integration -native-browser firefox -state $(STATE) $(BROWSER_ARGS)
+remote-agent-check:
+	./scripts/check-remote-agent.sh $(REF)

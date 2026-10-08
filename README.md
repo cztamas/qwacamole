@@ -31,6 +31,48 @@ For Firefox, start with [Firefox quickstart](#firefox-quickstart).
 [Architecture](#architecture-and-lifecycle), and
 [Browser trust and CT](#isolated-browser-trust-and-ct) explain the setup in detail.
 
+## Certbot + Nginx agent
+
+The feature branch `codex/certbot-nginx-agent` adds the production
+`qwacamole-agent` executable in `agent/`. It uses supplied QWAC credentials and
+controls Certbot deployment into Nginx through a private local socket, durable
+binding publication, immutable TLS generations, validated reload and fresh TLS
+confirmation. The [agent guide](docs/agent-nginx.md) covers installation,
+ordered manual setup and native verification, permissions, service setup, hooks,
+recovery and retirement. Completed acceptance is recorded in the
+[agent ledger](docs/agent-nginx-plan.md) and
+[dated evidence](docs/evidence-agent-nginx-20261007.md): remote installs, all-module
+races, 24 Nginx lifecycle/fault checks, 22 Caddy runtime checks, fresh native
+Chrome/Firefox for both integrations, and hosted CI. This remains an unpublished
+experimental integration; Chrome's established ignored-exp incompatibility stays
+explicitly visible and nonzero in its full suite.
+The [PR review follow-up](docs/evidence-agent-review-20261007.md) fixes Nginx
+WebSocket forwarding and the agent's application-body deadline, with **28** real
+Nginx lifecycle/fault checks. The agent owns a dedicated single-host Nginx
+configuration; existing multi-site Nginx integration is outside its current scope.
+
+```sh
+make agent-build
+make bootstrap-nginx  # isolated development dependencies on macOS
+make nginx-smoke STATE=.local/nginx-smoke
+# Run sequentially; both use the same isolated demonstration ports.
+make nginx-chrome-test STATE=.local/nginx-chrome
+make nginx-firefox-test STATE=.local/nginx-firefox
+```
+
+The Nginx smoke owns and stops its processes. It uses real HTTP-01 challenges,
+normal automatic renewal, an original held TLS stream, cached discovery,
+credential replacement, signing/storage/deployment faults, restart, expired-state
+gates and capacity refusal, plus a real WebSocket frame echo and uploads forwarded
+to a slow origin beyond ten seconds. Explicitly forced extra certificates are used only
+for deterministic fault/capacity cases, after normal renewal has passed. Native
+commands create isolated profiles, preserve ordinary TLS validation and verify
+initial/renewed/replacement bindings using unchanged trust. No system trust or
+normal browser profile is changed. On Linux, install Nginx with SSL/auth_request
+support and pass `-nginx /usr/sbin/nginx` to `bin/qwacamole nginx-smoke` or
+`nginx-browser-integration`; the bundled Nginx source bootstrap currently supports
+macOS with existing Homebrew OpenSSL 3 and PCRE2.
+
 ## Installable Caddy plugin
 
 The current hardening branch prepares an **unpublished public alpha**. It adds
@@ -187,7 +229,9 @@ URL in an ordinary browser does not reproduce the required routing or trust.
 
 ## Firefox quickstart
 
-Tested with **stock Firefox 157.0** on macOS Apple Silicon. Firefox has desktop
+Tested with **stock Firefox 157.0 and 157.0.1** on macOS Apple Silicon; the
+[7 October acceptance](docs/evidence-agent-nginx-20261007.md) records the fresh
+157.0.1 runs. Firefox has desktop
 native QWAC support enabled by default since version 153. Install Firefox and
 NSS's `certutil` first (Homebrew supplies the latter):
 
@@ -588,7 +632,8 @@ NetLog chain and binding result supply browser verification evidence.
 
 | File / directory | Purpose |
 |---|---|
-| `binding/`, `profile/`, `credentials/`, `store/` | Reusable core; standard library only |
+| `binding/`, `profile/`, `credentials/`, `store/`, `lifecycle/`, `bindinghttp/` | Reusable core; standard library only |
+| `agent/` | Production `qwacamole-agent`, local Certbot control and durable Nginx deployment |
 | `caddy/modules.go` | Production ACME issuer gate and binding middleware |
 | `devtools/modules.go`, `page.go` | Development fault adapters and diagnostic HTTP components |
 | `devtools/internal/pki/` | Synthetic issuance and Mozilla's public test fixture |
@@ -606,7 +651,7 @@ Firefox demo, and `make firefox-test` runs its separately started fixture suite
 `make build` builds both binaries; `make browser-demo` builds, starts fresh local
 services, and opens visible Chrome with the selected owner data; `make demo`
 builds and starts services without a browser;
-`make test` runs Go race tests in all three modules and checks dependency boundaries (run `make build` first to install the pinned runtime); `make browser-check` checks
+`make test` runs Go race tests in all four modules and checks dependency boundaries (run `make build` first to install the pinned runtime); `make browser-check` checks
 an already running demo; `make browser-test` (also `make integration-test`) runs
 the complete fresh-state demonstration. `make fixture` starts the negative
 fixtures for an existing state's PKI. `make clean` and `make clean-all` use the
@@ -619,11 +664,12 @@ metadata paths. The bootstrap and supervisor depend on repository-relative
 
 ## Modules, APIs and local builds
 
-The versioned `go.work` connects three Go modules:
+The versioned `go.work` connects four Go modules:
 
 | Module | Packages and responsibility | Allowed dependencies |
 |---|---|---|
-| `github.com/cztamas/qwacamole` (root) | `credentials`, `profile`, `binding`, `store`: RS256 material loading, certificate profile, signing/verification, durable publication/recovery | Standard library |
+| `github.com/cztamas/qwacamole` (root) | `credentials`, `profile`, `binding`, `store`, `lifecycle`, `bindinghttp`: RS256 material loading, certificate profile, signing/verification, durable publication/recovery | Standard library |
+| `github.com/cztamas/qwacamole/agent` | `cmd/qwacamole-agent`, local control, Nginx deployment and journal reconciliation | Core and standard library |
 | `github.com/cztamas/qwacamole/caddy` | `Issuer`, `Handler`, `BindingConfig`: ACME gate and HTTP middleware | Core and Caddy/CertMagic |
 | `github.com/cztamas/qwacamole/devtools` | Development Caddy adapters, `cmd/qwacamole`, `internal/pki`, `internal/browser`, PKI-dependent integration tests | Core, plugin and test tools |
 

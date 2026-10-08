@@ -20,6 +20,13 @@ history. Describe whether ordinary TLS verification, the QWAC issuance gate,
 document verification, state recovery or dependency isolation is affected.
 Coordinate disclosure and a fix privately with the owner.
 
+For the Certbot/Nginx agent, also identify Nginx/Certbot versions, journal phase,
+last confirmed TLS leaf, whether rollback/reconciliation completed, and whether
+the issue crosses the loopback delivery/application proxy or private Unix control
+boundary. Redact Certbot accounts, private keys and runtime socket credentials.
+See [the agent guide](docs/agent-nginx.md) for local permissions, response gates,
+independent deploy-hook status and Nginx-worker-aware offline retirement.
+
 Known boundaries: supplied RSA credentials, one literal hostname per state,
 local exclusive storage, browser-specific native support, explicit Firefox
 compatibility, and no automatic QWAC enrollment/authority migration/distributed
