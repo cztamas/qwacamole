@@ -224,6 +224,7 @@ func (l *Lease) activate(issued *x509.Certificate) error {
 		}
 		if e := o.manager.Activate(l.session.material, stored...); e != nil {
 			l.logger.Error("QWAC replacement publication failed", zap.String("state", o.cfg.Dir), zap.Error(e))
+			l.logStatus("QWAC replacement remains pending")
 			return e
 		}
 		o.active = l.session.generation
@@ -267,6 +268,8 @@ func (l *Lease) logStatus(message string) {
 		l.logger.Error("QWAC storage diagnostics failed", zap.Error(e))
 		return
 	}
+	s.CredentialID = binding.ID(l.session.material.Chain[0])
+	s.ReplacementPending = l.session.generation > l.owner.active
 	l.logger.Info(message, zap.String("hostname", l.owner.cfg.Host), zap.Any("binding", s))
 }
 func (l *Lease) Release() {

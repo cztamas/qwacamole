@@ -37,17 +37,19 @@ type Journal struct {
 // Agent serializes deployment requests. The shared manager serializes all
 // binding publication, refresh, delivery and collection under its own lock.
 type Agent struct {
-	Config      Config
-	Manager     *store.Manager
-	target      Target
-	lock        *os.File
-	controlLock *os.File
-	mu          sync.Mutex
-	journal     Journal
-	ready       atomic.Bool
-	requestMu   sync.Mutex
-	requests    sync.WaitGroup
-	stopping    bool
+	Config             Config
+	Manager            *store.Manager
+	target             Target
+	lock               *os.File
+	controlLock        *os.File
+	mu                 sync.Mutex
+	journal            Journal
+	ready              atomic.Bool
+	requestMu          sync.Mutex
+	requests           sync.WaitGroup
+	stopping           bool
+	replacementPending bool
+	replacementError   string
 }
 
 // Open acquires exclusive ownership and verifies durable binding recovery. Call
@@ -562,9 +564,18 @@ func (a *Agent) retainedExpired() (bool, error) {
 
 // ReplaceCredentials validates and atomically publishes a same-authority QWAC
 // replacement with every retained TLS leaf; it does not reload Nginx.
-func (a *Agent) ReplaceCredentials() error {
+func (a *Agent) ReplaceCredentials() (err error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
+	a.replacementPending = true
+	defer func() {
+		a.replacementError = ""
+		if err != nil {
+			a.replacementError = err.Error()
+		} else {
+			a.replacementPending = false
+		}
+	}()
 	m, e := a.Config.Material()
 	if e != nil {
 		return e

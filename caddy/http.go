@@ -1,13 +1,14 @@
 package qwacamole
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/cztamas/qwacamole/bindinghttp"
 	"github.com/cztamas/qwacamole/store"
 	"io"
+	"net"
 	"net/http"
-	"time"
 )
 
 func (h *Handler) serveDocument(w http.ResponseWriter, r *http.Request) error {
@@ -38,15 +39,33 @@ func (w *bindingWriter) WriteHeader(status int) {
 		return
 	}
 	w.committed = true
-	s := w.manager.Snapshot()
-	if s.URL == "" || s.Expires <= time.Now().Unix() {
+	if !bindinghttp.Available(w.manager) {
 		w.unavailable = true
-		w.Header().Del("Content-Length")
-		w.ResponseWriter.WriteHeader(503)
+		for key := range w.Header() {
+			w.Header().Del(key)
+		}
+		w.Header().Set("Cache-Control", "no-store")
+		w.ResponseWriter.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
 	w.Header().Add("Link", fmt.Sprintf(`<%s>; rel="tls-certificate-binding"`, store.DiscoveryURL))
 	w.ResponseWriter.WriteHeader(status)
+}
+
+// A reverse proxy can hijack before WriteHeader to write its own 101. Enforce
+// availability at that boundary too; already hijacked streams remain committed.
+func (w *bindingWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if w.unavailable || !bindinghttp.Available(w.manager) {
+		if !w.committed {
+			w.WriteHeader(http.StatusServiceUnavailable)
+		}
+		return nil, nil, fmt.Errorf("binding unavailable at protocol upgrade")
+	}
+	c, rw, err := http.NewResponseController(w.ResponseWriter).Hijack()
+	if err == nil {
+		w.committed = true
+	}
+	return c, rw, err
 }
 func (w *bindingWriter) Write(d []byte) (int, error) {
 	if !w.committed {

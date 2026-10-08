@@ -21,16 +21,18 @@ import (
 // Status distinguishes confirmed TLS activation from binding publication and
 // includes independent deployment errors; Certbot's exit code is insufficient.
 type Status struct {
-	Ready      bool         `json:"ready"`
-	Deployment Journal      `json:"deployment"`
-	Binding    store.Status `json:"binding"`
+	Ready              bool         `json:"ready"`
+	Deployment         Journal      `json:"deployment"`
+	Binding            store.Status `json:"binding"`
+	ReplacementPending bool         `json:"replacement_pending"`
+	ReplacementError   string       `json:"last_replacement_error,omitempty"`
 }
 
 func (a *Agent) Status() (Status, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	s, e := a.Manager.Status()
-	return Status{Ready: a.ready.Load() && bindinghttp.Available(a.Manager), Deployment: a.journal, Binding: s}, e
+	return Status{Ready: a.ready.Load() && bindinghttp.Available(a.Manager), Deployment: a.journal, Binding: s, ReplacementPending: a.replacementPending || s.ReplacementPending, ReplacementError: a.replacementError}, e
 }
 
 // PublicHandler exposes bindings, a bodyless gate and the configured protected
