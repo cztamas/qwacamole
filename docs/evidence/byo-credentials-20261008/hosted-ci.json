@@ -1,0 +1,98 @@
+{
+  "url": "https://github.com/cztamas/qwacamole/actions/runs/37831444995",
+  "head_sha": "2629d41abe537feccbde4170d677dd734a39d875",
+  "status": "completed",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "name": "test",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Scope private module authentication to this repository",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-go@v5",
+          "conclusion": "success"
+        },
+        {
+          "name": "All module race tests (transactions, crash recovery, cache, retention and concurrency)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Independently pinned module races (GOWORK=off, no replacements)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Dependency boundaries",
+          "conclusion": "success"
+        },
+        {
+          "name": "Pinned portable tools and plugin-only binary",
+          "conclusion": "success"
+        },
+        {
+          "name": "Nginx package",
+          "conclusion": "success"
+        },
+        {
+          "name": "Certbot tools",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production agent binary",
+          "conclusion": "success"
+        },
+        {
+          "name": "Real Nginx WebSocket, slow upload, Certbot lifecycle and fail-closed gate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Nondefault Nginx body, buffering, inactivity timeout, redirect and HSTS policy",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install merged-main upgrade baseline from its immutable remote ref",
+          "conclusion": "success"
+        },
+        {
+          "name": "Real Nginx offline migration, interruption, repeated execution and lifecycle",
+          "conclusion": "success"
+        },
+        {
+          "name": "Real ACME multi-site cache, WebSocket, renewal and offline retirement checks",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Remove private module authentication",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-go@v5",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
+}

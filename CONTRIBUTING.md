@@ -42,6 +42,12 @@ Keep signing/storage/reload/crash injection inside devtools. Test all four
 modules with `scripts/check-independent-modules.sh` as well as the workspace;
 update real dependency pins after pushing their implemented production refs.
 
+The Nginx metadata acceptance uses a client IPv4 loopback address distinct from
+the agent's `127.0.0.1` delivery hop. Linux can bind `127.0.0.2` directly; macOS
+requires an assigned alias. The harness reuses an existing distinct loopback
+alias on macOS and rejects when none is assigned; it never changes interfaces
+or falls back to the agent-hop address.
+
 Tests should exercise behavioral invariants: publication before TLS activation,
 old/new complete state under failures, authenticated connection coverage beyond
 leaf expiry, cached discovery, and safe owned-artifact collection. Negative tests

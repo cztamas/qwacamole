@@ -1,0 +1,115 @@
+{
+  "checks": [
+    "isolated production agent and HTTP-only Nginx bootstrap",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=false)",
+    "private runtime/socket permissions and control methods/body validation; public control/file paths reject",
+    "real Certbot HTTP-01 issuance, deploy-hook publication and verified Nginx activation",
+    "fresh verified browser-facing TLS leaf covered by qualified binding",
+    "ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses",
+    "Nginx replaces forged forwarding metadata, preserves external port/encoded URL, origin secure cookies and absolute redirects; unsupported Host rejected",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=true)",
+    "configured body limit: 2 MiB upload status 413",
+    "real Nginx TLS WebSocket 101, discovery/upstream Link and bidirectional frame traffic",
+    "binding GET/HEAD/no-store/method rejection and nonrecursive discovery",
+    "Nginx internal gate/control and invalid binding paths are inaccessible",
+    "independent signed binding refresh without TLS renewal",
+    "automatic Certbot renewal and fresh verified controlled activation",
+    "original active TLS stream survives Nginx reload with both leaves bound",
+    "agent-backpressure upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "nginx-buffered upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "real cache longer than original signed lifetime discovers renewed binding",
+    "same-authority QWAC replacement through unchanged cached discovery",
+    "authenticated automatic collection preserves current document and retained leaves",
+    "agent unavailability rejects protected application requests",
+    "agent restart reconciles files and actual verified served TLS"
+  ],
+  "error": "<nil>",
+  "harness_source": "2629d41abe537feccbde4170d677dd734a39d875",
+  "production_source": "02f7569a230a5cf9d39f81b440dcc819281b4740",
+  "core_source": "4b3cd1c4a5f184b4c0efd1011da87839d6c59e6f",
+  "exit_code": 0,
+  "raw_evidence": ".local/byo-nginx-chrome/nginx-smoke-2490899284/evidence",
+  "native_phases": {
+    "native-chrome-initial": {
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Agent TEST"
+        ],
+        "qwac_id": "7097cad78cd8467158cb135ae24367eb46a030f85f81757397bb69592693ee96",
+        "tls_id": "4737272b3374d80697d4026f434790fa573addaf0a61def4c91a7541894556c9",
+        "unchanged_trust_sha256": "fe83c582229943eea264fa25aff6820aa5f5c99364a99666f43f4d41d5ae54fb"
+      },
+      "version": "Google Chrome 154.0.8037.98 \n",
+      "flags": [
+        "--enable-features=VerifyQWACs",
+        "--component-updater=url-source=http://127.0.0.1:9",
+        "--host-resolver-rules=MAP qwac.example.com 127.0.0.1",
+        "--net-log-capture-mode=Everything",
+        "--disable-features=CertificateTransparencyAskBeforeEnabling"
+      ],
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    },
+    "native-chrome-renewed-cached-after-expiry": {
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Agent TEST"
+        ],
+        "qwac_id": "7097cad78cd8467158cb135ae24367eb46a030f85f81757397bb69592693ee96",
+        "tls_id": "41ead56d97c415ab205e5ba3e84ff47ef2c9af189b6fd4a93c22872f4baddb9f",
+        "unchanged_trust_sha256": "fe83c582229943eea264fa25aff6820aa5f5c99364a99666f43f4d41d5ae54fb"
+      },
+      "version": "Google Chrome 154.0.8037.98 \n",
+      "flags": [
+        "--enable-features=VerifyQWACs",
+        "--component-updater=url-source=http://127.0.0.1:9",
+        "--host-resolver-rules=MAP qwac.example.com 127.0.0.1",
+        "--net-log-capture-mode=Everything",
+        "--disable-features=CertificateTransparencyAskBeforeEnabling"
+      ],
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    },
+    "native-chrome-replacement-cached-after-expiry": {
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Replacement TEST"
+        ],
+        "qwac_id": "deb776829ed1e48270767ddf2a6546aa405fd62dd977594dea3efff14b9426bf",
+        "tls_id": "41ead56d97c415ab205e5ba3e84ff47ef2c9af189b6fd4a93c22872f4baddb9f",
+        "unchanged_trust_sha256": "fe83c582229943eea264fa25aff6820aa5f5c99364a99666f43f4d41d5ae54fb"
+      },
+      "version": "Google Chrome 154.0.8037.98 \n",
+      "flags": [
+        "--enable-features=VerifyQWACs",
+        "--component-updater=url-source=http://127.0.0.1:9",
+        "--host-resolver-rules=MAP qwac.example.com 127.0.0.1",
+        "--net-log-capture-mode=Everything",
+        "--disable-features=CertificateTransparencyAskBeforeEnabling"
+      ],
+      "binding_verdicts": [
+        {
+          "is_valid_2qwac_binding": true
+        }
+      ],
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    }
+  }
+}
