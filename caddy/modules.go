@@ -277,7 +277,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyht
 		return caddyhttp.Error(503, e)
 	}
 	defer release()
-	if e := h.lease.Activate(); e != nil {
+	if e := h.lease.ActivateForServing(); e != nil {
 		return caddyhttp.Error(503, e)
 	}
 	if strings.HasPrefix(r.URL.Path, "/bindings/") {

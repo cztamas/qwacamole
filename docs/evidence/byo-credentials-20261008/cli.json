@@ -1,0 +1,27 @@
+{
+  "activation": "configure these paths in both Caddy issuer and handler then reload, or configure the agent before startup; importing does not activate credentials or change trust",
+  "authority_sha256": "b364bcf73e73f73678a7a196c11bd7ba479a4c695040312e930a3d281c8a2314",
+  "binding_algorithm": "RS256",
+  "chain_certificates": 3,
+  "dns_names": [
+    "qwac.example.com"
+  ],
+  "leaf_sha256": "b7de0f2d9427e1b48d6465fc5ee7d3c05d492bea07822ec2fe8e9e0301a50481",
+  "not_after": "2026-10-09T19:14:09Z",
+  "not_before": "2026-10-08T19:13:09Z",
+  "subject": "CN=qwac.example.com,O=Plugin replacement TEST,L=Budapest,C=HU,2.5.4.97=NTRHU-TEST-PLUGIN",
+  "valid": true,
+  "validated_hostnames": [
+    "qwac.example.com"
+  ],
+  "validation_scope": "local key, supported 2-QWAC profile, hostnames, validity and explicit authority chain; EU trusted-list qualification, revocation and browser trust are not established",
+  "source": "02f7569a230a",
+  "key_file_mode": "0600",
+  "directory_mode": "0700",
+  "csr_signature_verified_by_openssl": true,
+  "raw_evidence": [
+    ".local/evidence/byo-csr-public.txt",
+    ".local/evidence/byo-cli-import-final.json"
+  ],
+  "core_source": "4b3cd1c4a5f1"
+}

@@ -170,6 +170,36 @@ func (l *Lease) Activate() error {
 	return l.activate(nil)
 }
 
+// ActivateForServing retains the previously activated credential after a
+// replacement publication failure, only while its binding still covers every
+// stored TLS leaf in the live configurations. Issuance never uses this fallback:
+// Publish must commit new TLS coverage before returning a certificate.
+func (l *Lease) ActivateForServing() error {
+	if e := l.Activate(); e != nil {
+		l.owner.mu.Lock()
+		defer l.owner.mu.Unlock()
+		o := l.owner
+		state := o.manager.Snapshot()
+		if l.ctx.Err() != nil || o.active == 0 || state.URL == "" || state.Expires <= time.Now().Unix() {
+			return e
+		}
+		covered := map[string]bool{}
+		for _, id := range state.IDs {
+			covered[id] = true
+		}
+		for _, s := range o.sessions {
+			if s.storedTLS != nil && !covered[binding.ID(s.storedTLS)] {
+				return e
+			}
+		}
+		if _, err := o.manager.CurrentDocument(); err != nil {
+			return e
+		}
+		return nil
+	}
+	return nil
+}
+
 // Publish commits the new TLS leaf together with any pending configuration's
 // credentials and stored TLS leaf before the ACME issuer may return it.
 func (l *Lease) Publish(c *x509.Certificate) error {

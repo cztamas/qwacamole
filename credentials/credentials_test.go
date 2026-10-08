@@ -1,6 +1,8 @@
 package credentials
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -91,5 +93,22 @@ func TestBundlesPKCS8AndStrictPEM(t *testing.T) {
 	os.WriteFile(private, pem.EncodeToMemory(&pem.Block{Type: "ENCRYPTED PRIVATE KEY", Bytes: encoded}), 0600)
 	if _, e := ReadKey(private); e == nil {
 		t.Fatal("encrypted key accepted")
+	}
+	ec, e := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if e != nil {
+		t.Fatal(e)
+	}
+	ecDER, e := x509.MarshalPKCS8PrivateKey(ec)
+	if e != nil {
+		t.Fatal(e)
+	}
+	validPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: encoded})
+	for _, data := range [][]byte{pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: ecDER}), encoded, append(validPEM, []byte("garbage")...), append([]byte("-----BEGIN BAD-----\ninvalid\n"), validPEM...)} {
+		if e = os.WriteFile(private, data, 0600); e != nil {
+			t.Fatal(e)
+		}
+		if _, e = ReadKey(private); e == nil {
+			t.Fatal("unsupported or malformed key accepted")
+		}
 	}
 }

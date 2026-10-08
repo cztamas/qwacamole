@@ -101,31 +101,5 @@ func (b BindingConfig) normalized() (BindingConfig, error) {
 }
 
 func (b BindingConfig) material() (*credentials.Credentials, error) {
-	if len(b.TrustFiles) != 1 {
-		return nil, fmt.Errorf("one explicit QWAC trust authority file required")
-	}
-	anchors, e := credentials.ReadCertificates(b.TrustFiles[0])
-	if e != nil {
-		return nil, e
-	}
-	if len(anchors) != 1 {
-		return nil, fmt.Errorf("one QWAC authority certificate required")
-	}
-	// Include a supplied authority in x5c if an ordinary bundle omitted it.
-	var chainPaths = append([]string(nil), b.ChainFiles...)
-	cs, e := credentials.ReadCertificates(chainPaths[len(chainPaths)-1])
-	if e != nil {
-		return nil, e
-	}
-	if !cs[len(cs)-1].Equal(anchors[0]) {
-		chainPaths = append(chainPaths, b.TrustFiles[0])
-	}
-	mat, e := credentials.Load(chainPaths, b.KeyFile)
-	if e != nil {
-		return nil, e
-	}
-	if e = mat.ValidateFor(b.Host, anchors[0], time.Now()); e != nil {
-		return nil, fmt.Errorf("supplied QWAC credentials: %w", e)
-	}
-	return mat, nil
+	return credentials.LoadFor(b.ChainFiles, b.KeyFile, b.TrustFiles, []string{b.Host}, time.Now())
 }

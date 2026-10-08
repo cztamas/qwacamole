@@ -1,5 +1,8 @@
 # Supplied-QWAC agent with Certbot and Nginx
 
+See the [bring-your-own credential workflow](byo-credentials.md) for the production
+CLI's key/CSR, inspection and import commands, explicit trust and safe replacement.
+
 The merged single-host agent baseline is recorded in
 [the dated report](evidence-agent-nginx-20261007.md), including real remote
 installation, hosted CI and fresh native checks for both integrations. The production executable

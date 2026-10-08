@@ -1,5 +1,8 @@
 # Supplied-QWAC Caddy integration
 
+See the [bring-your-own credential workflow](byo-credentials.md) for local key/CSR
+preparation, shared validation, import and safe configuration/reload replacement.
+
 This plugin supports **single-host, ACME-managed TLS** with supplied RSA 2-QWAC
 credentials. The core signs and independently verifies a binding, durably commits
 it, and only then lets the ACME issuer return a replacement TLS certificate.

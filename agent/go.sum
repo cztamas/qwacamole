@@ -1,2 +1,6 @@
 github.com/cztamas/qwacamole v0.0.0-20261007193456-3c3fc434d5e4 h1:6+95ZafwUc+Y8uJmfks35yvKqot/vbXypaRHZd5QqzY=
 github.com/cztamas/qwacamole v0.0.0-20261007193456-3c3fc434d5e4/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
+github.com/cztamas/qwacamole v0.0.0-20261008190939-709ce8d17ba5 h1:2sHL8VygxdySJCS+4Xvv5CLDrzV9VnOHs7lLObTVRdI=
+github.com/cztamas/qwacamole v0.0.0-20261008190939-709ce8d17ba5/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
+github.com/cztamas/qwacamole v0.0.0-20261008191916-4b3cd1c4a5f1 h1:V+SSnatqblsCsWBd9uBpePFbJjWKDN0Jzqt6CbmuxWg=
+github.com/cztamas/qwacamole v0.0.0-20261008191916-4b3cd1c4a5f1/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=

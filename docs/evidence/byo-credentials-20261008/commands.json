@@ -1,0 +1,134 @@
+[
+  {
+    "name": "caddy-chrome",
+    "args": [
+      "bin/qwacamole",
+      "integration-test",
+      "-state",
+      ".local/byo-caddy-chrome",
+      "-browser",
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "-metadata",
+      "/Users/cztamas/Library/Application Support/Google/Chrome/PKIMetadata/1798"
+    ],
+    "exit_code": 1,
+    "known_browser_limitation": "native verifier accepts expired binding exp; 10 of 11 fixtures pass; assertion unchanged",
+    "raw_log": ".local/evidence/byo-caddy-chrome.log",
+    "harness_source": "2629d41abe537feccbde4170d677dd734a39d875",
+    "production_source": "02f7569a230a5cf9d39f81b440dcc819281b4740",
+    "core_source": "4b3cd1c4a5f184b4c0efd1011da87839d6c59e6f"
+  },
+  {
+    "name": "caddy-firefox",
+    "args": [
+      "bin/qwacamole",
+      "firefox-integration",
+      "-state",
+      ".local/byo-caddy-firefox",
+      "-browser",
+      "/Applications/Firefox.app/Contents/MacOS/firefox",
+      "-geckodriver",
+      ".tools/bin/geckodriver",
+      "-certutil",
+      "/opt/homebrew/bin/certutil"
+    ],
+    "started_at": "2026-10-08T19:36:45.994109+00:00",
+    "completed_at": "2026-10-08T19:42:45.427929+00:00",
+    "elapsed_seconds": 359.43,
+    "exit_code": 0,
+    "raw_log": ".local/evidence/byo-caddy-firefox.log",
+    "harness_source": "2629d41abe537feccbde4170d677dd734a39d875",
+    "production_source": "02f7569a230a5cf9d39f81b440dcc819281b4740",
+    "core_source": "4b3cd1c4a5f184b4c0efd1011da87839d6c59e6f"
+  },
+  {
+    "name": "nginx-chrome",
+    "args": [
+      "bin/qwacamole",
+      "nginx-browser-integration",
+      "-native-browser",
+      "chrome",
+      "-state",
+      ".local/byo-nginx-chrome",
+      "-agent-binary",
+      "bin/qwacamole-agent-remote",
+      "-browser",
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "-metadata",
+      "/Users/cztamas/Library/Application Support/Google/Chrome/PKIMetadata/1798"
+    ],
+    "started_at": "2026-10-08T19:42:45.428901+00:00",
+    "completed_at": "2026-10-08T19:44:26.336204+00:00",
+    "elapsed_seconds": 100.91,
+    "exit_code": 0,
+    "raw_log": ".local/evidence/byo-nginx-chrome.log",
+    "harness_source": "2629d41abe537feccbde4170d677dd734a39d875",
+    "production_source": "02f7569a230a5cf9d39f81b440dcc819281b4740",
+    "core_source": "4b3cd1c4a5f184b4c0efd1011da87839d6c59e6f"
+  },
+  {
+    "name": "nginx-firefox",
+    "args": [
+      "bin/qwacamole",
+      "nginx-browser-integration",
+      "-native-browser",
+      "firefox",
+      "-state",
+      ".local/byo-nginx-firefox",
+      "-agent-binary",
+      "bin/qwacamole-agent-remote",
+      "-browser",
+      "/Applications/Firefox.app/Contents/MacOS/firefox",
+      "-geckodriver",
+      ".tools/bin/geckodriver",
+      "-certutil",
+      "/opt/homebrew/bin/certutil"
+    ],
+    "started_at": "2026-10-08T19:44:26.336722+00:00",
+    "completed_at": "2026-10-08T19:45:31.201079+00:00",
+    "elapsed_seconds": 64.86,
+    "exit_code": 0,
+    "raw_log": ".local/evidence/byo-nginx-firefox.log",
+    "harness_source": "2629d41abe537feccbde4170d677dd734a39d875",
+    "production_source": "02f7569a230a5cf9d39f81b440dcc819281b4740",
+    "core_source": "4b3cd1c4a5f184b4c0efd1011da87839d6c59e6f"
+  },
+  {
+    "name": "remote-plugin-runtime",
+    "args": [
+      "bin/qwacamole",
+      "plugin-smoke",
+      "-state",
+      ".local/byo-remote-plugin-runtime",
+      "-plugin-binary",
+      "bin/caddy-remote"
+    ],
+    "started_at": "2026-10-08T19:45:31.201618+00:00",
+    "completed_at": "2026-10-08T19:45:48.357525+00:00",
+    "elapsed_seconds": 17.16,
+    "exit_code": 0,
+    "raw_log": ".local/evidence/byo-remote-plugin-runtime.log",
+    "harness_source": "2629d41abe537feccbde4170d677dd734a39d875",
+    "production_source": "02f7569a230a5cf9d39f81b440dcc819281b4740",
+    "core_source": "4b3cd1c4a5f184b4c0efd1011da87839d6c59e6f"
+  },
+  {
+    "name": "remote-nginx-runtime",
+    "args": [
+      "bin/qwacamole",
+      "nginx-smoke",
+      "-state",
+      ".local/byo-remote-nginx-runtime",
+      "-agent-binary",
+      "bin/qwacamole-agent-remote"
+    ],
+    "started_at": "2026-10-08T19:45:48.358286+00:00",
+    "completed_at": "2026-10-08T19:48:18.559137+00:00",
+    "elapsed_seconds": 150.2,
+    "exit_code": 0,
+    "raw_log": ".local/evidence/byo-remote-nginx-runtime.log",
+    "harness_source": "2629d41abe537feccbde4170d677dd734a39d875",
+    "production_source": "02f7569a230a5cf9d39f81b440dcc819281b4740",
+    "core_source": "4b3cd1c4a5f184b4c0efd1011da87839d6c59e6f"
+  }
+]

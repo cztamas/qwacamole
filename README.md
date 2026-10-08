@@ -5,6 +5,10 @@ ordinary TLS authorities, a real Pebble ACME server, Annex B JAdES bindings, and
 an unmodified browser's native verifier. The visible demo supports stock Chrome
 and Firefox; each has a separate isolated trust setup.
 
+To use an operator-supplied 2-QWAC, follow the [credential workflow](docs/byo-credentials.md)
+for dedicated local key/CSR preparation, inspection, import, explicit trust and
+safe replacement with Caddy or the Certbot/Nginx agent.
+
 The ordinary TLS certificate secures HTTPS. A separate QWAC certificate carries
 the synthetic owner's details; its key signs a binding to the TLS certificate.
 Chrome verifies that binding and its QWAC chain independently of the ordinary

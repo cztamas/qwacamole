@@ -1,0 +1,114 @@
+{
+  "harness_source": "2629d41abe537feccbde4170d677dd734a39d875",
+  "production_source": "02f7569a230a5cf9d39f81b440dcc819281b4740",
+  "core_source": "4b3cd1c4a5f184b4c0efd1011da87839d6c59e6f",
+  "browser_version": "Google Chrome 154.0.8037.98",
+  "held_connection": {
+    "initial_tls_id": "f8e98e083220bdf59abb1d47d2a7c92381d416639a1314a9453db7b78ab2335b",
+    "final_tls_id": "f8e98e083220bdf59abb1d47d2a7c92381d416639a1314a9453db7b78ab2335b",
+    "initial_not_after": "2026-10-08T19:27:47Z",
+    "checked_at": "2026-10-08T21:28:34.015646+02:00"
+  },
+  "native_phases": {
+    "initial": {
+      "navigation_error": null,
+      "valid_2qwac": true,
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    },
+    "renewed": {
+      "navigation_error": null,
+      "valid_2qwac": true,
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    },
+    "held-through-tls-expiry": {
+      "navigation_error": null,
+      "valid_2qwac": true,
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    },
+    "restarted": {
+      "navigation_error": null,
+      "valid_2qwac": true,
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    },
+    "failure-recovery": {
+      "navigation_error": null,
+      "valid_2qwac": true,
+      "root_store_versions": [
+        39,
+        1000000
+      ]
+    }
+  },
+  "exit_code": 1,
+  "fixture_suite": {
+    "ct-required": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "expired-binding": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "error": "BROWSER INCOMPATIBILITY: native verifier accepted expired exp header",
+      "passed": false
+    },
+    "no-qwac-trust": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "no-tls-trust": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "positive": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "qwac-hostname": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "qwac-profile": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "signature": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "tls-expiry": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "tls-hostname": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    },
+    "wrong-tls": {
+      "browser_version": "Google Chrome 154.0.8037.98 \n",
+      "passed": true
+    }
+  },
+  "integration": {
+    "blocker": "1 native browser acceptance tests failed; see .local/byo-caddy-chrome/integration-20261008-212034/evidence/browser-suite.json",
+    "continuous_http2_through_tls_expiry": true,
+    "independent_refresh": true,
+    "initial_native_verified": true,
+    "negative_suite_passed": false,
+    "profile_unchanged": true,
+    "renewal_failure_gates": true,
+    "renewal_native_verified": true,
+    "restart_recovered": true
+  },
+  "raw_evidence": ".local/byo-caddy-chrome/integration-20261008-212034/evidence"
+}
