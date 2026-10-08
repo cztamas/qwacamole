@@ -1,7 +1,12 @@
 name: Portable Go, Caddy and Certbot Nginx integration
 on:
-  push:
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 jobs:
