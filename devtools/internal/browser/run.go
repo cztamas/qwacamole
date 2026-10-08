@@ -100,8 +100,10 @@ func run(stop context.Context, o Options, visible bool) (Result, error) {
 	if e = chromedp.Run(timeout, network.Enable(), network.SetCacheDisabled(true), chromedp.Navigate("about:blank")); e != nil {
 		return result, e
 	}
-	// ComponentReady is asynchronous. Warm up a TLS-only page, then wait before
-	// the fresh main-frame navigation. Root version acceptance is asserted in NetLog.
+	// ComponentReady is asynchronous. Allow its root-store update before any
+	// TLS warm-up: an early verification failure can otherwise stay cached even
+	// after ComponentReady. NetLog still must prove the injected root version.
+	time.Sleep(3 * time.Second)
 	if o.InitURL != "" {
 		deadline := time.Now().Add(15 * time.Second)
 		for {
@@ -114,8 +116,6 @@ func run(stop context.Context, o Options, visible bool) (Result, error) {
 			}
 			time.Sleep(time.Second)
 		}
-	} else {
-		time.Sleep(3 * time.Second)
 	}
 	e = chromedp.Run(timeout, chromedp.Navigate(o.URL))
 	if e != nil {
