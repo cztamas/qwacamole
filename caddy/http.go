@@ -72,7 +72,9 @@ func (w *bindingWriter) Write(d []byte) (int, error) {
 		w.WriteHeader(200)
 	}
 	if w.unavailable {
-		return 0, fmt.Errorf("binding expired before application committed response")
+		// The 503 already replaced this response. A write error would make
+		// Caddy's reverse proxy abort/reset HTTP/2 before delivering that status.
+		return len(d), nil
 	}
 	return w.ResponseWriter.Write(d)
 }
@@ -87,7 +89,7 @@ func (w *bindingWriter) ReadFrom(r io.Reader) (int64, error) {
 		w.WriteHeader(200)
 	}
 	if w.unavailable {
-		return 0, fmt.Errorf("binding unavailable")
+		return io.Copy(io.Discard, r)
 	}
 	if rf, ok := w.ResponseWriter.(io.ReaderFrom); ok {
 		return rf.ReadFrom(r)
