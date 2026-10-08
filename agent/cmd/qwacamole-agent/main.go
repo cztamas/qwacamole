@@ -24,9 +24,13 @@ func main() {
 }
 func run() error {
 	if len(os.Args) < 2 {
-		return fmt.Errorf("usage: qwacamole-agent validate|render-nginx|serve|deploy|certbot-hook|replace-qwac|reconcile|status|check|migrate -config FILE")
+		return fmt.Errorf("usage: qwacamole-agent keygen|csr|inspect-qwac|import-qwac [credential flags], or validate|render-nginx|serve|deploy|certbot-hook|replace-qwac|reconcile|status|check|migrate -config FILE")
 	}
 	cmd := os.Args[1]
+	switch cmd {
+	case "keygen", "csr", "inspect-qwac", "import-qwac":
+		return credentialCommand(cmd, os.Args[2:], os.Stdout)
+	}
 	f := flag.NewFlagSet(cmd, flag.ContinueOnError)
 	fullStop := f.Bool("full-stop-confirmed", false, "operator confirms Nginx master and every worker/connection, agent and renewal automation fully stopped")
 	path := f.String("config", "", "absolute deployment config file")

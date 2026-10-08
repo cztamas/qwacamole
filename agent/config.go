@@ -149,16 +149,9 @@ func (c Config) StoreConfig() (store.Config, error) {
 	return s.WithDefaults()
 }
 func (c Config) Material() (*credentials.Credentials, error) {
-	m, e := credentials.Load(c.ChainFiles, c.KeyFile)
-	if e != nil {
-		return nil, e
-	}
-	root, e := credentials.ReadCert(c.TrustFile)
-	if e != nil {
-		return nil, e
-	}
-	return m, m.ValidateFor(c.Host, root, time.Now())
+	return credentials.LoadFor(c.ChainFiles, c.KeyFile, []string{c.TrustFile}, []string{c.Host}, time.Now())
 }
+
 func (c Config) roots() (*x509.CertPool, error) {
 	if c.TLSRoots == "" {
 		return nil, nil
