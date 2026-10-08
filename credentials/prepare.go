@@ -75,6 +75,11 @@ func CSR(signer crypto.Signer, r Request) ([]byte, error) {
 	if len(r.Country) != 2 || r.Country != strings.ToUpper(r.Country) || strings.TrimSpace(r.Organization) == "" || strings.TrimSpace(r.Registration) == "" || r.Registration == r.Organization || strings.TrimSpace(r.CommonName) == "" || len(r.Hosts) == 0 {
 		return nil, fmt.Errorf("two-letter country, organization, distinct registration identifier, common name and DNS hostnames required")
 	}
+	for _, letter := range r.Country {
+		if letter < 'A' || letter > 'Z' {
+			return nil, fmt.Errorf("country must contain two uppercase ASCII letters")
+		}
+	}
 	for _, host := range r.Hosts {
 		if !validDNS(host) {
 			return nil, fmt.Errorf("CSR hostname must be a lowercase literal DNS name: %q", host)

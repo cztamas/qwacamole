@@ -39,7 +39,7 @@ func ReadKey(path string) (*rsa.PrivateKey, error) {
 		return nil, e
 	}
 	b, rest := pem.Decode(d)
-	if b == nil || !bytes.HasPrefix(bytes.TrimSpace(d), []byte("-----BEGIN ")) {
+	if b == nil || !bytes.HasPrefix(bytes.TrimSpace(d), []byte("-----BEGIN "+b.Type+"-----")) {
 		return nil, fmt.Errorf("not PEM key")
 	}
 	if len(bytes.TrimSpace(rest)) != 0 || len(b.Headers) != 0 {
@@ -178,6 +178,20 @@ func (m *Credentials) ValidateFor(host string, authority *x509.Certificate, now 
 		if n+1 < len(m.Chain) {
 			if e := c.CheckSignatureFrom(m.Chain[n+1]); e != nil {
 				return fmt.Errorf("QWAC chain is not leaf-first: %w", e)
+			}
+		}
+		// Go's Any usage is necessary for our nonstandard leaf EKU, but it
+		// disables CA EKU constraints too. Enforce those explicitly.
+		if n > 0 && (len(c.ExtKeyUsage) > 0 || len(c.UnknownExtKeyUsage) > 0) {
+			allowed := false
+			for _, usage := range c.ExtKeyUsage {
+				allowed = allowed || usage == x509.ExtKeyUsageAny
+			}
+			for _, usage := range c.UnknownExtKeyUsage {
+				allowed = allowed || usage.Equal(profile.BindingEKU)
+			}
+			if !allowed {
+				return fmt.Errorf("QWAC chain certificate %d EKU does not permit tls-binding", n)
 			}
 		}
 	}

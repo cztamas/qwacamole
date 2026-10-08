@@ -133,6 +133,38 @@ func TestCredentialValidationFailuresAndExplicitTrust(t *testing.T) {
 	}
 	leaf := issue(t, leafTemplate(), intermediate, &key.PublicKey, caKey)
 	m := &Credentials{Chain: []*x509.Certificate{leaf, intermediate, root}, Key: key}
+	for _, tc := range []struct {
+		name, want string
+		mutate     func(*x509.Certificate)
+	}{
+		{"expired intermediate", "outside validity", func(c *x509.Certificate) { c.NotAfter = now }},
+		{"not yet valid intermediate", "outside validity", func(c *x509.Certificate) { c.NotBefore = now.Add(time.Second) }},
+		{"TLS-only intermediate", "EKU does not permit tls-binding", func(c *x509.Certificate) { c.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth} }},
+		{"binding intermediate", "", func(c *x509.Certificate) { c.UnknownExtKeyUsage = []asn1.ObjectIdentifier{profile.BindingEKU} }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl := intermediateTemplate
+			tc.mutate(&tmpl)
+			inter := issue(t, &tmpl, root, &caKey.PublicKey, caKey)
+			candidate := &Credentials{Chain: []*x509.Certificate{leaf, inter, root}, Key: key}
+			err := candidate.ValidateFor("example.test", root, now)
+			if tc.want == "" {
+				if err != nil {
+					t.Fatal(err)
+				}
+			} else if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("wanted %s got %v", tc.want, err)
+			}
+		})
+	}
+	weak, e := rsa.GenerateKey(rand.Reader, 1024)
+	if e != nil {
+		t.Fatal(e)
+	}
+	weakLeaf := issue(t, leafTemplate(), intermediate, &weak.PublicKey, caKey)
+	if e = (&Credentials{Chain: []*x509.Certificate{weakLeaf, intermediate, root}, Key: weak}).ValidateFor("example.test", root, now); e == nil || !strings.Contains(e.Error(), "2048") {
+		t.Fatal("weak signing key", e)
+	}
 	if e = m.ValidateFor("uncovered.example.test", root, now); e == nil || !strings.Contains(e.Error(), "not") {
 		t.Fatal("hostname mismatch", e)
 	}
