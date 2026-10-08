@@ -3,10 +3,12 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -74,6 +76,15 @@ func nginxHTTPPolicyCheck(c *pluginCheck, cfg agent.Config, ready bool) error {
 	return nil
 }
 func nginxServingCheck(c *pluginCheck, cfg agent.Config, client *http.Client) error {
+	// A distinct browser-side loopback address proves the agent does not replace
+	// Nginx's trusted client address with the 127.0.0.1 local delivery hop.
+	inspectionTransport := client.Transport.(*http.Transport).Clone()
+	inspectionTransport.DialContext = func(ctx context.Context, network, _ string) (net.Conn, error) {
+		return (&net.Dialer{LocalAddr: &net.TCPAddr{IP: net.ParseIP("127.0.0.2")}}).DialContext(ctx, network, cfg.ProbeAddress)
+	}
+	defer inspectionTransport.CloseIdleConnections()
+	inspectionClient := *client
+	inspectionClient.Transport = inspectionTransport
 	evidence := []map[string]any{}
 	for _, forged := range []bool{false, true} {
 		path := "/metadata/a%2Fb?x=%2F&x=two;three"
@@ -83,7 +94,7 @@ func nginxServingCheck(c *pluginCheck, cfg agent.Config, client *http.Client) er
 				req.Header.Set(key, "evil.invalid")
 			}
 		}
-		resp, e := client.Do(req)
+		resp, e := inspectionClient.Do(req)
 		if e != nil {
 			return e
 		}
@@ -91,7 +102,7 @@ func nginxServingCheck(c *pluginCheck, cfg agent.Config, client *http.Client) er
 		e = json.NewDecoder(resp.Body).Decode(&meta)
 		resp.Body.Close()
 		evidence = append(evidence, map[string]any{"forged": forged, "status": resp.StatusCode, "origin": meta, "headers": resp.Header})
-		if e != nil || resp.StatusCode != 200 || meta["host"] != cfg.PublicAuthority() || meta["forwarded"] != "" || meta["xff"] != "127.0.0.1" || meta["xfh"] != cfg.PublicAuthority() || meta["xfp"] != "https" || meta["uri"] != path || meta["url"] != "https://"+cfg.PublicAuthority()+"/done" || !strings.Contains(resp.Header.Get("Set-Cookie"), "Secure") {
+		if e != nil || resp.StatusCode != 200 || meta["host"] != cfg.PublicAuthority() || meta["forwarded"] != "" || meta["xff"] != "127.0.0.2" || meta["xfh"] != cfg.PublicAuthority() || meta["xfp"] != "https" || meta["uri"] != path || meta["url"] != "https://"+cfg.PublicAuthority()+"/done" || !strings.Contains(resp.Header.Get("Set-Cookie"), "Secure") {
 			return fmt.Errorf("origin trusted metadata mismatch: %v %v %v", meta, resp.Header, e)
 		}
 		wantHSTS := ""
