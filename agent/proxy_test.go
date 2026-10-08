@@ -173,3 +173,25 @@ func TestDelayedUpgradeRejectedWhenBindingDisappears(t *testing.T) {
 	close(release)
 	<-done
 }
+
+func TestRewritePropagatesTrustedHopMetadataAndPreservesEncodedURL(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.RequestURI() != "/a%2Fb?x=%2F&x=two;three" || r.Host != "example.test:8443" || r.Header.Get("Forwarded") != "" || r.Header.Get("X-Forwarded-For") != "198.51.100.7" || r.Header.Get("X-Forwarded-Host") != "example.test:8443" || r.Header.Get("X-Forwarded-Proto") != "https" {
+			t.Errorf("metadata changed: %s %s %v", r.URL.RequestURI(), r.Host, r.Header)
+		}
+		w.Header().Set("Set-Cookie", "session=one; Secure; HttpOnly")
+		w.Header().Set("Location", "https://example.test:8443/done")
+		w.WriteHeader(307)
+	}))
+	defer upstream.Close()
+	r := httptest.NewRequest("GET", "http://example.test:8443/application/a%2Fb?x=%2F&x=two;three", nil)
+	r.Header.Set("Forwarded", "for=forged;proto=http")
+	r.Header.Set("X-Forwarded-For", "198.51.100.7")
+	r.Header.Set("X-Forwarded-Host", "example.test:8443")
+	r.Header.Set("X-Forwarded-Proto", "https")
+	w := httptest.NewRecorder()
+	applicationProxy(upstream.URL, func() bool { return true }).ServeHTTP(w, r)
+	if w.Code != 307 || w.Header().Get("Set-Cookie") != "session=one; Secure; HttpOnly" || w.Header().Get("Location") != "https://example.test:8443/done" {
+		t.Fatal(w.Code, w.Header())
+	}
+}

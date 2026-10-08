@@ -24,10 +24,11 @@ func main() {
 }
 func run() error {
 	if len(os.Args) < 2 {
-		return fmt.Errorf("usage: qwacamole-agent validate|render-nginx|serve|deploy|certbot-hook|replace-qwac|reconcile|status|check -config FILE")
+		return fmt.Errorf("usage: qwacamole-agent validate|render-nginx|serve|deploy|certbot-hook|replace-qwac|reconcile|status|check|migrate -config FILE")
 	}
 	cmd := os.Args[1]
 	f := flag.NewFlagSet(cmd, flag.ContinueOnError)
+	fullStop := f.Bool("full-stop-confirmed", false, "operator confirms Nginx master and every worker/connection, agent and renewal automation fully stopped")
 	path := f.String("config", "", "absolute deployment config file")
 	if e := f.Parse(os.Args[2:]); e != nil {
 		return e
@@ -42,10 +43,15 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	switch cmd {
+	case "migrate":
+		return agent.Migrate(ctx, c, *fullStop)
 	case "render-nginx":
 		fmt.Print(agent.RenderNginx(c))
 		return nil
 	case "validate":
+		if e = agent.CheckStateFormat(c); e != nil {
+			return e
+		}
 		if _, e = c.Material(); e != nil {
 			return e
 		}
@@ -55,6 +61,9 @@ func run() error {
 		fmt.Println("valid QWAC credentials and Nginx deployment configuration")
 		return nil
 	case "serve":
+		if e = agent.CheckStateFormat(c); e != nil {
+			return e
+		}
 		if e = (agent.Nginx{Config: c}).Prerequisites(ctx); e != nil {
 			return e
 		}

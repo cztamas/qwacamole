@@ -14,17 +14,8 @@ export GOCACHE="${GOCACHE:-$scratch/build-cache}"
 cd "$scratch"
 "$go" list -m -json "github.com/cztamas/qwacamole/agent@$ref" > agent-resolved.json
 version=$("$go" list -m -f '{{.Version}}' "github.com/cztamas/qwacamole/agent@$ref")
-# A new nested module on a feature branch is absent from default-branch latest.
-# Anchor it in an independent consumer manifest instead of install@ref's latest
-# deprecation query. This uses the actual remote module and no replacements.
-cat > go.mod <<EOM
-module example.invalid/qwacamole-agent-install
-
-go 1.27.1
-
-require github.com/cztamas/qwacamole/agent $version
-EOM
-"$go" install -mod=mod github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent > install.log 2>&1
+# agent/ is on main, so ordinary immutable package installation works.
+"$go" install "github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@$ref" > install.log 2>&1
 "$go" version -m bin/qwacamole-agent > build-modules.txt
 if grep -E '=>|qwacamole/(caddy|devtools)|caddyserver|chromedp|k8s.io' build-modules.txt; then echo 'Production agent boundary violated' >&2;exit 1;fi
 mkdir -p "$root/.local/evidence/remote-agent" "$root/bin"

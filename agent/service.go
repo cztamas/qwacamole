@@ -41,6 +41,25 @@ func (a *Agent) PublicHandler() http.Handler {
 		return a.ready.Load() && bindinghttp.Available(a.Manager)
 	})
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/redirect/") {
+			w.Header().Set("Cache-Control", "no-store")
+			if !a.Config.Serving.RedirectHTTPS {
+				http.NotFound(w, r)
+				return
+			}
+			if !a.ready.Load() || !bindinghttp.Available(a.Manager) {
+				unavailableResponse(w)
+				return
+			}
+			path := strings.TrimPrefix(r.URL.EscapedPath(), "/redirect")
+			destination := "https://" + a.Config.PublicAuthority() + path
+			if r.URL.RawQuery != "" {
+				destination += "?" + r.URL.RawQuery
+			}
+			w.Header().Set("Location", destination)
+			w.WriteHeader(http.StatusPermanentRedirect)
+			return
+		}
 		if strings.HasPrefix(r.URL.Path, "/application/") {
 			// Nginx owns client upload limits/timeouts. Origin backpressure can
 			// delay forwarding a buffered body, so do not impose the small
