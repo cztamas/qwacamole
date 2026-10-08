@@ -58,10 +58,11 @@ any additional failure needs investigation. Firefox's explicit compatibility mod
 does not replace strict standard bindings by default. Page labels/HTTP success
 are not native browser proof.
 
-Caddy Chromium integration acceptance uses a two-minute synthetic Pebble TLS
+Caddy Chromium integration acceptance uses a four-minute synthetic Pebble TLS
 lifetime, while the interactive demo keeps its six-minute default (override with
-`demo -tls-lifetime 2m`). The held-connection check still requires the identical
+`demo -tls-lifetime 4m`). The held-connection check still requires the identical
 TLS fingerprint beyond leaf expiry plus a complete 45-second binding lifetime.
+Its 48-second renewal interval permits the 30-second independent binding refresh.
 This bounds interference from Chromium's unrelated background verifier updates;
 it does not disable certificate verification or change fixture assertions.
 

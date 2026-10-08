@@ -37,7 +37,9 @@ func integration(dir, binary, metadata string) error {
 		if sub == "demo" {
 			// Preserve the same native held-connection/expiry assertions while
 			// keeping this synthetic lifetime below unrelated background updates.
-			args = append(args, "-tls-lifetime", "2m")
+			// Renewal at 48s leaves room for the 30s independent refresh,
+			// while expiry plus 45s completes before a six-minute update.
+			args = append(args, "-tls-lifetime", "4m")
 		}
 		c := exec.Command(exe, args...)
 		f, e := os.OpenFile(filepath.Join(dir, "evidence", sub+"-console.log"), os.O_CREATE|os.O_WRONLY, 0600)
