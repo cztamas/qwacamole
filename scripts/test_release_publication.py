@@ -17,6 +17,18 @@ public = load("check_public_install", "check-public-install.py")
 
 
 class Publication(unittest.TestCase):
+    def test_publication_environment_cannot_be_only_a_name(self):
+        environment = {"protection_rules": [{"type": "required_reviewers", "reviewers": [{"type": "User"}]}],
+                       "deployment_branch_policy": {"custom_branch_policies": True, "protected_branches": False}}
+        branches = {"branch_policies": [{"name": "main", "type": "branch"}]}
+        publish.validate_environment(environment, branches)
+        for env, br in [({}, branches), (dict(environment, protection_rules=[]), branches),
+                        (environment, {"branch_policies": [{"name": "*", "type": "branch"}]}),
+                        (environment, {"branch_policies": [{"name": "main", "type": "tag"}]}),
+                        (dict(environment, deployment_branch_policy=None), branches)]:
+            with self.subTest(environment=env, branches=br), self.assertRaises(ValueError):
+                publish.validate_environment(env, br)
+
     def test_unapproved_policy_cannot_reach_network_or_publication(self):
         source = "a" * 40
         with patch.object(publish, "run", side_effect=[source, ""]), patch.object(publish.subprocess, "check_call"), patch.object(publish.json, "loads", return_value={"approved": False}), patch.object(publish, "api") as api:

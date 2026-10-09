@@ -36,6 +36,16 @@ def validate_tag_map(version, source, root_source, refs):
     require(refs == expected, "tag namespace or source identity mismatch")
 
 
+def validate_environment(environment, branches):
+    require(any(rule.get("type") == "required_reviewers" and rule.get("reviewers")
+                for rule in environment.get("protection_rules", [])), "publication environment requires maintainer reviewers")
+    policy = environment.get("deployment_branch_policy") or {}
+    require(policy.get("custom_branch_policies") is True and policy.get("protected_branches") is False,
+            "publication environment must select main explicitly")
+    require([(b.get("name"), b.get("type")) for b in branches.get("branch_policies", [])] == [("main", "branch")],
+            "publication environment must allow only main, no tags or wildcards")
+
+
 def gate(args):
     packages.validate_identity(args.version, args.source)
     require(run("git", "rev-parse", "HEAD") == args.source, "checkout must match selected source exactly")
@@ -46,8 +56,13 @@ def gate(args):
     url = urlparse(policy.get("owner_decision_url") or "")
     require(url.scheme == "https" and bool(url.netloc), "owner decision must have a real review URL")
     packages.legal_files(ROOT, approved=True)
+    for module in ("agent", "caddy"):
+        for name in ("LICENSE", "NOTICE"):
+            require((ROOT / module / name).read_bytes() == (ROOT / name).read_bytes(), "nested module legal-file mismatch: " + module + "/" + name)
     info = json.loads(run("gh", "api", "repos/" + REPO))
     require(info.get("private") is False and info.get("default_branch") == "main", "public main repository required")
+    validate_environment(api("environments/public-alpha-release"),
+                         api("environments/public-alpha-release/deployment-branch-policies"))
     channel = urlparse(policy.get("confidential_reporting_url") or "")
     if channel.scheme == "https" and channel.netloc:
         require(channel.geturl() in (ROOT / "SECURITY.md").read_text(), "approved confidential channel missing from SECURITY.md")
