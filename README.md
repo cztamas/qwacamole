@@ -110,7 +110,7 @@ repository root with `./scripts/start-website.sh`. Browse
 `http://127.0.0.1:4321/`; stop with Ctrl+C. Use `--port 4400` or `PORT=4400`
 to select another localhost port. The script also works from another directory.
 For a production preview, run `npm --prefix website run build`, then
-`npm --prefix website run preview` (Ctrl+C to stop).
+`npm --prefix website run preview -- --ignore-lock` (Ctrl+C to stop).
 See [local setup and testing](website/README.md) for exact Node commands,
 checks and preview/search behavior. It renders the same operator Markdown used here, with static
 search and no Go/build credentials. [Cloudflare Pages deployment](docs/website-deployment.md)

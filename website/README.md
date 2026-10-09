@@ -46,7 +46,7 @@ From the repository root:
 ```sh
 npm --prefix website run check
 npm --prefix website run build
-npm --prefix website run preview
+npm --prefix website run preview -- --ignore-lock
 ```
 
 Browse http://127.0.0.1:4321/ and stop with **Ctrl+C**. Stop the dev server first,

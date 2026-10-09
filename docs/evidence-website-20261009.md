@@ -155,3 +155,56 @@ normal HTTPS and commit verification. Configure optional www redirect only
 after its DNS/HTTPS is ready. Follow [the exact setup/rollback guide](website-deployment.md),
 including rollback to a previous successful production deployment and free-plan
 limits. This PR does not merge or perform any of those external writes.
+
+## Local start script completion — 9 October 2026
+
+The executable `scripts/start-website.sh` is now the documented root entry point:
+`./scripts/start-website.sh`. It resolves the checkout from its own path, checks
+the pinned Node version and installed dependencies, prints the local URL and
+runs Astro in the foreground with live reload. Its default listener is
+`127.0.0.1:4321`; `--port` and `PORT` select another loopback port, with the flag
+taking precedence. Invalid ports fail, and an occupied port fails without
+silently switching URLs. Missing Node/dependencies print exact fnm/npm setup
+commands and exit with an error. Website CI now watches this script too.
+
+A fresh local clone of implementation commit
+`944375e82281136b252838bfe9bebd7f78dbda54` initially had no node_modules,
+generated site/cache, Go tools or binaries. It rejected missing dependencies
+with the correct checkout-specific `npm --prefix .../website ci` command. After
+the documented `npm --prefix website ci` under Node **24.21.0** / npm **11.19.0**,
+the exact root start command served the website. The execution PATH contained
+only the pinned Node distribution and basic system tools, with no Go executable;
+no Go services or Cloudflare/deployment configuration were needed.
+
+Fresh real Chromium review used **that development server**, with the Astro
+developer toolbar visible. The landing and both quickstarts passed at 1440 ×
+1000 and 390 × 844: HTTP 200, no document overflow and zero focused axe violations.
+All six screenshots were visually inspected. Navigation, keyboard skip/focus,
+mobile menu and code scrolling passed. Editing shared overview Markdown appeared
+automatically in the existing browser page without manually reloading; restoring
+the source removed the probe and left the checkout clean.
+
+| Development page | Desktop | Mobile |
+| --- | --- | --- |
+| Landing | [1440 px](evidence/website-start-20261009/landing-1440.png) | [390 px](evidence/website-start-20261009/landing-390.png) |
+| Caddy quickstart | [1440 px](evidence/website-start-20261009/caddy-quickstart-1440.png) | [390 px](evidence/website-start-20261009/caddy-quickstart-390.png) |
+| Nginx quickstart | [1440 px](evidence/website-start-20261009/nginx-quickstart-1440.png) | [390 px](evidence/website-start-20261009/nginx-quickstart-390.png) |
+
+[The sanitized review summary](evidence/website-start-20261009/review.json) records
+the clean source, root command, URL, six layout results and actual live reload.
+An absolute invocation from another directory with `PORT=4406` and `--port 4405`
+printed/served port 4405; `PORT=4406` alone printed/served 4406. Listener inspection
+confirmed loopback binding. Ctrl+C stopped each foreground process and released
+ports 4321/4405/4406. A second default-port start while the first was running
+returned an explicit occupied-port error, rather than moving to another port.
+
+The clean clone also passed root `npm --prefix website run check` (**11** script
+tests, zero Astro errors/warnings/hints) and `npm --prefix website run build`
+(19 HTML pages, 920 internal references, 17 indexed search pages/33 complete
+assets). The documented foreground production preview command,
+`npm --prefix website run preview -- --ignore-lock`, passed **all 11** existing
+browser checks including static search, then stopped with Ctrl+C. Starlight's
+dev search correctly explains that search requires a production build/preview.
+The README documents dependency installation, startup, port selection, stopping,
+live reload and production preview. No production Go source changed; the fresh
+native results above remain evidence for those identical production sources.
