@@ -39,15 +39,15 @@ and using authenticated installation as public evidence. Verify each directly.
 
 ## Work and completion ledger
 
-- [ ] Config-free version identity, meaningful CLI tests, production-only build.
-- [ ] Deterministic three-target archives, manifest/checksums, extracted native
+- [x] Config-free version identity, meaningful CLI tests, production-only build.
+- [x] Deterministic three-target archives, manifest/checksums, extracted native
   binary smoke, contents/modes/negative verification and reproducibility checks.
 - [ ] Candidate retention CI and manual publication gates with negative tests.
 - [ ] Current README/guides, support contract, exact multi-source tag sequence,
   source and package installs, update/rollback instructions and draft legal files.
 - [ ] Tracked content/history audit; confidential reporting and owner checklist.
-- [ ] Four-module races/boundaries/independence and production/plugin builds.
-- [ ] Fresh-cache authenticated immutable agent/Caddy installs, metadata and real
+- [x] Four-module races/boundaries/independence and production/plugin builds.
+- [x] Fresh-cache authenticated immutable agent/Caddy installs, metadata and real
   integration smoke using those binaries; anonymous check prepared separately.
 - [ ] Sequential fresh isolated Caddy Chrome/Firefox and Nginx Chrome/Firefox
   native acceptance; only documented Chrome exp failure remains nonzero.

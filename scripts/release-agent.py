@@ -78,7 +78,8 @@ def build(args):
         if args.approved and json.loads((source / "release/publication.json").read_text()).get("version") != args.version:
             raise ValueError("approved publication version mismatch")
         go = Path(args.go).resolve() if "/" in args.go else args.go
-        env = dict(os.environ, GOWORK="off", CGO_ENABLED="0", GOEXPERIMENT="nojsonv2")
+        env = dict(os.environ, GOWORK="off", CGO_ENABLED="0", GOEXPERIMENT="nojsonv2",
+                   GOENV="off", GOFLAGS="", GOTOOLCHAIN="local", GOAMD64="v1", GOARM64="v8.0")
         toolchain = run([go, "env", "GOVERSION"], env=env)
         goroot = Path(run([go, "env", "GOROOT"], env=env))
         go_notices = []

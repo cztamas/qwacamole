@@ -1,0 +1,24 @@
+{
+  "resolution": {
+    "Path": "github.com/cztamas/qwacamole/agent",
+    "Version": "v0.0.0-20261009145422-bb911a8f69a8",
+    "Query": "bb911a8f69a8743faab70967232ff166c828c4b7",
+    "Time": "2026-10-09T14:54:22Z",
+    "GoMod": "/var/folders/ls/brlwm_w129xbvtcmn03gyrl80000gn/T/qwacamole-agent-remote.jKExcP/modules/cache/download/github.com/cztamas/qwacamole/agent/@v/v0.0.0-20261009145422-bb911a8f69a8.mod",
+    "GoVersion": "1.27.1",
+    "Origin": {
+      "VCS": "git",
+      "URL": "https://github.com/cztamas/qwacamole",
+      "Subdir": "agent",
+      "Hash": "bb911a8f69a8743faab70967232ff166c828c4b7",
+      "TagPrefix": "agent/",
+      "TagSum": "t1:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "Ref": "refs/heads/codex/public-alpha-release"
+    }
+  },
+  "build_metadata": "bin/qwacamole-agent: go1.27.1-X:nojsonv2\n\tpath\tgithub.com/cztamas/qwacamole/agent/cmd/qwacamole-agent\n\tmod\tgithub.com/cztamas/qwacamole/agent\tv0.0.0-20261009145422-bb911a8f69a8\th1:N6rR0cVjsGLvbep52UfBh44PxqXJC+uOBznb8aumNVk=\n\tdep\tgithub.com/cztamas/qwacamole\tv0.0.0-20261008203612-8e62f4b8c340\th1:S/2dbYa6hxLZNqL0SwvVxd2bkDvKmTxHbHvHR6gTq3w=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\tCGO_ENABLED=1\n\tbuild\tCGO_CFLAGS=\n\tbuild\tCGO_CPPFLAGS=\n\tbuild\tCGO_CXXFLAGS=\n\tbuild\tCGO_LDFLAGS=\n\tbuild\tGOARCH=arm64\n\tbuild\tGOEXPERIMENT=nojsonv2\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n",
+  "authenticated": true,
+  "gowork": "off",
+  "replacements": false,
+  "fresh_module_cache": true
+}

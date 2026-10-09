@@ -2,18 +2,16 @@
 """Post-publication anonymous installs: fresh caches and credential-free environment."""
 import argparse
 import json
-import os
 from pathlib import Path
 import re
 import shutil
 import subprocess
-import tempfile
 
 
 def anonymous_environment(scratch, go):
     return {"PATH": str(Path(go).parent) + ":/usr/bin:/bin:/usr/sbin:/sbin", "HOME": str(scratch / "home"),
             "TMPDIR": str(scratch / "tmp"), "GOWORK": "off", "GOENV": "off", "GOTOOLCHAIN": "local",
-            "GOEXPERIMENT": "nojsonv2", "GOPATH": str(scratch / "gopath"), "GOMODCACHE": str(scratch / "modules"),
+            "GOEXPERIMENT": "nojsonv2", "GOFLAGS": "", "CGO_ENABLED": "0", "GOPATH": str(scratch / "gopath"), "GOMODCACHE": str(scratch / "modules"),
             "GOCACHE": str(scratch / "cache"), "GOBIN": str(scratch / "bin"),
             "GOPROXY": "https://proxy.golang.org", "GOSUMDB": "sum.golang.org",
             "GOPRIVATE": "", "GONOPROXY": "", "GONOSUMDB": "",

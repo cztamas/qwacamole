@@ -1,0 +1,18 @@
+{
+  "scope": "all reachable Git objects from local --all refs; does not cover deleted/unreachable objects or remote-only refs",
+  "source_commit": "cb7d66730030600edbfc0cde5fafee106e3f8df9",
+  "scanned_unique_path_blobs": 505,
+  "private_key_findings": [],
+  "raw_profile_artifact_candidates": [],
+  "allowed_mozilla_public_key": {
+    "sha256": "0560d06fc2d28c8c66b873f823542dea3abd99b212b2ced76e9d5f331a1afccd",
+    "occurrences": [
+      {
+        "blob": "98c9de942ad955b021745df41ada82b6c2af1975",
+        "path": "devtools/internal/pki/firefox-fixtures/public-test-ca-key.pem",
+        "category": "private-key PEM"
+      }
+    ]
+  },
+  "working_tracked_files": 222
+}

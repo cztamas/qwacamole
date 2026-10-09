@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 
@@ -16,6 +17,19 @@ public = load("check_public_install", "check-public-install.py")
 
 
 class Publication(unittest.TestCase):
+    def test_unapproved_policy_cannot_reach_network_or_publication(self):
+        source = "a" * 40
+        with patch.object(publish, "run", side_effect=[source, ""]), patch.object(publish.subprocess, "check_call"), patch.object(publish.json, "loads", return_value={"approved": False}), patch.object(publish, "api") as api:
+            with self.assertRaisesRegex(ValueError, "owner publication approval missing"):
+                publish.gate(SimpleNamespace(source=source, version="0.1.0-alpha.1"))
+            api.assert_not_called()
+
+    def test_wrong_source_rejected_before_network_or_publication(self):
+        with patch.object(publish, "run", return_value="b" * 40), patch.object(publish, "api") as api:
+            with self.assertRaisesRegex(ValueError, "checkout must match"):
+                publish.gate(SimpleNamespace(source="a" * 40, version="0.1.0-alpha.1"))
+            api.assert_not_called()
+
     def test_exact_tag_namespace_and_component_sources(self):
         version, nested, root = "0.1.0-alpha.1", "a" * 40, "b" * 40
         good = {"v" + version: root, "agent/v" + version: nested, "caddy/v" + version: nested}
