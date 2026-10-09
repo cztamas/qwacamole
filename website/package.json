@@ -10,7 +10,7 @@
     "sync": "node scripts/sync-docs.mjs",
     "dev": "npm run sync && node scripts/astro.mjs dev --host 127.0.0.1",
     "check": "npm run sync && node scripts/astro.mjs check && node --test scripts/*.test.mjs",
-    "build": "npm run sync && node scripts/astro.mjs build && node scripts/build-identity.mjs && node scripts/check-links.mjs",
+    "build": "npm run sync && node scripts/astro.mjs build && node scripts/finalize-search.mjs && node scripts/build-identity.mjs && node scripts/check-links.mjs",
     "preview": "node scripts/astro.mjs preview --host 127.0.0.1",
     "test": "playwright test",
     "test:browser": "playwright test"
@@ -24,6 +24,7 @@
     "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.64.0",
     "cheerio": "1.2.0",
+    "pagefind": "1.5.2",
     "remark-parse": "11.0.0",
     "remark-stringify": "11.0.0",
     "typescript": "6.0.3",

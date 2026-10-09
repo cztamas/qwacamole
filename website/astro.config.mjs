@@ -18,8 +18,9 @@ export default defineConfig({
       let pending = Promise.resolve();
       server.watcher.on('change', file => {
         if (inputs.includes(file)) {
-          pending = pending.then(syncDocs).then(() => server.ws.send({ type: 'full-reload' }));
-          pending.catch(error => server.config.logger.error(error.message));
+          pending = pending.then(syncDocs)
+            .then(() => server.ws.send({ type: 'full-reload' }))
+            .catch(error => server.config.logger.error(error.message));
         }
       });
     },

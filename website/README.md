@@ -24,6 +24,10 @@ npm run test:browser
 
 CI uses the same lockfile, checks/build and focused Chromium smoke at desktop/
 mobile widths. It uses neither Go nor Cloudflare in its build/test job.
+The build finalizes Pagefind's built-in index through its
+[supported getFiles API](https://pagefind.app/docs/node-api/)
+with awaited asset writes and nonempty checks, avoiding incomplete native output
+observed on macOS. Search stays fully static; no retry or service is added.
 
 ## Shared documentation
 

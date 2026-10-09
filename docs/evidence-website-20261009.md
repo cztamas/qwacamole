@@ -25,7 +25,7 @@ native-test environment.
 
 The isolated `website/` package uses Node **24.21.0** LTS (official arm64
 distribution checksum verified), bundled npm **11.19.0**, Astro **7.3.8**,
-Starlight **0.42.6**, Wrangler **4.149.0** and Playwright **1.64.0**. Dependencies
+Starlight **0.42.6**, Pagefind **1.5.2**, Wrangler **4.149.0** and Playwright **1.64.0**. Dependencies
 are locked. Only pinned esbuild/workerd binary setup scripts are approved by
 npm's installation policy; the optional fsevents hook is denied.
 
@@ -39,9 +39,9 @@ The custom landing, two complete quickstarts, static Pagefind search and useful
 | --- | --- |
 | `cd website && npm ci` | Clean reproducible install under the pinned Node/npm |
 | `npm run check` | Astro: 0 errors/warnings/hints; **8** script tests pass |
-| `npm run build` | **19** HTML pages; **920** internal links, anchors and asset references pass |
+| `npm run build` | **19** HTML pages; **920** internal references; **17** search pages and **33** complete search assets pass |
 | `CI=true npm run test:browser` | **11** checks pass, zero retries; its own production preview server |
-| Shared-source dev watch | A temporary Markdown edit appeared in the dev page; source restored |
+| Shared-source dev watch | A temporary edit appeared; invalid-then-valid Markdown recovered without restarting; source restored |
 | `git diff --check` | Pass |
 
 The script tests exercise a full mocked successful deployment, artifact mismatch,
@@ -49,6 +49,14 @@ production metadata, post-upload identity failure, incorrect Pages production
 branch, duplicate Git builds, API denial, upload failure, disabled/missing setup,
 main-only events, both workflow path filters and shared-link rewriting.
 They perform no real Cloudflare upload.
+
+Final local revalidation exposed incomplete native Pagefind output (an empty
+entry JSON, then an empty worker). The build now finalizes the same built-in
+Pagefind index through its supported in-memory file API with awaited Node
+writes, nonempty/size checks and parsed index metadata. The existing real search
+assertion remains unchanged; no retry or timeout increase was added.
+After the fix, all eleven browser checks passed, followed by the same real search
+check in three fresh browser contexts, all passing.
 
 Real Playwright Chromium **156.0.8078.4** rendered all three main routes at
 **1440 × 1000** and **390 × 844**. Automated checks cover navigation, static
