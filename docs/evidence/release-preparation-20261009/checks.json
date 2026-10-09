@@ -1,6 +1,6 @@
 {
   "release_tools": {
-    "tests": 15,
+    "tests": 16,
     "exit_code": 0,
     "raw_log": ".local/evidence/release-preparation-20261009/release-tool-tests.log"
   },

@@ -17,6 +17,17 @@ public = load("check_public_install", "check-public-install.py")
 
 
 class Publication(unittest.TestCase):
+    def test_pr_merge_checks_cannot_authorize_selected_source_publication(self):
+        source = "a" * 40
+        good = {"path": ".github/workflows/go.yml", "event": "workflow_dispatch",
+                "head_branch": "main", "head_sha": source, "conclusion": "success"}
+        publish.validate_portable_checks([good], source)
+        for field, value in (("event", "pull_request"), ("head_sha", "b" * 40),
+                             ("head_branch", "feature"), ("conclusion", "failure"),
+                             ("path", ".github/workflows/other.yml")):
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, "manual main"):
+                publish.validate_portable_checks([dict(good, **{field: value})], source)
+
     def test_release_notes_resolve_identity_without_changing_source(self):
         template = "# Approved alpha\n\nOperator behavior and limits.\n"
         result = publish.render_notes(template, "0.1.0-alpha.1", "b" * 40, "a" * 40, "c" * 64, 123)

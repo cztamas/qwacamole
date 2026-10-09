@@ -50,11 +50,13 @@ examples, Windows, macOS notarization and Caddy's hosted builder are untested.
 
 ## Newly completed engineering checks
 
-- Config-free agent `version` tests pass under race detection. Fifteen Python
+- Config-free agent `version` tests pass under race detection. Sixteen Python
   release-tool regressions pass, covering corrupt/extra artifacts, unsafe paths,
   symlinks, skipped native runs, invalid source/version/tag maps, missing approval,
   actual publication-environment protections, rendered source identity and
-  credential-free installer isolation. Wrong-source and unapproved-policy tests
+  credential-free installer isolation. PR checks against GitHub merge commits
+  cannot authorize publication: both required workflows must succeed as manual
+  main runs at the selected source. Wrong-source and unapproved-policy tests
   reject before API access or publication. Raw log:
   `.local/evidence/release-preparation-20261009/release-tool-tests.log`.
 - `make build agent-build plugin-build`, `make test`, and
@@ -110,7 +112,7 @@ diff -u .local/release-ci-bbf5117/SHA256SUMS .local/release-local-bbf5117/SHA256
 ```
 
 The same source/toolchain comparison was executed at 30a79ef, and twice locally
-at cb7d667. Final release-tool edits after bbf5117 were tested by the 15 Python
+at cb7d667. Final release-tool edits after bbf5117 were tested by the 16 Python
 regressions; they do not change production Go code. PR checks identify the final
 review head independently of the retained bbf5117 runtime package.
 

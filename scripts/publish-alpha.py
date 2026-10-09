@@ -46,6 +46,16 @@ def validate_environment(environment, branches):
             "publication environment must allow only main, no tags or wildcards")
 
 
+def validate_portable_checks(checks, source):
+    # PR runs may checkout GitHub's synthetic merge commit, even when the run
+    # metadata names the PR head. Publication needs the manual main run that
+    # actually checks out the selected source.
+    require(any(c.get("path") == ".github/workflows/go.yml" and
+                c.get("event") == "workflow_dispatch" and c.get("head_branch") == "main" and
+                c.get("head_sha") == source and c.get("conclusion") == "success"
+                for c in checks), "successful manual main four-module/integration run at exact source required")
+
+
 def render_notes(template, version, root_source, source, manifest_sha256, candidate_run):
     # The source cannot contain its own final commit hash. Resolve identity in
     # the release body from the verified manifest/tags, never by editing the
@@ -97,7 +107,7 @@ def gate(args):
     candidate_run = api("actions/runs/" + str(args.candidate_run))
     require(candidate_run.get("event") == "workflow_dispatch" and candidate_run.get("head_branch") == "main" and candidate_run.get("head_sha") == args.source and candidate_run.get("conclusion") == "success" and candidate_run.get("path") == ".github/workflows/agent-candidate.yml", "successful manual main candidate run at exact source required")
     checks = api("actions/runs?head_sha=" + args.source + "&per_page=100")["workflow_runs"]
-    require(any(c.get("path") == ".github/workflows/go.yml" and c.get("conclusion") == "success" for c in checks), "required four-module/integration workflow has not passed at exact source")
+    validate_portable_checks(checks, args.source)
     manifest_path = Path(args.directory) / "manifest.json"
     require(hashlib.sha256(manifest_path.read_bytes()).hexdigest() == args.manifest_sha256, "owner-reviewed manifest digest mismatch")
     manifest = packages.verify(args.directory, smoke=True)
