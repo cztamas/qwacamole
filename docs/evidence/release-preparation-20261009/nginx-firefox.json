@@ -1,0 +1,111 @@
+{
+  "checks": [
+    "isolated production agent and HTTP-only Nginx bootstrap",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=false)",
+    "private runtime/socket permissions and control methods/body validation; public control/file paths reject",
+    "real Certbot HTTP-01 issuance, deploy-hook publication and verified Nginx activation",
+    "fresh verified browser-facing TLS leaf covered by qualified binding",
+    "ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses",
+    "Nginx replaces forged forwarding metadata, preserves external port/encoded URL, origin secure cookies and absolute redirects; unsupported Host rejected",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=true)",
+    "configured body limit: 2 MiB upload status 413",
+    "real Nginx TLS WebSocket 101, discovery/upstream Link and bidirectional frame traffic",
+    "binding GET/HEAD/no-store/method rejection and nonrecursive discovery",
+    "Nginx internal gate/control and invalid binding paths are inaccessible",
+    "independent signed binding refresh without TLS renewal",
+    "automatic Certbot renewal and fresh verified controlled activation",
+    "original active TLS stream survives Nginx reload with both leaves bound",
+    "second real Certbot renewal freshly verified with original active stream and all TLS retained",
+    "agent-backpressure upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "nginx-buffered upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "real cache longer than original signed lifetime discovers renewed binding",
+    "same-key QWAC replacement publishes retained coverage through unchanged discovery",
+    "same-authority QWAC replacement through unchanged cached discovery",
+    "authenticated automatic collection preserves current document and retained leaves",
+    "agent unavailability rejects protected application requests",
+    "agent restart reconciles files and actual verified served TLS"
+  ],
+  "error": "<nil>",
+  "exit_code": 0,
+  "raw_evidence": ".local/release-nginx-firefox-20261009/nginx-smoke-1817553057/evidence",
+  "native_phases": {
+    "native-firefox-initial": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Nginx Agent TEST",
+        "country": "HU",
+        "qwac_fingerprint": "7E:9C:A4:E2:C4:76:07:C9:77:6B:99:27:78:88:C5:AF:EF:EE:3F:96:8F:62:F3:6C:1D:90:A0:53:90:E3:6A:7E",
+        "tls_fingerprint": "EE:D9:BB:38:2A:E2:93:9E:62:94:2F:23:E0:52:ED:55:59:04:6C:5C:D3:9E:CF:A3:AC:86:6F:6A:A8:C3:FD:5D",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      },
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Agent TEST"
+        ],
+        "qwac_id": "7e9ca4e2c47607c9776b99277888c5afefee3f968f62f36c1d90a05390e36a7e",
+        "tls_id": "eed9bb382ae2939e62942f23e052ed5559046c5cd39ecfa3ac866f6aa8c3fd5d",
+        "unchanged_trust_sha256": "f13b547d674845247a7dd5d5fa23862d6135f8a0131fff6ede0acc9e59f06a15"
+      }
+    },
+    "native-firefox-renewed-cached-after-expiry": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Nginx Agent TEST",
+        "country": "HU",
+        "qwac_fingerprint": "7E:9C:A4:E2:C4:76:07:C9:77:6B:99:27:78:88:C5:AF:EF:EE:3F:96:8F:62:F3:6C:1D:90:A0:53:90:E3:6A:7E",
+        "tls_fingerprint": "4E:59:1E:7D:34:63:FF:8C:16:40:FB:03:0C:6D:36:C4:5A:57:BA:02:8F:BC:AD:AF:FC:04:4E:7E:E5:24:75:27",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      },
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Agent TEST"
+        ],
+        "qwac_id": "7e9ca4e2c47607c9776b99277888c5afefee3f968f62f36c1d90a05390e36a7e",
+        "tls_id": "4e591e7d3463ff8c1640fb030c6d36c45a57ba028fbcadaffc044e7ee5247527",
+        "unchanged_trust_sha256": "f13b547d674845247a7dd5d5fa23862d6135f8a0131fff6ede0acc9e59f06a15"
+      }
+    },
+    "native-firefox-replacement-cached-after-expiry": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Nginx Replacement TEST",
+        "country": "HU",
+        "qwac_fingerprint": "F2:7A:9E:01:5F:D8:B7:4B:FA:2A:52:3C:77:A7:B3:29:72:75:F4:1A:D1:A1:23:92:56:22:00:80:CB:E0:6A:EF",
+        "tls_fingerprint": "4E:59:1E:7D:34:63:FF:8C:16:40:FB:03:0C:6D:36:C4:5A:57:BA:02:8F:BC:AD:AF:FC:04:4E:7E:E5:24:75:27",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      },
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Replacement TEST"
+        ],
+        "qwac_id": "f27a9e015fd8b74bfa2a523c77a7b3297275f41ad1a1239256220080cbe06aef",
+        "tls_id": "4e591e7d3463ff8c1640fb030c6d36c45a57ba028fbcadaffc044e7ee5247527",
+        "unchanged_trust_sha256": "f13b547d674845247a7dd5d5fa23862d6135f8a0131fff6ede0acc9e59f06a15"
+      }
+    }
+  },
+  "repeated_renewal_held": {
+    "all_bound": true,
+    "chunks": 66,
+    "first_renewed_tls_id": "25b608fbd36734abd5726b5ab7a2374462d89ad33fa88f7880908739f6c16e2c",
+    "old_tls_id": "eed9bb382ae2939e62942f23e052ed5559046c5cd39ecfa3ac866f6aa8c3fd5d",
+    "renewals": 2,
+    "same_held_connection": true,
+    "second_renewed_tls_id": "4e591e7d3463ff8c1640fb030c6d36c45a57ba028fbcadaffc044e7ee5247527"
+  }
+}

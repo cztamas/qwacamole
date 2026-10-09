@@ -1,0 +1,138 @@
+[
+  {
+    "name": "builds",
+    "command": [
+      "make",
+      "build",
+      "agent-build",
+      "plugin-build"
+    ],
+    "started": "2026-10-09T14:55:32.089792+00:00",
+    "finished": "2026-10-09T14:55:56.007190+00:00",
+    "exit": 0
+  },
+  {
+    "name": "remote-agent",
+    "command": [
+      "scripts/check-remote-agent.sh",
+      "bb911a8f69a8743faab70967232ff166c828c4b7"
+    ],
+    "started": "2026-10-09T14:55:56.007824+00:00",
+    "finished": "2026-10-09T14:56:06.044199+00:00",
+    "exit": 0
+  },
+  {
+    "name": "remote-caddy",
+    "command": [
+      "scripts/check-remote-install.sh",
+      "9322bd566e825a2c2c645e464a630e09d7aa68d6"
+    ],
+    "started": "2026-10-09T14:56:06.055944+00:00",
+    "finished": "2026-10-09T14:57:00.638391+00:00",
+    "exit": 0
+  },
+  {
+    "name": "remote-caddy-smoke",
+    "command": [
+      "bin/qwacamole",
+      "plugin-smoke",
+      "-state",
+      ".local/release-caddy-smoke-20261009",
+      "-plugin-binary",
+      "bin/caddy-remote"
+    ],
+    "started": "2026-10-09T14:57:00.642654+00:00",
+    "finished": "2026-10-09T14:57:57.138319+00:00",
+    "exit": 0
+  },
+  {
+    "name": "remote-agent-smoke",
+    "command": [
+      "bin/qwacamole",
+      "nginx-smoke",
+      "-state",
+      ".local/release-agent-smoke-20261009",
+      "-agent-binary",
+      "bin/qwacamole-agent-remote"
+    ],
+    "started": "2026-10-09T14:57:57.138975+00:00",
+    "finished": "2026-10-09T15:00:31.764952+00:00",
+    "exit": 0
+  },
+  {
+    "name": "caddy-chrome",
+    "command": [
+      "bin/qwacamole",
+      "integration-test",
+      "-state",
+      ".local/release-caddy-chrome-20261009",
+      "-browser",
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "-metadata",
+      "/Users/cztamas/Library/Application Support/Google/Chrome/PKIMetadata/1798"
+    ],
+    "started": "2026-10-09T15:00:31.765660+00:00",
+    "finished": "2026-10-09T15:12:31.717311+00:00",
+    "exit": 1
+  },
+  {
+    "name": "caddy-firefox",
+    "command": [
+      "bin/qwacamole",
+      "firefox-integration",
+      "-state",
+      ".local/release-caddy-firefox-20261009",
+      "-browser",
+      "/Applications/Firefox.app/Contents/MacOS/firefox",
+      "-geckodriver",
+      ".tools/bin/geckodriver",
+      "-certutil",
+      "/opt/homebrew/bin/certutil"
+    ],
+    "started": "2026-10-09T15:12:31.717975+00:00",
+    "finished": "2026-10-09T15:18:29.362954+00:00",
+    "exit": 0
+  },
+  {
+    "name": "nginx-chrome",
+    "command": [
+      "bin/qwacamole",
+      "nginx-browser-integration",
+      "-native-browser",
+      "chrome",
+      "-state",
+      ".local/release-nginx-chrome-20261009",
+      "-agent-binary",
+      "bin/qwacamole-agent-remote",
+      "-browser",
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "-metadata",
+      "/Users/cztamas/Library/Application Support/Google/Chrome/PKIMetadata/1798"
+    ],
+    "started": "2026-10-09T15:18:29.364027+00:00",
+    "finished": "2026-10-09T15:20:13.935461+00:00",
+    "exit": 0
+  },
+  {
+    "name": "nginx-firefox",
+    "command": [
+      "bin/qwacamole",
+      "nginx-browser-integration",
+      "-native-browser",
+      "firefox",
+      "-state",
+      ".local/release-nginx-firefox-20261009",
+      "-agent-binary",
+      "bin/qwacamole-agent-remote",
+      "-browser",
+      "/Applications/Firefox.app/Contents/MacOS/firefox",
+      "-geckodriver",
+      ".tools/bin/geckodriver",
+      "-certutil",
+      "/opt/homebrew/bin/certutil"
+    ],
+    "started": "2026-10-09T15:20:13.936148+00:00",
+    "finished": "2026-10-09T15:21:21.126144+00:00",
+    "exit": 0
+  }
+]

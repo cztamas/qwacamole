@@ -1,0 +1,198 @@
+{
+  "conclusion": "success",
+  "headSha": "212492497c3be3f4789e470f5b7683d6d70dbb92",
+  "jobs": [
+    {
+      "completedAt": "2026-10-09T16:40:46Z",
+      "conclusion": "success",
+      "databaseId": 113922292770,
+      "name": "packages",
+      "startedAt": "2026-10-09T16:39:07Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-09T16:39:10Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-09T16:39:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:39:11Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-10-09T16:39:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:39:25Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-go@v5",
+          "number": 3,
+          "startedAt": "2026-10-09T16:39:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:39:25Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5",
+          "number": 4,
+          "startedAt": "2026-10-09T16:39:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:39:26Z",
+          "conclusion": "success",
+          "name": "Repository-scoped read credential for private module resolution",
+          "number": 5,
+          "startedAt": "2026-10-09T16:39:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:39:27Z",
+          "conclusion": "success",
+          "name": "Package verifier and publication gate regressions",
+          "number": 6,
+          "startedAt": "2026-10-09T16:39:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:40:39Z",
+          "conclusion": "success",
+          "name": "Build exact source and verify extracted Linux amd64 package",
+          "number": 7,
+          "startedAt": "2026-10-09T16:39:27Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:40:42Z",
+          "conclusion": "success",
+          "name": "Retain candidates for review (no publishing permission)",
+          "number": 8,
+          "startedAt": "2026-10-09T16:40:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:40:42Z",
+          "conclusion": "success",
+          "name": "Remove private module credential",
+          "number": 9,
+          "startedAt": "2026-10-09T16:40:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:40:42Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5",
+          "number": 16,
+          "startedAt": "2026-10-09T16:40:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:40:42Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-go@v5",
+          "number": 17,
+          "startedAt": "2026-10-09T16:40:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:40:43Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 18,
+          "startedAt": "2026-10-09T16:40:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:40:43Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 19,
+          "startedAt": "2026-10-09T16:40:43Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/cztamas/qwacamole/actions/runs/37960638428/job/113922292770"
+    },
+    {
+      "completedAt": "2026-10-09T16:41:04Z",
+      "conclusion": "success",
+      "databaseId": 113922964248,
+      "name": "macos-package",
+      "startedAt": "2026-10-09T16:40:53Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-09T16:40:56Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-09T16:40:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:40:58Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-10-09T16:40:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:40:59Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5",
+          "number": 3,
+          "startedAt": "2026-10-09T16:40:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:41:01Z",
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@v4",
+          "number": 4,
+          "startedAt": "2026-10-09T16:40:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:41:01Z",
+          "conclusion": "success",
+          "name": "Verify extracted macOS arm64 package",
+          "number": 5,
+          "startedAt": "2026-10-09T16:41:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:41:01Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5",
+          "number": 9,
+          "startedAt": "2026-10-09T16:41:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:41:02Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 10,
+          "startedAt": "2026-10-09T16:41:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-09T16:41:02Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 11,
+          "startedAt": "2026-10-09T16:41:02Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/cztamas/qwacamole/actions/runs/37960638428/job/113922964248"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/cztamas/qwacamole/actions/runs/37960638428"
+}

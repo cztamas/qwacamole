@@ -13,6 +13,13 @@ publish a monitored confidential reporting channel and response policy. Until
 then, authorized collaborators should contact the owner through their existing
 private channel; do not invent an address or assume an unmonitored inbox.
 
+The release path fails closed until `release/publication.json` records approved
+legal/publication policy and either a real confidential URL present here or a
+live API check confirms GitHub private vulnerability reporting. That prerequisite
+has not been completed by this task. The owner must verify routing/monitoring and
+approve the response policy before making source or packages public; no SLA is
+inferred. See [the exact launch checklist](docs/alpha-release.md).
+
 Include the immutable source ref, Go/Caddy/browser versions, affected
 configuration, expected versus observed behavior and a minimal synthetic
 reproduction. Redact keys, tokens, owner data and unrelated browsing/network

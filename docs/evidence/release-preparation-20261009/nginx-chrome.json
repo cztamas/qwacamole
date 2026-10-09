@@ -1,0 +1,90 @@
+{
+  "checks": [
+    "isolated production agent and HTTP-only Nginx bootstrap",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=false)",
+    "private runtime/socket permissions and control methods/body validation; public control/file paths reject",
+    "real Certbot HTTP-01 issuance, deploy-hook publication and verified Nginx activation",
+    "fresh verified browser-facing TLS leaf covered by qualified binding",
+    "ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses",
+    "Nginx replaces forged forwarding metadata, preserves external port/encoded URL, origin secure cookies and absolute redirects; unsupported Host rejected",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=true)",
+    "configured body limit: 2 MiB upload status 413",
+    "real Nginx TLS WebSocket 101, discovery/upstream Link and bidirectional frame traffic",
+    "binding GET/HEAD/no-store/method rejection and nonrecursive discovery",
+    "Nginx internal gate/control and invalid binding paths are inaccessible",
+    "independent signed binding refresh without TLS renewal",
+    "automatic Certbot renewal and fresh verified controlled activation",
+    "original active TLS stream survives Nginx reload with both leaves bound",
+    "second real Certbot renewal freshly verified with original active stream and all TLS retained",
+    "agent-backpressure upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "nginx-buffered upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "real cache longer than original signed lifetime discovers renewed binding",
+    "same-key QWAC replacement publishes retained coverage through unchanged discovery",
+    "same-authority QWAC replacement through unchanged cached discovery",
+    "authenticated automatic collection preserves current document and retained leaves",
+    "agent unavailability rejects protected application requests",
+    "agent restart reconciles files and actual verified served TLS"
+  ],
+  "error": "<nil>",
+  "exit_code": 0,
+  "raw_evidence": ".local/release-nginx-chrome-20261009/nginx-smoke-388879785/evidence",
+  "native_phases": {
+    "native-chrome-initial": {
+      "version": "Google Chrome 154.0.8037.99",
+      "valid_native_verdicts": 1,
+      "root_store_versions": [
+        39,
+        1000000
+      ],
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Agent TEST"
+        ],
+        "qwac_id": "b02b30a8e7200535d2e24bfdf5fecb4a3a94839c06538cf6a73b8fff77108a01",
+        "tls_id": "c36618984105d6f6cb78eda0375f8addb957feb461931310b4a1f24142548cc3",
+        "unchanged_trust_sha256": "bf9ef5adca58cc9b0443b32c7de685a8b81aa1f95dc1966d8cb77640c58f77e8"
+      }
+    },
+    "native-chrome-renewed-cached-after-expiry": {
+      "version": "Google Chrome 154.0.8037.99",
+      "valid_native_verdicts": 1,
+      "root_store_versions": [
+        39,
+        1000000
+      ],
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Agent TEST"
+        ],
+        "qwac_id": "b02b30a8e7200535d2e24bfdf5fecb4a3a94839c06538cf6a73b8fff77108a01",
+        "tls_id": "b56f556b02f199a194660ac1dc80e7e11c49818f8e08cddb9ef90c0ac3a72b7e",
+        "unchanged_trust_sha256": "bf9ef5adca58cc9b0443b32c7de685a8b81aa1f95dc1966d8cb77640c58f77e8"
+      }
+    },
+    "native-chrome-replacement-cached-after-expiry": {
+      "version": "Google Chrome 154.0.8037.99",
+      "valid_native_verdicts": 1,
+      "root_store_versions": [
+        39,
+        1000000
+      ],
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Replacement TEST"
+        ],
+        "qwac_id": "041896afa4aadf6f0aeea2fa68a2b40352ceb3aa49440c3a097b92c738df05fe",
+        "tls_id": "b56f556b02f199a194660ac1dc80e7e11c49818f8e08cddb9ef90c0ac3a72b7e",
+        "unchanged_trust_sha256": "bf9ef5adca58cc9b0443b32c7de685a8b81aa1f95dc1966d8cb77640c58f77e8"
+      }
+    }
+  },
+  "repeated_renewal_held": {
+    "all_bound": true,
+    "chunks": 116,
+    "first_renewed_tls_id": "703b4a075e6a16a32efad282b351dec7e12508d8b436afc71c81bc78c178268e",
+    "old_tls_id": "c36618984105d6f6cb78eda0375f8addb957feb461931310b4a1f24142548cc3",
+    "renewals": 2,
+    "same_held_connection": true,
+    "second_renewed_tls_id": "b56f556b02f199a194660ac1dc80e7e11c49818f8e08cddb9ef90c0ac3a72b7e"
+  }
+}

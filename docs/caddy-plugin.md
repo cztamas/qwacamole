@@ -18,16 +18,16 @@ export GOPRIVATE=github.com/cztamas/qwacamole
 export GOEXPERIMENT=nojsonv2
 # Preserve other existing GOPRIVATE entries if you already have them.
 go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
-xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@234f8d7e20a5863f3f2929e50a8e11f24650064e
+xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@9322bd566e825a2c2c645e464a630e09d7aa68d6
 ```
 
-The implemented plugin resolves to `v0.0.0-20261007085522-234f8d7e20a5`;
-the [dated evidence](evidence-hardening-20261007.md) records the fresh-cache remote
+The implemented plugin resolves to `v0.0.0-20261009072701-9322bd566e82`;
+the [dated evidence](evidence-release-preparation-20261009.md) records the fresh-cache remote
 build and module inventory. Repository examples and checks for this stage are on
-`codex/public-alpha-hardening`; after an authenticated clone, use
-`git checkout codex/public-alpha-hardening` to work with them. The immutable
+`codex/public-alpha-release`; after an authenticated clone, use
+`git checkout codex/public-alpha-release` to work with them. The immutable
 installation command above does not require a checkout.
-Use Go **1.27.1 or newer compatible toolchain** (tested 1.27.1), xcaddy **0.4.5**,
+Use Go **1.27.1** (other toolchains require separate validation), xcaddy **0.4.5**,
 Caddy **2.10.2**. The `nojsonv2` workaround preserves the reflected identity of
 `encoding/json.RawMessage` expected by Caddy 2.10.2. No downstream `go.work` or
 `replace` is needed. This is an authenticated private installation, not anonymous
@@ -54,10 +54,32 @@ go version -m ./caddy
 
 Expect `tls.issuance.qwac` and `http.handlers.qwac`, no `qwac_demo` modules and no
 `qwacamole/devtools` dependency. The core dependency is the remotely resolved
-`v0.0.0-20261007082742-d576a2929a0f` (commit
-`d576a2929a0fc6105fd61668b7b31c18c1a20809`). Local development retains the root
+`v0.0.0-20261008203612-8e62f4b8c340` (commit
+`8e62f4b8c340e572584f6d71355a8f89a7d0be42`). Local development retains the root
 workspace; `make build` includes development adapters and `make plugin-build`
 builds only the integration using explicit local replacements.
+
+After owner-approved publication only, this module command becomes valid:
+
+```sh
+GOWORK=off GOEXPERIMENT=nojsonv2 xcaddy build v2.10.2 \
+  --with github.com/cztamas/qwacamole/caddy@v0.1.0-alpha.1
+```
+
+No such tag is created by this preparation. Use the current immutable command
+above until publication. No prebuilt custom Caddy or hosted-builder support is
+claimed. The [release checklist](alpha-release.md) defines source identities,
+publication order and anonymous verification.
+
+For an update, build a separate binary at the selected immutable/module version,
+inspect `list-modules`/`go version -m`, and validate config before replacement.
+Preserve the previous binary and complete Caddy TLS storage, binding state,
+credentials and configuration. Follow [operations](operations.md) for full-stop
+policy/state migrations and offline retirement. Start with the same owned paths
+and confirm a protected request and binding/TLS identity. Roll back only to a
+compatible binary and consistent complete state; expired prior inputs are not a
+usable rollback target. Do not delete retained coverage to force an upgrade, or
+use an unpinned automatic module upgrade as release validation.
 
 ## Configuration
 
@@ -140,8 +162,10 @@ automatic enrollment are not supported. The supported certificate profile is
 QC compliance/web-type statements, SAN, AIA and CRL metadata. Presence of those
 fields does not establish revocation freshness or legal qualification.
 
-The binding lifetime defaults to **1h**, minimum **3s**. It is capped by QWAC
-leaf and latest retained TLS leaf validity. Refresh uses actual signed expiry,
+The binding lifetime defaults to **1h**, minimum **3s**. It is capped by the
+earliest QWAC-chain expiry and the latest retained TLS leaf expiry. Older TLS
+leaves stay covered for authenticated held connections alongside renewed leaves.
+Refresh uses actual signed expiry,
 with a default margin of one third of the configured/effective lifetime. JSON
 accepts readable durations or legacy numeric nanoseconds. See the
 [operational policy](operations.md) for limits, diagnostics and offline retirement.
@@ -252,10 +276,10 @@ In advanced JSON, pair the same middleware in `servers.*.errors.routes`.
 ## Repeatable checks and future releases
 
 ```sh
-make test                 # race tests in core, Caddy and devtools; boundaries
+make test                 # race tests in all four modules; boundaries
 make plugin-smoke STATE=.local/plugin-smoke
 # Uses a fresh outside-checkout module cache and no replacements/devtools:
-scripts/check-remote-install.sh 234f8d7e20a5863f3f2929e50a8e11f24650064e
+scripts/check-remote-install.sh 9322bd566e825a2c2c645e464a630e09d7aa68d6
 ```
 
 The portable smoke builds no browsers: it supplies synthetic TEST PEMs from
@@ -270,7 +294,7 @@ retirement with preserved Caddy TLS storage. It uses local
 ports 8443, 5002, 8053/UDP, 14000, 15000 and 2019 plus temporary loopback ports; stop
 other owned demos before running. The CI workflow runs portable Go/plugin checks
 on Linux without the macOS bootstrap. Native Chrome/Firefox checks remain a
-separate supported-macOS check; see the README and dated evidence.
+separate tested-macOS check; see [the demo guide](demos.md) and dated evidence.
 
 Future stable module releases need separate tags: root `vX.Y.Z`, nested Caddy
 `caddy/vX.Y.Z`. Commit/push the core release first, update the plugin's core

@@ -1,0 +1,4 @@
+db6f7a8bf245308549329a67dfd3e33bb8c3ef815ebe2e90cefc0d2d9fb493f1  manifest.json
+69534badf2a9324d0635f54a895408b4188cf0a871d77cffd615f63df31238a3  qwacamole-agent-0.1.0-alpha.1-darwin-arm64.tar.gz
+b80d7bd5b62d83eca119bfb76539e779689bf93c7a21cfdb7d47f7aa6aca40e9  qwacamole-agent-0.1.0-alpha.1-linux-amd64.tar.gz
+b40b62a27e26fad44bd643f6dec98db3c7b2dbebf0f871c87f64c62dca568674  qwacamole-agent-0.1.0-alpha.1-linux-arm64.tar.gz

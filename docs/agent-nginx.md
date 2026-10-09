@@ -15,17 +15,17 @@ Subsequent PR review fixes and their separate regression evidence are recorded i
 ## Trust and supported deployment
 
 One literal DNS hostname, one local Nginx master, supplied RSA QWAC credentials,
-RS256 bindings and exclusive local storage. Linux and macOS are supported by the
-process-lock implementation. The 8 October Linux acceptance uses Nginx 1.28.0,
+RS256 bindings and exclusive local storage. Linux and macOS have process-lock implementations; runtime-tested
+platforms and cross-compiled targets are separated in [the release contract](alpha-release.md). The 8 October Linux acceptance uses Nginx 1.28.0,
 Certbot 5.8.0, Go 1.27.1 and Pebble 2.8.0; executed acceptance is tracked in
 [the serving and upgrade report](evidence-agent-serving-20261008.md). Nginx requires its HTTP SSL and auth_request
 modules. `validate` detects missing build flags and modified top-level config.
 This is a dedicated Nginx instance owning one hostname and the complete top-level
 configuration. Existing multi-site configurations and arbitrary custom includes
 are unsupported; this module cannot be added to an existing shared Nginx master.
-Fresh native checks use Chrome 155.0.8059.39 / PKIMetadata 1798 and Firefox
-157.0.1; exact commands, trust setup and raw-evidence locations are in
-[the serving and upgrade report](evidence-agent-serving-20261008.md).
+The earlier serving/upgrade report used Chrome 155.0.8059.39 and Firefox
+157.0.1. Current release-preparation runs use installed Chrome 154.0.8037.99 /
+PKIMetadata 1798 and Firefox 157.0.1; see [the new dated report](evidence-release-preparation-20261009.md).
 
 Bind the TLS leaf actually presented to the browser. Arbitrary CDN TLS termination,
 distributed deployment, QWAC enrollment, HSMs and automatic TLS retirement are
@@ -47,7 +47,7 @@ access to that socket or the agent state directory.
 
 Go 1.27.1 and authenticated access are required while the repository is private.
 The implemented production source is
-`72b69f4e37afee5712a183ea7d2010dfbca0a0d5`. Ordinary exact-ref installation works
+`bb911a8f69a8743faab70967232ff166c828c4b7`. Ordinary exact-ref installation works
 now that `agent/` exists on `main`; no consumer-manifest workaround is required:
 
 ```sh
@@ -55,8 +55,9 @@ agent_install_dir=$(mktemp -d)
 cd "$agent_install_dir"
 GOWORK=off GOEXPERIMENT=nojsonv2 GOPRIVATE=github.com/cztamas/qwacamole \
   GOMODCACHE="$agent_install_dir/modules" GOBIN="$agent_install_dir/bin" \
-  go install github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@72b69f4e37afee5712a183ea7d2010dfbca0a0d5
+  go install github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@bb911a8f69a8743faab70967232ff166c828c4b7
 go version -m "$agent_install_dir/bin/qwacamole-agent"
+"$agent_install_dir/bin/qwacamole-agent" version -json
 sudo install -m 0755 "$agent_install_dir/bin/qwacamole-agent" /usr/local/bin/qwacamole-agent
 ```
 
@@ -67,8 +68,75 @@ with a fresh module cache, `GOWORK=off`, no replacements, and inspects binary
 metadata. The installed binary is also used in actual Nginx acceptance.
 For development on the feature branch, use `make agent-build`.
 
+`version -json` reports a full commit for packaged/VCS checkout builds. For
+ordinary Go installs, Go embeds the module version instead of a VCS commit, so
+`source_commit` uses `module:VERSION`; retain the resolved module origin/build
+metadata above when a full source SHA is needed. It performs no network lookup.
+
 Install the built binary under `/usr/local/bin` before following the service
 commands. Create the supplied inputs and config below before rendering Nginx.
+
+### Packaged agent
+
+Packages are private review candidates now. Public download commands below become
+valid **only after owner-approved publication**. No Go compiler is needed to run
+the package. Choose Linux amd64, Linux arm64 or macOS arm64; Linux arm64 is
+cross-compiled only. See the [support contract](alpha-release.md).
+
+Example for macOS arm64, after publication:
+
+```sh
+package_dir=$(mktemp -d)
+cd "$package_dir"
+archive=qwacamole-agent-0.1.0-alpha.1-darwin-arm64.tar.gz
+release_url=https://github.com/cztamas/qwacamole/releases/download/v0.1.0-alpha.1
+curl --fail --location --remote-name "$release_url/$archive"
+curl --fail --location --remote-name "$release_url/SHA256SUMS"
+curl --fail --location --remote-name "$release_url/manifest.json"
+awk -v archive="$archive" '$2 == archive || $2 == "manifest.json" { print }' SHA256SUMS | shasum -a 256 -c -
+tar -tzf "$archive"
+tar -xzf "$archive"
+./qwacamole-agent-0.1.0-alpha.1-darwin-arm64/qwacamole-agent version -json
+sudo install -m 0755 ./qwacamole-agent-0.1.0-alpha.1-darwin-arm64/qwacamole-agent /usr/local/bin/qwacamole-agent
+```
+
+For Linux substitute `linux-amd64` or `linux-arm64` in both archive and extracted
+directory names. The archive contains only `qwacamole-agent`, `INSTALL.txt`,
+`LICENSE`, `NOTICE` and `GO-NOTICES.txt` under that version/target directory.
+Current candidates contain the same selected LICENSE/NOTICE files but remain
+unapproved for publication. Check checksum
+lines exist for both downloaded files and compare manifest source/core/target
+identity with `version -json` and the reviewed release record. Matching checksums
+prove integrity, not an independent signing identity. Retain licence/notices and
+install information with deployment records.
+
+Install Nginx (HTTP SSL and auth_request enabled) and Certbot separately. Create
+config/credential inputs mode 0600 under trusted ownership, with state/runtime
+directories 0700, as below. Service definitions later in this guide remain
+**untested examples**; foreground Nginx/agent/Certbot behavior is tested.
+
+### Updates and rollback
+
+Record `version -json`, retain the old executable and back up complete private
+config, supplied credential inputs/pointer, binding state, journal/generations and
+Certbot accounts/lineage. Verify archive/identity before changing the installed
+binary and read migration notes first. Use the existing
+[full-stop migration procedure](agent-migration.md) for incompatible state or
+serving changes, including retained Nginx workers/connections and renewal
+automation; stopping the agent alone is insufficient.
+
+For a compatible binary-only update, stop the managed agent, install the verified
+replacement, start with the same startup config, then run `status`, `reconcile`
+and `check`. Confirm deployment phase, served TLS leaf and binding signer;
+process/service exit status alone is not readiness. Keep renewal automation
+disabled through offline migration until confirmation completes.
+
+Rollback to the retained executable only if it understands current state/config.
+Otherwise fully stop and restore a complete consistent pre-upgrade backup through
+the documented recovery procedure. Never restore only deployment.json, remove
+retained TLS coverage or hand-edit the include pointer. Expired prior state cannot
+provide a usable rollback: supply valid same-authority credentials and deploy a
+fresh lineage through the normal gate.
 
 Supply a JSON file with absolute paths (example addresses are production ports):
 

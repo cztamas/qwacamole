@@ -1,0 +1,150 @@
+{
+  "cached_discovery_after_expiry_renewal_replacement": true,
+  "fixture_checks": 11,
+  "independent_refresh": true,
+  "initial_native_verified": true,
+  "profile_trust_unchanged": true,
+  "renewal_failure_gates": true,
+  "renewal_native_verified": true,
+  "restart_recovered": true,
+  "exit_code": 0,
+  "raw_evidence": ".local/release-caddy-firefox-20261009/firefox-integration-3616461147/evidence",
+  "fixtures": {
+    "critical-header": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "expired-binding": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "no-qwac-trust": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "no-tls-trust": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "positive": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "qwac-hostname": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "qwac-profile": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "signature": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "tls-expiry": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "tls-hostname": {
+      "browser_version": "157.0.1",
+      "passed": true
+    },
+    "wrong-tls": {
+      "browser_version": "157.0.1",
+      "passed": true
+    }
+  },
+  "native_phases": {
+    "firefox-cached-initial": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox TEST",
+        "country": "HU",
+        "qwac_fingerprint": "A0:72:9F:B7:17:66:C7:05:4C:C9:C9:5E:07:86:5B:9F:93:A5:3A:4C:7E:DE:61:D4:8F:8B:F5:AD:68:5C:32:50",
+        "tls_fingerprint": "93:EC:44:07:D9:BB:19:77:23:37:09:3E:8C:4B:1C:96:C4:22:CA:48:BA:5C:76:6D:0B:5D:1E:37:3D:11:3D:BB",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    },
+    "firefox-cached-renewed": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox TEST",
+        "country": "HU",
+        "qwac_fingerprint": "A0:72:9F:B7:17:66:C7:05:4C:C9:C9:5E:07:86:5B:9F:93:A5:3A:4C:7E:DE:61:D4:8F:8B:F5:AD:68:5C:32:50",
+        "tls_fingerprint": "35:C9:9F:ED:74:14:7D:46:6E:CB:A8:66:0F:EA:DA:F1:D6:45:D5:52:8F:27:CB:69:E1:8F:C0:3C:9E:83:A4:C7",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    },
+    "firefox-cached-replacement": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox Replacement TEST",
+        "country": "HU",
+        "qwac_fingerprint": "91:EB:D0:BC:3C:D9:22:12:85:A1:C9:CB:7C:94:C7:95:0F:33:0D:8F:D2:F5:0C:02:0A:0C:E7:FC:30:69:B4:5B",
+        "tls_fingerprint": "35:C9:9F:ED:74:14:7D:46:6E:CB:A8:66:0F:EA:DA:F1:D6:45:D5:52:8F:27:CB:69:E1:8F:C0:3C:9E:83:A4:C7",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    },
+    "firefox-failure-recovery": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox Replacement TEST",
+        "country": "HU",
+        "qwac_fingerprint": "91:EB:D0:BC:3C:D9:22:12:85:A1:C9:CB:7C:94:C7:95:0F:33:0D:8F:D2:F5:0C:02:0A:0C:E7:FC:30:69:B4:5B",
+        "tls_fingerprint": "DB:60:AB:12:65:5F:82:52:84:AB:7A:C0:B1:4B:A0:D9:48:2D:30:D6:9C:B5:4F:00:F8:03:2D:59:40:4D:5A:99",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    },
+    "firefox-initial": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox TEST",
+        "country": "HU",
+        "qwac_fingerprint": "A0:72:9F:B7:17:66:C7:05:4C:C9:C9:5E:07:86:5B:9F:93:A5:3A:4C:7E:DE:61:D4:8F:8B:F5:AD:68:5C:32:50",
+        "tls_fingerprint": "93:EC:44:07:D9:BB:19:77:23:37:09:3E:8C:4B:1C:96:C4:22:CA:48:BA:5C:76:6D:0B:5D:1E:37:3D:11:3D:BB",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    },
+    "firefox-restarted": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Alpha Firefox Replacement TEST",
+        "country": "HU",
+        "qwac_fingerprint": "91:EB:D0:BC:3C:D9:22:12:85:A1:C9:CB:7C:94:C7:95:0F:33:0D:8F:D2:F5:0C:02:0A:0C:E7:FC:30:69:B4:5B",
+        "tls_fingerprint": "35:C9:9F:ED:74:14:7D:46:6E:CB:A8:66:0F:EA:DA:F1:D6:45:D5:52:8F:27:CB:69:E1:8F:C0:3C:9E:83:A4:C7",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      }
+    }
+  }
+}

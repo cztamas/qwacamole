@@ -136,6 +136,8 @@ github.com/cztamas/qwacamole/agent v0.0.0-20261008191952-02f7569a230a h1:PyO+Jt2
 github.com/cztamas/qwacamole/agent v0.0.0-20261008191952-02f7569a230a/go.mod h1:W1j9z2THQAbc3Ca/XAc3eSBaBMf0ykTykfqIFAq2DBs=
 github.com/cztamas/qwacamole/agent v0.0.0-20261008203929-bdd733dc62ab h1:YkbYCBeO+AmHTuHW4lYTWIAJxbLXStcIjiP/v6Z2vuw=
 github.com/cztamas/qwacamole/agent v0.0.0-20261008203929-bdd733dc62ab/go.mod h1:oWtUiiZE1lOUmTEs1rb0j3TKiZE0rMbkaPHvmKIEpE4=
+github.com/cztamas/qwacamole/agent v0.0.0-20261009145422-bb911a8f69a8 h1:N6rR0cVjsGLvbep52UfBh44PxqXJC+uOBznb8aumNVk=
+github.com/cztamas/qwacamole/agent v0.0.0-20261009145422-bb911a8f69a8/go.mod h1:oWtUiiZE1lOUmTEs1rb0j3TKiZE0rMbkaPHvmKIEpE4=
 github.com/cztamas/qwacamole/caddy v0.0.0-20261007200511-2c78d367c557 h1:O8MwoQbbxOjwZHkSprUNiuuAApdldqLQ8NEDLoCw47s=
 github.com/cztamas/qwacamole/caddy v0.0.0-20261007200511-2c78d367c557/go.mod h1:k4Xhy3Nr5gzqxC6Wfmd/D2iSlqFzTylCjj6kH85Mv2o=
 github.com/cztamas/qwacamole/caddy v0.0.0-20261008191952-02f7569a230a h1:qtrN5EFFCa0cJRfX2iqVzSlXibjaPoTEZeCnKON5rVg=
