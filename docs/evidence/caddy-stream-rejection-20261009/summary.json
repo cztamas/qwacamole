@@ -1,0 +1,444 @@
+{
+  "caddy_source": "9322bd566e825a2c2c645e464a630e09d7aa68d6",
+  "caddy_version": "v0.0.0-20261009072701-9322bd566e82",
+  "dependency_metadata_source": "d4489de938fed25df1299d2927165cff41975995",
+  "native_harness_source": "32287d270f45fa596f92846a8bf355476f054e56",
+  "chromium": {
+    "exit_code": 1,
+    "raw_evidence": ".local/review-caddy-chrome-20261009/integration-20261009-092832/evidence",
+    "fixtures": {
+      "ct-required": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "passed": true
+      },
+      "expired-binding": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "error": "BROWSER INCOMPATIBILITY: native verifier accepted expired exp header",
+        "passed": false
+      },
+      "no-qwac-trust": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "passed": true
+      },
+      "no-tls-trust": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "passed": true
+      },
+      "positive": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "passed": true
+      },
+      "qwac-hostname": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "passed": true
+      },
+      "qwac-profile": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "passed": true
+      },
+      "signature": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "passed": true
+      },
+      "tls-expiry": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "passed": true
+      },
+      "tls-hostname": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "passed": true
+      },
+      "wrong-tls": {
+        "browser_version": "Google Chrome 154.0.8037.99 \n",
+        "passed": true
+      }
+    },
+    "integration": {
+      "blocker": "1 native browser acceptance tests failed; see .local/review-caddy-chrome-20261009/integration-20261009-092832/evidence/browser-suite.json",
+      "cached_discovery_after_expiry_renewal_replacement": true,
+      "continuous_http2_through_tls_expiry": true,
+      "independent_refresh": true,
+      "initial_native_verified": true,
+      "negative_suite_passed": false,
+      "profile_unchanged": true,
+      "renewal_failure_gates": true,
+      "renewal_native_verified": true,
+      "replacement_native_verified": true,
+      "restart_recovered": true
+    },
+    "native_phases": {
+      "initial": {
+        "version": "Google Chrome 154.0.8037.99",
+        "valid_native_verdicts": 1,
+        "root_store_versions": [
+          39,
+          1000000
+        ]
+      },
+      "renewed": {
+        "version": "Google Chrome 154.0.8037.99",
+        "valid_native_verdicts": 1,
+        "root_store_versions": [
+          39,
+          1000000
+        ]
+      },
+      "held-through-tls-expiry": {
+        "version": "Google Chrome 154.0.8037.99",
+        "valid_native_verdicts": 14,
+        "root_store_versions": [
+          39,
+          1000000
+        ]
+      },
+      "restarted": {
+        "version": "Google Chrome 154.0.8037.99",
+        "valid_native_verdicts": 1,
+        "root_store_versions": [
+          39,
+          1000000
+        ]
+      },
+      "failure-recovery": {
+        "version": "Google Chrome 154.0.8037.99",
+        "valid_native_verdicts": 1,
+        "root_store_versions": [
+          39,
+          1000000
+        ]
+      }
+    },
+    "cached_native_phases": {
+      "native-chrome-cached-initial": {
+        "version": "Google Chrome 154.0.8037.99",
+        "valid_native_verdicts": 1,
+        "root_store_versions": [
+          39,
+          1000000
+        ],
+        "identity_and_trust": {
+          "owner": [
+            "Qwacamole Synthetic Organization TEST"
+          ],
+          "qwac_id": "bcd1b8608feace928e888ae8ff5f306cb7f00bd2fa5f805548e848fea58db977",
+          "tls_id": "42cc314ac84485706628f7c873ca690e31b38cee9bf4603103c0a898b91fc3b7",
+          "unchanged_trust_sha256": "a09704db6c3935fdcda0315faaa5dd55d3dbd643f980c562b7dc990160a08726"
+        }
+      },
+      "native-chrome-renewed-cached-after-expiry": {
+        "version": "Google Chrome 154.0.8037.99",
+        "valid_native_verdicts": 1,
+        "root_store_versions": [
+          39,
+          1000000
+        ],
+        "identity_and_trust": {
+          "owner": [
+            "Qwacamole Synthetic Organization TEST"
+          ],
+          "qwac_id": "bcd1b8608feace928e888ae8ff5f306cb7f00bd2fa5f805548e848fea58db977",
+          "tls_id": "e4e02666d1230a3d4265af4a1fa3ff3dba45749c9065fb56180c7602635b8800",
+          "unchanged_trust_sha256": "a09704db6c3935fdcda0315faaa5dd55d3dbd643f980c562b7dc990160a08726"
+        }
+      },
+      "native-chrome-replacement-cached-after-expiry": {
+        "version": "Google Chrome 154.0.8037.99",
+        "valid_native_verdicts": 1,
+        "root_store_versions": [
+          39,
+          1000000
+        ],
+        "identity_and_trust": {
+          "owner": [
+            "Alpha Chromium Replacement TEST"
+          ],
+          "qwac_id": "7dd8077ceb4f13b53e22ec287b62cbe8be85aca59d5ccc7b09b665e9846bdddd",
+          "tls_id": "e4e02666d1230a3d4265af4a1fa3ff3dba45749c9065fb56180c7602635b8800",
+          "unchanged_trust_sha256": "a09704db6c3935fdcda0315faaa5dd55d3dbd643f980c562b7dc990160a08726"
+        }
+      }
+    },
+    "held_connection": {
+      "initial_tls_id": "c485a8b17bfe9cdfef44df4cb43cceb6e78a35d9c57a278f220aff0a2d385547",
+      "final_tls_id": "c485a8b17bfe9cdfef44df4cb43cceb6e78a35d9c57a278f220aff0a2d385547",
+      "initial_not_after": "2026-10-09T07:33:24Z",
+      "checked_at": "2026-10-09T09:34:11.026731+02:00"
+    },
+    "held_http2_session": {
+      "session_ids": [
+        125
+      ],
+      "requests": 14,
+      "elapsed_seconds": 272.21,
+      "same_original_session": true
+    },
+    "cache": {
+      "cache-replacement-cached-after-expiry": {
+        "age": "333",
+        "body_sha256": "fad7743b2e7057f9a186b3dad2a9ec37f4d3c7d8c9d09239cb95cdc625aeda80",
+        "cache": "hit",
+        "link": "</bindings/current.jose>; rel=\"tls-certificate-binding\""
+      },
+      "cache-renewed-cached-after-expiry": {
+        "age": "327",
+        "body_sha256": "fad7743b2e7057f9a186b3dad2a9ec37f4d3c7d8c9d09239cb95cdc625aeda80",
+        "cache": "hit",
+        "link": "</bindings/current.jose>; rel=\"tls-certificate-binding\""
+      },
+      "cache-cached-initial": {
+        "age": "0",
+        "body_sha256": "fad7743b2e7057f9a186b3dad2a9ec37f4d3c7d8c9d09239cb95cdc625aeda80",
+        "cache": "miss",
+        "link": "</bindings/current.jose>; rel=\"tls-certificate-binding\""
+      }
+    }
+  },
+  "firefox": {
+    "cached_discovery_after_expiry_renewal_replacement": true,
+    "fixture_checks": 11,
+    "independent_refresh": true,
+    "initial_native_verified": true,
+    "profile_trust_unchanged": true,
+    "renewal_failure_gates": true,
+    "renewal_native_verified": true,
+    "restart_recovered": true,
+    "exit_code": 0,
+    "raw_evidence": ".local/review-caddy-firefox-final-20261009/firefox-integration-1676459367/evidence",
+    "fixtures": {
+      "critical-header": {
+        "browser_version": "157.0.1",
+        "passed": true
+      },
+      "expired-binding": {
+        "browser_version": "157.0.1",
+        "passed": true
+      },
+      "no-qwac-trust": {
+        "browser_version": "157.0.1",
+        "passed": true
+      },
+      "no-tls-trust": {
+        "browser_version": "157.0.1",
+        "passed": true
+      },
+      "positive": {
+        "browser_version": "157.0.1",
+        "passed": true
+      },
+      "qwac-hostname": {
+        "browser_version": "157.0.1",
+        "passed": true
+      },
+      "qwac-profile": {
+        "browser_version": "157.0.1",
+        "passed": true
+      },
+      "signature": {
+        "browser_version": "157.0.1",
+        "passed": true
+      },
+      "tls-expiry": {
+        "browser_version": "157.0.1",
+        "passed": true
+      },
+      "tls-hostname": {
+        "browser_version": "157.0.1",
+        "passed": true
+      },
+      "wrong-tls": {
+        "browser_version": "157.0.1",
+        "passed": true
+      }
+    },
+    "native_phases": {
+      "firefox-cached-initial": {
+        "version": "157.0.1",
+        "accept_insecure_certs": false,
+        "native_ui": {
+          "url": "https://qwac.example.com:8443/cached",
+          "connection": "secure-etsi",
+          "organization": "Alpha Firefox TEST",
+          "country": "HU",
+          "qwac_fingerprint": "52:0C:05:BC:D6:D7:98:83:97:8C:A5:67:A6:7F:82:7F:52:B6:AD:05:B3:27:EE:D1:D6:D8:F6:A7:41:18:EC:E5",
+          "tls_fingerprint": "78:B0:9A:3B:B6:B4:78:9C:23:D9:64:6E:84:B7:9E:BB:0A:CF:00:85:6F:B4:0C:75:14:38:32:DC:3A:71:5E:BF",
+          "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+          "qualified_visible": true,
+          "certificate_overridden": false
+        }
+      },
+      "firefox-cached-renewed": {
+        "version": "157.0.1",
+        "accept_insecure_certs": false,
+        "native_ui": {
+          "url": "https://qwac.example.com:8443/cached",
+          "connection": "secure-etsi",
+          "organization": "Alpha Firefox TEST",
+          "country": "HU",
+          "qwac_fingerprint": "52:0C:05:BC:D6:D7:98:83:97:8C:A5:67:A6:7F:82:7F:52:B6:AD:05:B3:27:EE:D1:D6:D8:F6:A7:41:18:EC:E5",
+          "tls_fingerprint": "3D:28:FD:C6:D8:85:89:25:B6:6C:13:95:F9:9E:A9:0B:10:03:A9:3F:7E:53:19:6D:55:D2:37:A9:26:F6:9A:44",
+          "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+          "qualified_visible": true,
+          "certificate_overridden": false
+        }
+      },
+      "firefox-cached-replacement": {
+        "version": "157.0.1",
+        "accept_insecure_certs": false,
+        "native_ui": {
+          "url": "https://qwac.example.com:8443/cached",
+          "connection": "secure-etsi",
+          "organization": "Alpha Firefox Replacement TEST",
+          "country": "HU",
+          "qwac_fingerprint": "FF:98:02:5D:CA:68:3E:C5:A1:02:3B:C2:73:31:7E:64:93:D6:07:5A:2F:30:D7:83:89:95:20:EB:D2:CB:EE:38",
+          "tls_fingerprint": "3D:28:FD:C6:D8:85:89:25:B6:6C:13:95:F9:9E:A9:0B:10:03:A9:3F:7E:53:19:6D:55:D2:37:A9:26:F6:9A:44",
+          "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+          "qualified_visible": true,
+          "certificate_overridden": false
+        }
+      },
+      "firefox-failure-recovery": {
+        "version": "157.0.1",
+        "accept_insecure_certs": false,
+        "native_ui": {
+          "url": "https://qwac.example.com:8443/cached",
+          "connection": "secure-etsi",
+          "organization": "Alpha Firefox Replacement TEST",
+          "country": "HU",
+          "qwac_fingerprint": "FF:98:02:5D:CA:68:3E:C5:A1:02:3B:C2:73:31:7E:64:93:D6:07:5A:2F:30:D7:83:89:95:20:EB:D2:CB:EE:38",
+          "tls_fingerprint": "64:4B:DB:F1:C0:4E:98:AB:90:56:46:90:6C:2C:EA:D1:E8:14:3C:0A:F9:E2:B9:A1:4A:8B:8D:86:B8:0E:90:CD",
+          "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+          "qualified_visible": true,
+          "certificate_overridden": false
+        }
+      },
+      "firefox-initial": {
+        "version": "157.0.1",
+        "accept_insecure_certs": false,
+        "native_ui": {
+          "url": "https://qwac.example.com:8443/",
+          "connection": "secure-etsi",
+          "organization": "Alpha Firefox TEST",
+          "country": "HU",
+          "qwac_fingerprint": "52:0C:05:BC:D6:D7:98:83:97:8C:A5:67:A6:7F:82:7F:52:B6:AD:05:B3:27:EE:D1:D6:D8:F6:A7:41:18:EC:E5",
+          "tls_fingerprint": "78:B0:9A:3B:B6:B4:78:9C:23:D9:64:6E:84:B7:9E:BB:0A:CF:00:85:6F:B4:0C:75:14:38:32:DC:3A:71:5E:BF",
+          "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+          "qualified_visible": true,
+          "certificate_overridden": false
+        }
+      },
+      "firefox-restarted": {
+        "version": "157.0.1",
+        "accept_insecure_certs": false,
+        "native_ui": {
+          "url": "https://qwac.example.com:8443/cached",
+          "connection": "secure-etsi",
+          "organization": "Alpha Firefox Replacement TEST",
+          "country": "HU",
+          "qwac_fingerprint": "FF:98:02:5D:CA:68:3E:C5:A1:02:3B:C2:73:31:7E:64:93:D6:07:5A:2F:30:D7:83:89:95:20:EB:D2:CB:EE:38",
+          "tls_fingerprint": "3D:28:FD:C6:D8:85:89:25:B6:6C:13:95:F9:9E:A9:0B:10:03:A9:3F:7E:53:19:6D:55:D2:37:A9:26:F6:9A:44",
+          "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+          "qualified_visible": true,
+          "certificate_overridden": false
+        }
+      }
+    }
+  },
+  "remote_runtime": {
+    "checks": [
+      "plugin-only inventory",
+      "all three Caddyfile examples adapt and validate",
+      "invalid syntax, missing trust, inconsistent pairing and bypass policies reject",
+      "first matching wildcard policy cannot bypass issuer gate; unrelated policies remain valid",
+      "legacy numeric JSON duration migration",
+      "real reverse_proxy status/body/streaming and header preservation",
+      "binding GET/HEAD, methods, path validation and no-store isolation",
+      "conditional cache headers and redirect status/location preserved",
+      "real WebSocket upgrade advertises binding and preserves bidirectional traffic",
+      "two real automatic renewals freshly verified while original connection remains bound",
+      "real automatic Pebble renewal and durable binding coverage",
+      "real caching intermediary outlives binding expiry and discovers renewed TLS coverage",
+      "automatic document collection preserves current binding and retained TLS coverage",
+      "three unchanged forced Caddy reloads",
+      "conflicting process rejected by exclusive state lock",
+      "same-key QWAC replacement with stable cached discovery and retained TLS",
+      "same-path QWAC leaf/key replacement under same authority",
+      "unchanged cached Link discovers same-authority QWAC replacement",
+      "invalid credentials and inconsistent config reloads reject; old application remains active",
+      "actual QWAC expiry rejects delayed response, WebSocket upgrade and fresh handshake",
+      "restored QWAC inputs recover verified Caddy service without process restart",
+      "real process restart and recovered binding history",
+      "real file_server application and reachable binding endpoints",
+      "two independent protected sites alongside unchanged unprotected site",
+      "Caddy error-handler status/body/application headers with paired binding middleware",
+      "full process stop/offline state archive retains TLS storage and rebuilds current coverage"
+    ],
+    "error": "<nil>",
+    "plugin_binary": "/Users/cztamas/.codex/worktrees/b54b/qwacamole/bin/caddy-remote",
+    "exit_code": 0,
+    "raw_evidence": ".local/review-remote-caddy-20261009/plugin-smoke-1319716557/evidence",
+    "repeated_renewal_held": {
+      "held_tls_id": "d28c2a9c5922cdf4294fa882a0e6b6ed5febf3faf795547795b42954cb3499ca",
+      "renewals": 2,
+      "retained_certificates": 3,
+      "same_held_connection": true,
+      "served_tls_ids": [
+        "d28c2a9c5922cdf4294fa882a0e6b6ed5febf3faf795547795b42954cb3499ca",
+        "038fc00acfac15346ddbdd5fd02e35213ed70353b954a99e30983a4ee0ab0030",
+        "6b8aa7da1338f8fc9a2666927aee3eebd25648717fce216ec88cd9e2d4fc98c1"
+      ]
+    }
+  },
+  "remote_installation": {
+    "resolved_commit": "9322bd566e825a2c2c645e464a630e09d7aa68d6",
+    "version": "v0.0.0-20261009072701-9322bd566e82",
+    "gowork": "off",
+    "replacements": false,
+    "devtools": false,
+    "fresh_caches": true,
+    "core_version": "v0.0.0-20261008203612-8e62f4b8c340"
+  },
+  "checks": {
+    "before_fix": {
+      "cases": 4,
+      "intended_failure": "rejected unbounded response did not complete promptly",
+      "raw_log": ".local/evidence/review-stream-rejection-before.log"
+    },
+    "focused_races": {
+      "exit_code": 0,
+      "raw_log": ".local/evidence/review-stream-rejection-after.log"
+    },
+    "workspace_races_and_boundaries": {
+      "command": "make test",
+      "exit_code": 0,
+      "raw_log": ".local/evidence/review-stream-required.log"
+    },
+    "independent_races": {
+      "command": "scripts/check-independent-modules.sh",
+      "exit_code": 0,
+      "raw_log": ".local/evidence/review-stream-independent-final.log"
+    },
+    "build": {
+      "command": "make build plugin-build",
+      "exit_code": 0,
+      "raw_log": ".local/evidence/review-stream-build.log"
+    }
+  },
+  "binaries": {
+    "bin/caddy": {
+      "sha256": "c8c80a68c19d37cc060389a615f1f505c83da8d596341af46bba3ae0af95a557",
+      "bytes": 42409394
+    },
+    "bin/caddy-plugin": {
+      "sha256": "f81ae96e007536580e8b8209b96b5d553fd132ac80ca2f56b55da6d0218d8cd7",
+      "bytes": 42392514
+    },
+    "bin/caddy-remote": {
+      "sha256": "8ad04d2793223bdb62b3fb5c8a913cd1953ac70b3f458034df3b104b81c7c4c0",
+      "bytes": 42392514
+    },
+    "bin/qwacamole": {
+      "sha256": "92a95e5b0d3005c261ed636f40d47d32ab57974c39d7634c48333db0deaa523c",
+      "bytes": 15785010
+    }
+  }
+}
