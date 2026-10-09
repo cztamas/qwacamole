@@ -6,9 +6,9 @@ installation. Shared signing, durable publication and lifecycle policy gate TLS
 activation and protected responses. Credential preparation, inspection and import
 use the production `qwacamole-agent` CLI.
 
-This is an **experimental, unpublished alpha**. The repository is private;
-licensing, visibility and publication require owner approval. The proposed
-`0.1.0-alpha.1` has not been tagged or released. Configured authority-chain trust
+This is an **experimental, unpublished alpha**. The repository is private.
+Original project code is MIT licensed; visibility and publication require owner
+approval. The proposed `0.1.0-alpha.1` has not been tagged or released. Configured authority-chain trust
 does not establish EU trusted-list qualification, revocation status or browser
 trust. Synthetic demonstrations make no legal identity claim.
 
@@ -57,7 +57,8 @@ resolves `v0.0.0-20261009145422-bb911a8f69a8`; Caddy resolves
 file ownership, service startup, status, updates and rollback.
 
 The release plan provides Linux amd64, Linux arm64 and macOS arm64 agent archives.
-Candidate packages are private review artifacts with unapproved licence proposals.
+Candidate packages are private review artifacts carrying the selected MIT license
+and third-party notices; publication approval remains pending.
 After publication, use [the packaged installation procedure](docs/agent-nginx.md#packaged-agent)
 with the matching target, SHA256SUMS, manifest and `version` identity. Nginx and
 Certbot remain external dependencies. Caddy distribution uses the module and
@@ -102,8 +103,8 @@ three nested modules. Generated keys, profiles and raw logs stay ignored.
 [The alpha checklist](docs/alpha-release.md) defines support, separate module tags,
 licensing/security prerequisites, candidate packaging and the exact manual
 publication sequence. [Draft release notes](docs/release-notes-alpha.md) describe
-the proposed first alpha. [Licensing recommendation and inventory](docs/licensing.md)
-require owner review. [SECURITY.md](SECURITY.md) describes current reporting limits.
+the proposed first alpha. [Licensing and attribution inventory](docs/licensing.md)
+describes MIT and the retained third-party notices. [SECURITY.md](SECURITY.md) describes current reporting limits.
 
 The [9 October release-preparation report](docs/evidence-release-preparation-20261009.md)
 records newly executed checks separately from inherited evidence. Previous dated

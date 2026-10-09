@@ -20,7 +20,7 @@ class Packages(unittest.TestCase):
                          "go_experiment": "nojsonv2", "cgo_enabled": False, "candidate": True, "archives": []}
         for goos, arch in r.TARGETS:
             prefix = f"qwacamole-agent-0.1.0-alpha.1-{goos}-{arch}"
-            files = {n: (n.encode(), 0o644) for n in ("LICENSE-PROPOSAL.txt", "NOTICE-PROPOSAL.txt", "GO-NOTICES.txt", "INSTALL.txt")}
+            files = {n: (n.encode(), 0o644) for n in ("LICENSE", "NOTICE", "GO-NOTICES.txt", "INSTALL.txt")}
             files["qwacamole-agent"] = (b"fake non-executable test binary", 0o755)
             data = r.archive_bytes(prefix, files)
             (self.directory / (prefix + ".tar.gz")).write_bytes(data)
@@ -93,6 +93,18 @@ class Packages(unittest.TestCase):
             (self.directory / name).write_text("draft")
         with self.assertRaisesRegex(ValueError, "approval missing"):
             r.legal_files(self.directory, approved=True)
+
+    def test_selected_license_in_candidate_does_not_approve_publication(self):
+        release = self.directory / "release"
+        release.mkdir()
+        policy = '{"approved": false}'
+        (release / "publication.json").write_text(policy)
+        for name in ("LICENSE", "NOTICE"):
+            (self.directory / name).write_text("selected " + name)
+        self.assertEqual(set(r.legal_files(self.directory, approved=False)), {"LICENSE", "NOTICE"})
+        with self.assertRaisesRegex(ValueError, "approval missing"):
+            r.legal_files(self.directory, approved=True)
+        self.assertEqual((release / "publication.json").read_text(), policy)
 
 
 if __name__ == "__main__":

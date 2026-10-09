@@ -1,8 +1,10 @@
 # Contributing
 
-This repository is preparing an unpublished public alpha. Repository visibility,
-licensing and release publication are owner decisions still outstanding. Do not
-assume an open-source license or publish packages/tags on the project's behalf.
+This repository is preparing an unpublished public alpha. Original project code
+and documentation use the MIT License; third-party
+material retains its own licences/notices. Repository visibility and release
+publication remain owner decisions. Do not publish packages/tags on the project's
+behalf.
 
 Use a feature branch. Keep core (`credentials`, `profile`, `binding`, `store`,
 `lifecycle`, `bindinghttp`)

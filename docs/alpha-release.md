@@ -1,7 +1,7 @@
 # Proposed 0.1.0-alpha.1 release contract and maintainer checklist
 
 This PR prepares an alpha; it publishes nothing. Owner approval is still needed
-for the version, licence, copyright wording, visibility, reporting channel and
+for the version, visibility, reporting channel and
 publication timing. No proposed tag exists merely because it is described here.
 
 ## Components and support
@@ -63,8 +63,9 @@ python3 scripts/release-agent.py verify .local/new-candidate --smoke --require-n
 
 The output contains three deterministic archives, `manifest.json` and
 `SHA256SUMS`. Each archive contains only the agent, install instructions, project
-legal documents and Go runtime/standard-library notices. Candidate legal documents
-are unapproved proposals; this does not authorize distribution. Build metadata
+legal documents and Go runtime/standard-library notices. Candidates carry the
+selected MIT LICENSE and project/Go notices; this does not approve release
+publication. Build metadata
 records actual source, core module version, target, exact Go runtime version,
 toolchain and experiment, with no build timestamp. Files are 0755 for the binary,
 0644 for documents; tar ownership/time and gzip time are normalized. Build twice
@@ -99,10 +100,10 @@ commands from inherited reports:
 ## Owner prerequisites before public launch
 
 - [ ] Approve version/support scope and publication timing.
-- [ ] Review [licensing inventory/proposal](licensing.md); select a licence and
-  verify ownership/third-party notices. Install approved root LICENSE and NOTICE,
-  and copies in nested production modules for their module archives. Replace
-  proposals in release artifacts only after approval.
+- [x] Select MIT and install matching LICENSE/NOTICE files at root and in nested
+  modules. See [licensing inventory](licensing.md).
+- [ ] Review ownership/third-party notices for the final release and verify the
+  legal-file copies and recorded hashes still match.
 - [ ] Review [tracked-content/history audit](evidence-release-preparation-20261009.md).
   Resolve concrete findings before changing visibility; no history rewrite is
   performed by this task.

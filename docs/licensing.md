@@ -1,17 +1,21 @@
-# Licensing recommendation and attribution inventory
+# MIT licensing and attribution inventory
 
-No project licence is selected. Recommend **Apache-2.0** for owner review: it
-provides permissive copyright terms and an explicit contributor patent grant,
-with redistribution/notice requirements. The proposal is not an approval or a
-project licence grant. Review ownership and contribution rights before adoption.
-[Apache's licence text](https://www.apache.org/licenses/LICENSE-2.0) describes those
-terms. `release/LICENSE-PROPOSAL.txt` contains the full text with an unapproved
-preamble; `release/NOTICE-PROPOSAL.txt` is a draft notice, not settled copyright
-wording. Root LICENSE/NOTICE are intentionally absent until owner approval.
+The owner selected the standard **MIT License** on 9 October 2026. Root
+`LICENSE` contains its unmodified terms with `Copyright (c) 2026 Czank Tamás`;
+identical LICENSE/NOTICE copies accompany the agent, Caddy and devtools modules.
+[The standard MIT text](https://opensource.org/license/mit) is the reference.
+Third-party material retains its existing licences and attribution.
+
+License selection is separate from repository visibility and release publication.
+Candidate packages include the selected LICENSE/NOTICE, but
+`release/publication.json` remains `approved: false` until the remaining release
+prerequisites are approved. Its legal-file hashes now identify the selected files.
+Earlier candidate manifests/reports describe the former Apache proposal at older
+commits; they remain historical evidence.
 
 | Material | Current scope | Attribution/release action |
 | --- | --- | --- |
-| Project core/agent/Caddy code and docs | Owner's unlicensed private source | Owner selects licence, copyright holders and contribution treatment; add approved LICENSE/NOTICE to root and nested production module archives |
+| Original project core/agent/Caddy/devtools code and docs | MIT | Preserve LICENSE/copyright notice in distributions; module copies match root |
 | Go runtime and standard library | Linked into agent | BSD-style Go LICENSE and PATENTS, plus vendored standard-library licences; packager copies complete texts from the exact toolchain into GO-NOTICES.txt |
 | Caddy 2.10.2 / CertMagic 0.24.0 / dependencies | Installed by operator's xcaddy build | Apache-2.0 for those projects; retain their and transitive dependencies' own notices in any downstream custom distribution. This PR distributes no prebuilt custom Caddy or copied dependency source |
 | Nginx / Certbot / Pebble / browser tools | External runtime or development prerequisites | Their licences remain with separately installed packages; none is bundled in agent archives |
@@ -24,7 +28,7 @@ constants; it is not an accidentally published private production key. The
 [fixture README](../devtools/internal/pki/firefox-fixtures/README.md) records exact
 source URLs, certificate/public-key fingerprints and its 5 February 2027 expiry.
 Keep these notices beside the covered files and the public source available on
-publication; do not relabel them Apache-2.0. Mozilla's
+publication; do not relabel them MIT. Mozilla's
 [MPL text](https://www.mozilla.org/MPL/2.0/) explains covered source requirements.
 
 The four Go manifests/checksums identify fetched dependencies; the core and
@@ -34,9 +38,8 @@ bundled devtools product requires its own full transitive notice inventory; this
 release does neither. The candidate manifest and binary dependency check enforce
 that distinction.
 
-Before publication, the owner must approve actual root LICENSE/NOTICE, review
-third-party source notices, record the decision URL and legal-file hashes in
-`release/publication.json`, and review the tracked-content/history report. The
-publication script requires those exact approved files; it will not promote a
-proposal automatically. Choosing Apache-2.0 must not be interpreted as legal
-qualification of any QWAC or a production support promise.
+Before publication, review third-party notices and the tracked-content/history
+report, record the release approval URL in `release/publication.json`, and verify
+its LICENSE/NOTICE hashes still match. The publication script continues to require
+explicit release approval and the other security/source/CI gates. Adopting MIT
+does not establish legal qualification of a QWAC or a production support promise.

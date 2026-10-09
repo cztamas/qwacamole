@@ -103,7 +103,8 @@ sudo install -m 0755 ./qwacamole-agent-0.1.0-alpha.1-darwin-arm64/qwacamole-agen
 For Linux substitute `linux-amd64` or `linux-arm64` in both archive and extracted
 directory names. The archive contains only `qwacamole-agent`, `INSTALL.txt`,
 `LICENSE`, `NOTICE` and `GO-NOTICES.txt` under that version/target directory.
-Candidates instead contain unapproved `*-PROPOSAL.txt` legal files. Check checksum
+Current candidates contain the same selected LICENSE/NOTICE files but remain
+unapproved for publication. Check checksum
 lines exist for both downloaded files and compare manifest source/core/target
 identity with `version -json` and the reviewed release record. Matching checksums
 prove integrity, not an independent signing identity. Retain licence/notices and

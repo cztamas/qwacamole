@@ -1,0 +1,12 @@
+qwacamole
+Copyright (c) 2026 Czank Tamás
+Project code and documentation are licensed under MIT; see LICENSE.
+Third-party material retains its own licence and notices.
+
+The agent links Go runtime/standard-library code. GO-NOTICES.txt in agent
+packages contains the toolchain licence, patent notice and vendored
+standard-library notices. Nginx, Certbot and Caddy are external dependencies.
+
+Mozilla fixtures in devtools/internal/pki/firefox-fixtures remain MPL-2.0,
+with their README, NOTICE and MPL-2.0.txt preserved. Mozilla fixtures and all
+other devtools are excluded from production agent packages.

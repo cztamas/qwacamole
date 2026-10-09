@@ -1,6 +1,6 @@
 # qwacamole 0.1.0-alpha.1 — proposed, unpublished
 
-This is a review draft, not a release announcement. Version, licence, visibility,
+This is a review draft, not a release announcement. Original project code is MIT licensed. Version, visibility,
 security reporting and publication require owner approval. The
 [maintainer checklist](alpha-release.md) defines the exact future source/tag
 sequence. Finalize the approved generic notes before selecting E; the publication

@@ -33,11 +33,15 @@ def validate_identity(version, source):
 
 
 def legal_files(source, approved):
-    if not approved:
+    # Retain the ability to rebuild historical, pre-license review sources.
+    # Current candidates carry the selected license without approving a release.
+    if not approved and not (source / "LICENSE").exists():
         return {"LICENSE-PROPOSAL.txt": (source / "release/LICENSE-PROPOSAL.txt").read_bytes(),
                 "NOTICE-PROPOSAL.txt": (source / "release/NOTICE-PROPOSAL.txt").read_bytes()}
-    decision = json.loads((source / "release/publication.json").read_text())
     files = {name: (source / name).read_bytes() for name in ("LICENSE", "NOTICE")}
+    if not approved:
+        return files
+    decision = json.loads((source / "release/publication.json").read_text())
     if decision.get("approved") is not True or not str(decision.get("owner_decision_url") or "").startswith("https://"):
         raise ValueError("owner licensing/publication approval missing")
     for name, data in files.items():
@@ -108,7 +112,7 @@ def build(args):
                 raise ValueError("production package dependency boundary violated")
             prefix = f"qwacamole-agent-{args.version}-{goos}-{goarch}"
             install = (f"qwacamole-agent {args.version}\nSource: {args.source}\nTarget: {goos}/{goarch}\n"
-                       + ("PRIVATE REVIEW CANDIDATE: licensing/publication pending.\n" if not args.approved else "Owner-approved release artifact.\n")
+                       + ("PRIVATE REVIEW CANDIDATE: publication approval pending.\n" if not args.approved else "Owner-approved release artifact.\n")
                        + "Verify SHA256SUMS and manifest.json before installing.\n"
                        "Install only the matching target executable into your managed PATH; run\n"
                        "qwacamole-agent version -json before configuring credentials or deployment.\n"
@@ -153,7 +157,11 @@ def verify(output, smoke=False, require_native=False):
     if (output / "SHA256SUMS").read_text() != expected_sums:
         raise ValueError("checksum set mismatch")
     native = ("darwin" if platform.system() == "Darwin" else "linux", {"aarch64": "arm64", "arm64": "arm64", "x86_64": "amd64"}.get(platform.machine()))
-    legal = {"LICENSE-PROPOSAL.txt", "NOTICE-PROPOSAL.txt"} if manifest["candidate"] else {"LICENSE", "NOTICE"}
+    legal = {"LICENSE", "NOTICE"}
+    # Historical pre-license candidates remain verifiable; release artifacts
+    # must always contain the selected LICENSE/NOTICE.
+    if manifest["candidate"] and "LICENSE-PROPOSAL.txt" in manifest["archives"][0]["files"]:
+        legal = {"LICENSE-PROPOSAL.txt", "NOTICE-PROPOSAL.txt"}
     expected_files = legal | {"qwacamole-agent", "GO-NOTICES.txt", "INSTALL.txt"}
     ran_native = False
     for a in manifest["archives"]:

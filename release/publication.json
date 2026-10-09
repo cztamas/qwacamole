@@ -1,8 +1,8 @@
 {
   "approved": false,
   "owner_decision_url": null,
-  "license_sha256": null,
-  "notice_sha256": null,
+  "license_sha256": "c6faceffe9385fd92b42c46c311627fb40e5805d4fc22f339dc62517317dcbd4",
+  "notice_sha256": "9dc048531d1ebc02d6135c4b197174f769d2376cdd68500635389fef32561fec",
   "confidential_reporting_url": null,
   "version": "0.1.0-alpha.1"
 }
