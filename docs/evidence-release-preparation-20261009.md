@@ -1,5 +1,10 @@
 # Alpha release preparation — 9 October 2026
 
+The original snapshot below records pre-MIT engineering preparation. Its legal
+proposal and sixteen-test count are historical; see the
+[final-state addendum](#final-state-addendum-mit-and-publication-review) for the
+selected licence and later validation.
+
 Baseline is merged main `08872250a0813f232faaca9794a9e5b481b4d19b`.
 Release branch: `codex/public-alpha-release`; review PR:
 https://github.com/cztamas/qwacamole/pull/7. This report records newly executed
@@ -179,3 +184,57 @@ approved-source CI/native/public installation and publication. The anonymous
 verifier is prepared and strips credentials/private overrides/workspaces; no
 successful anonymous installation is claimed. No merge, release, release tag,
 visibility change, Caddy registration or website deployment occurred in this task.
+
+
+## Final-state addendum: MIT and publication review
+
+The owner selected standard MIT on 9 October 2026. Commit
+`212492497c3be3f4789e470f5b7683d6d70dbb92` installs matching LICENSE/NOTICE files
+at root and in agent/Caddy/devtools, removes the Apache proposal files, updates
+operator documentation and records the actual legal-file hashes. Mozilla's MPL
+fixture and Go/transitive attribution remain intact. See [licensing](licensing.md).
+The older manifest/checksum evidence above intentionally still describes its
+original pre-MIT source; it is not the current candidate or licence decision.
+
+The MIT change passed **17 release-tool tests** and these source-matched workflows:
+
+| Workflow at 2124924 | Result and retained metadata |
+| --- | --- |
+| [Candidate packages 37960638428](https://github.com/cztamas/qwacamole/actions/runs/37960638428) | Success; extracted Linux amd64 and macOS arm64 verification, [full steps](evidence/release-preparation-20261009/mit-hosted-candidate.json) |
+| [Portable integration 37960638400](https://github.com/cztamas/qwacamole/actions/runs/37960638400) | Success; four-module races/independence/boundaries, production builds and all Caddy/default/custom/upgrade Nginx integration checks, [full steps](evidence/release-preparation-20261009/mit-hosted-go.json) |
+
+All three MIT archives were checked for exact LICENSE/NOTICE bytes. Their Linux
+CI checksum set matched the macOS local rebuild; the extracted macOS binary
+reported source 2124924 and the expected core/toolchain/target. These are review
+candidates (`candidate: true`); licence selection did not approve publication.
+
+The subsequent review follow-up adds eight complete-path tests, bringing the
+local release-tool total to **25 passing tests**. They execute the real gate,
+legal-file hashes/copies, tag resolution, CI selection and archive verification;
+only external Git/GitHub/build execution and native version execution are mocked.
+Coverage includes successful approved gate/preflight, one explicit verified-tag
+release creation, reviewed manifest mismatch, corrupted archive, independent
+rebuild mismatch, an existing draft release on a later API page, and HTTP 403/500
+failures without retries or publication. The no-`--publish` test renders complete
+identity without changing the source notes or creating a release. Raw local log:
+`.local/evidence/release-preparation-20261009/publication-review-tests.log`.
+These tests are synthetic and do not claim a successful live approved release.
+
+GitHub's current documentation specifies **Actions: read** for
+[get environment](https://docs.github.com/en/rest/deployments/environments#get-an-environment)
+and [list deployment policies](https://docs.github.com/en/rest/deployments/branch-policies#list-deployment-branch-policies),
+and **Metadata: read** for
+[private-reporting status](https://docs.github.com/en/rest/repos/repos#check-if-private-vulnerability-reporting-is-enabled-for-a-repository).
+The publication workflow grants Actions: read; the claimed additional
+administration token is not established by those read-endpoint requirements.
+Workflow permissions remain unchanged. Documentation is not live workflow-token
+proof; the approved-source preflight remains a launch gate.
+
+`release/publication.json` remains `approved: false`; the release source is not
+merged and the three release tags/public-launch prerequisites do not yet exist.
+A successful approved live preflight therefore cannot be claimed now. Before
+launch, follow the exact C/D/E sequence, then run the documented CLI **without
+`--publish`** against clean approved E and its reviewed artifact/run/digest,
+using the intended release credential. Require all live API/source/rebuild checks
+and rendered identity to pass before the separately approved publishing action.
+No approval, tag, repository visibility or reporting setting was changed here.

@@ -165,7 +165,9 @@ The two distributed production source identities are **C** (core) and **E**
    external runtime tools, but is not part of the anonymous installers. Private
    repository authentication never satisfies this public gate. Repeat all native
    acceptance against final production sources as recorded in the release ledger.
-7. Run the publication script without `--publish` to review its rendered notes.
+7. Run the live publication preflight **without `--publish`**, using the intended
+   release credential, and require every API/source/artifact check to pass before
+   reviewing its rendered notes. Record the source/run/digest and result.
    The approved generic notes must already be committed at E; the script appends
    actual C/E SHAs, reviewed manifest digest and run ID from verified inputs.
    GitHub's automatic source archives follow root tag C; nested module installs
