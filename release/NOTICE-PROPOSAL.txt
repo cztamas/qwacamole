@@ -1,0 +1,9 @@
+qwacamole - unapproved alpha release candidate
+
+Project licence and copyright holder wording require owner approval.
+The proposed Apache-2.0 text does not grant a project licence.
+
+The agent links Go runtime/standard-library code. GO-NOTICES.txt contains
+the toolchain licence, patent notice and vendored standard-library notices.
+Nginx, Certbot and Caddy are external dependencies, not bundled here.
+Mozilla fixtures and all devtools are excluded from production packages.

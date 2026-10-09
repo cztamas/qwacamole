@@ -24,10 +24,12 @@ func main() {
 }
 func run() error {
 	if len(os.Args) < 2 {
-		return fmt.Errorf("usage: qwacamole-agent keygen|csr|inspect-qwac|import-qwac [credential flags], or validate|render-nginx|serve|deploy|certbot-hook|replace-qwac|reconcile|status|check|migrate -config FILE")
+		return fmt.Errorf("usage: qwacamole-agent version [-json], keygen|csr|inspect-qwac|import-qwac [credential flags], or validate|render-nginx|serve|deploy|certbot-hook|replace-qwac|reconcile|status|check|migrate -config FILE")
 	}
 	cmd := os.Args[1]
 	switch cmd {
+	case "version":
+		return versionCommand(os.Args[2:], os.Stdout)
 	case "keygen", "csr", "inspect-qwac", "import-qwac":
 		return credentialCommand(cmd, os.Args[2:], os.Stdout)
 	}
