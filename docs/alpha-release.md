@@ -134,8 +134,9 @@ The two distributed production source identities are **C** (core) and **E**
    to the actual root `v0.1.0-alpha.1`, tidy GOWORK=off, run workspace and
    independent checks, commit/push **D**. Resolve the agent/Caddy pseudo-versions
    at D remotely; do not guess timestamps or SHA suffixes.
-3. Pin devtools to those real D versions, tidy, update the source ledger and
-   commit/push **E**. Verify `git diff D E -- agent caddy` is empty, so independent
+3. Pin devtools to those real D versions, tidy, finalize the generic approved
+   release notes (remove draft/private-candidate wording) and update the source ledger;
+   then commit/push **E**. Verify `git diff D E -- agent caddy` is empty, so independent
    tests consume identical production modules. Run all required checks/native
    acceptance at the selected sources; prepare candidate artifacts at E. Core
    remains C; the package binary stamps E, with core version `v0.1.0-alpha.1`.
@@ -163,8 +164,11 @@ The two distributed production source identities are **C** (core) and **E**
    external runtime tools, but is not part of the anonymous installers. Private
    repository authentication never satisfies this public gate. Repeat all native
    acceptance against final production sources as recorded in the release ledger.
-7. Finalize release notes with actual C/E SHAs, candidate manifest/checksum and
-   run IDs, tested runtime targets and unresolved limits. Manually dispatch
+7. Run the publication script without `--publish` to review its rendered notes.
+   The approved generic notes must already be committed at E; the script appends
+   actual C/E SHAs, reviewed manifest digest and run ID from verified inputs.
+   Do not edit/retag E to put its own SHA or later CI run ID into its source.
+   Confirm tested runtime targets and unresolved limits. Manually dispatch
    `Publish owner-approved alpha` **from main**, supplying version, E, successful
    candidate run ID and owner-reviewed manifest SHA256. The script rejects missing
    approval/security/public availability, wrong tags/pins/source, dirty checkout,

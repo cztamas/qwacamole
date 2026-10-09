@@ -162,8 +162,10 @@ automatic enrollment are not supported. The supported certificate profile is
 QC compliance/web-type statements, SAN, AIA and CRL metadata. Presence of those
 fields does not establish revocation freshness or legal qualification.
 
-The binding lifetime defaults to **1h**, minimum **3s**. It is capped by the earliest QWAC-chain
-expiry, not TLS-leaf expiry: authenticated held connections retain TLS coverage. Refresh uses actual signed expiry,
+The binding lifetime defaults to **1h**, minimum **3s**. It is capped by the
+earliest QWAC-chain expiry and the latest retained TLS leaf expiry. Older TLS
+leaves stay covered for authenticated held connections alongside renewed leaves.
+Refresh uses actual signed expiry,
 with a default margin of one third of the configured/effective lifetime. JSON
 accepts readable durations or legacy numeric nanoseconds. See the
 [operational policy](operations.md) for limits, diagnostics and offline retirement.

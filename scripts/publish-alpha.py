@@ -46,6 +46,16 @@ def validate_environment(environment, branches):
             "publication environment must allow only main, no tags or wildcards")
 
 
+def render_notes(template, version, root_source, source, manifest_sha256, candidate_run):
+    # The source cannot contain its own final commit hash. Resolve identity in
+    # the release body from the verified manifest/tags, never by editing the
+    # clean selected source after building or retagging it.
+    return template.rstrip() + ("\n\n## Verified release identity\n\n"
+        f"Version: `{version}`. Core source: `{root_source}`. Agent/Caddy source: `{source}`.\n\n"
+        f"Reviewed manifest SHA256: `{manifest_sha256}`. Candidate run: "
+        f"https://github.com/{REPO}/actions/runs/{candidate_run}.\n")
+
+
 def gate(args):
     packages.validate_identity(args.version, args.source)
     require(run("git", "rev-parse", "HEAD") == args.source, "checkout must match selected source exactly")
@@ -116,12 +126,20 @@ def main():
     args = p.parse_args()
     require(re.fullmatch(r"[0-9a-f]{64}", args.manifest_sha256), "reviewed manifest SHA256 required")
     manifest, root_source = gate(args)
+    notes = render_notes((ROOT / "docs/release-notes-alpha.md").read_text(), args.version,
+                         root_source, args.source, args.manifest_sha256, args.candidate_run)
+    if not args.publish:
+        print(notes)
     if args.publish:
         files = [str(p) for p in sorted(Path(args.directory).iterdir())]
         # --verify-tag forbids accidental tag creation. No --clobber, tag push,
         # release editing or retry on an uncertain write. Inspect before retry.
-        subprocess.check_call(["gh", "release", "create", "v" + args.version, "--repo", REPO, "--verify-tag", "--prerelease",
-            "--title", "qwacamole " + args.version, "--notes-file", str(ROOT / "docs/release-notes-alpha.md"), *files], cwd=ROOT)
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md") as notes_file:
+            notes_file.write(notes)
+            notes_file.flush()
+            subprocess.check_call(["gh", "release", "create", "v" + args.version, "--repo", REPO, "--verify-tag", "--prerelease",
+                "--title", "qwacamole " + args.version, "--notes-file", notes_file.name, *files], cwd=ROOT)
         print("Published approved prerelease; core source", root_source, "agent/Caddy source", args.source)
 
 

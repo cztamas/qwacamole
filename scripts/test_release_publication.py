@@ -17,6 +17,14 @@ public = load("check_public_install", "check-public-install.py")
 
 
 class Publication(unittest.TestCase):
+    def test_release_notes_resolve_identity_without_changing_source(self):
+        template = "# Approved alpha\n\nOperator behavior and limits.\n"
+        result = publish.render_notes(template, "0.1.0-alpha.1", "b" * 40, "a" * 40, "c" * 64, 123)
+        self.assertIn(template.rstrip(), result)
+        for value in ("b" * 40, "a" * 40, "c" * 64, "/actions/runs/123"):
+            self.assertIn(value, result)
+        self.assertEqual(template, "# Approved alpha\n\nOperator behavior and limits.\n")
+
     def test_publication_environment_cannot_be_only_a_name(self):
         environment = {"protection_rules": [{"type": "required_reviewers", "reviewers": [{"type": "User"}]}],
                        "deployment_branch_policy": {"custom_branch_policies": True, "protected_branches": False}}
