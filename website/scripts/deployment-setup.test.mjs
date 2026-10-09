@@ -15,7 +15,7 @@ test('default disabled, enabled requires every setting and main-only event', () 
 });
 test('workflow watches every shared build input for both push and PR', () => {
   const workflow = readFileSync('../.github/workflows/website.yml', 'utf8');
-  for (const input of [...Object.keys(documents), ...assets]) {
+  for (const input of [...Object.keys(documents), ...assets, 'scripts/start-website.sh']) {
     assert.equal(workflow.split("'" + input + "'").length - 1, 2, input + ' must be watched for PR and main push');
   }
 });

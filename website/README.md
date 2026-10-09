@@ -1,23 +1,66 @@
 # Qwacamole website
 
 Static Astro 7 + Starlight, with Node **24.21.0** (supported Node 24 LTS), npm
-lockfile and pinned Wrangler. Use fnm/nvm with .node-version/.nvmrc. No Go,
+lockfile and pinned Wrangler. No Go,
 browser, PKI, key or Cloudflare credential is needed for dev/check/build/preview.
 The bundled npm 11 policy allows only the pinned esbuild/workerd binary setup
 scripts; the optional fsevents installation hook is disabled.
 
+## Install and start locally
+
+From the repository root, using your installed fnm Node version manager:
+
 ```sh
-cd website
-npm ci
-npm run dev           # http://127.0.0.1:4321
-npm run check         # Astro/TypeScript + focused sharing/deployment tests
-npm run build         # static dist/, search index, identity + internal link checks
-npm run preview       # production output on loopback
+fnm install 24.21.0
+fnm use 24.21.0
+npm --prefix website ci
+./scripts/start-website.sh
 ```
+
+If you use nvm instead, the equivalent Node setup is `nvm install 24.21.0` and
+`nvm use 24.21.0`. The version files in website/ pin the same release. Node's
+distribution supplies npm; no global Astro install is needed.
+
+Open **http://127.0.0.1:4321/**. The server stays in the foreground. **Ctrl+C**
+stops it and releases the port. Editing website files or canonical shared
+Markdown/assets triggers live reload. After fixing an invalid Markdown save,
+the watcher recovers without restarting. Dependencies are installed separately;
+the script prints exact setup commands and exits if Node/dependencies are missing.
+
+Choose another localhost port with either form (the flag takes precedence):
+
+```sh
+./scripts/start-website.sh --port 4400
+PORT=4400 ./scripts/start-website.sh
+```
+
+Paths resolve relative to the script, so an absolute invocation such as
+`/path/to/qwacamole/scripts/start-website.sh --port 4400` works from another
+directory. An occupied port fails rather than silently selecting a different
+URL. The script needs no Go services, Cloudflare credentials or deployment setup.
+
+## Check and preview the production build
+
+From the repository root:
+
+```sh
+npm --prefix website run check
+npm --prefix website run build
+npm --prefix website run preview
+```
+
+Browse http://127.0.0.1:4321/ and stop with **Ctrl+C**. Stop the dev server first,
+or use `npm --prefix website run preview -- --port 4400 --ignore-lock`.
+Preview serves the static build; rebuild to include edits. Pagefind search works
+in production preview; Starlight's dev server explains that search requires a
+built site. Review responsive layout/live edits with the start script and verify
+search with the production preview. Checks/build/preview also require no Go or
+Cloudflare configuration.
 
 Browser verification is a separate optional local prerequisite:
 
 ```sh
+cd website
 npx --no-install playwright install chromium
 npm run test:browser
 ```

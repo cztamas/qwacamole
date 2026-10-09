@@ -105,8 +105,14 @@ three nested modules. Generated keys, profiles and raw logs stay ignored.
 ## Release preparation and evidence
 
 The static documentation website is isolated under [website/](website/README.md):
-Node 24.21.0, `npm ci`, `npm run check`, `npm run build` and
-`npm run dev`. It renders the same operator Markdown used here, with static
+install Node 24.21.0 and run `npm --prefix website ci`, then start it from the
+repository root with `./scripts/start-website.sh`. Browse
+`http://127.0.0.1:4321/`; stop with Ctrl+C. Use `--port 4400` or `PORT=4400`
+to select another localhost port. The script also works from another directory.
+For a production preview, run `npm --prefix website run build`, then
+`npm --prefix website run preview` (Ctrl+C to stop).
+See [local setup and testing](website/README.md) for exact Node commands,
+checks and preview/search behavior. It renders the same operator Markdown used here, with static
 search and no Go/build credentials. [Cloudflare Pages deployment](docs/website-deployment.md)
 defaults disabled until account setup; qwacamole.com hosting is not yet verified.
 The [dated website report](docs/evidence-website-20261009.md) includes responsive

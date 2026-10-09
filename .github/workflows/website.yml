@@ -4,6 +4,7 @@ on:
     paths:
       - 'website/**'
       - '.github/workflows/website.yml'
+      - 'scripts/start-website.sh'
       - 'docs/site-overview.md'
       - 'docs/caddy-quickstart.md'
       - 'docs/nginx-quickstart.md'
@@ -36,6 +37,7 @@ on:
     paths:
       - 'website/**'
       - '.github/workflows/website.yml'
+      - 'scripts/start-website.sh'
       - 'docs/site-overview.md'
       - 'docs/caddy-quickstart.md'
       - 'docs/nginx-quickstart.md'

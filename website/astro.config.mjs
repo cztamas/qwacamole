@@ -10,7 +10,7 @@ export default defineConfig({
   output: 'static',
   cacheDir: './.astro/cache',
   trailingSlash: 'always',
-  vite: { plugins: [{
+  vite: { server: { strictPort: true }, plugins: [{
     name: 'shared-docs-watch',
     configureServer(server) {
       const inputs = [...Object.keys(documents), ...assets].map(p => path.join(root, p));
