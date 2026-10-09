@@ -2,6 +2,8 @@ package qwacamole
 
 import (
 	"bufio"
+	"context"
+	"errors"
 	"fmt"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/cztamas/qwacamole/bindinghttp"
@@ -26,8 +28,11 @@ func (h *Handler) serveDocument(w http.ResponseWriter, r *http.Request) error {
 type bindingWriter struct {
 	http.ResponseWriter
 	manager                *store.Manager
+	cancel                 context.CancelFunc
 	committed, unavailable bool
 }
+
+var errBindingResponseRejected = errors.New("binding unavailable at response commitment")
 
 func (w *bindingWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
 func (w *bindingWriter) WriteHeader(status int) {
@@ -46,6 +51,12 @@ func (w *bindingWriter) WriteHeader(status int) {
 		}
 		w.Header().Set("Cache-Control", "no-store")
 		w.ResponseWriter.WriteHeader(http.StatusServiceUnavailable)
+		// Cancel only the downstream handler's context, leaving the client-facing
+		// request alive so its replacement 503 can finish normally. In particular
+		// this interrupts an upstream body stalled before its first Write call.
+		if w.cancel != nil {
+			w.cancel()
+		}
 		return
 	}
 	w.Header().Add("Link", fmt.Sprintf(`<%s>; rel="tls-certificate-binding"`, store.DiscoveryURL))
@@ -72,9 +83,7 @@ func (w *bindingWriter) Write(d []byte) (int, error) {
 		w.WriteHeader(200)
 	}
 	if w.unavailable {
-		// The 503 already replaced this response. A write error would make
-		// Caddy's reverse proxy abort/reset HTTP/2 before delivering that status.
-		return len(d), nil
+		return 0, errBindingResponseRejected
 	}
 	return w.ResponseWriter.Write(d)
 }
@@ -89,7 +98,10 @@ func (w *bindingWriter) ReadFrom(r io.Reader) (int64, error) {
 		w.WriteHeader(200)
 	}
 	if w.unavailable {
-		return io.Copy(io.Discard, r)
+		if closer, ok := r.(io.Closer); ok {
+			_ = closer.Close()
+		}
+		return 0, errBindingResponseRejected
 	}
 	if rf, ok := w.ResponseWriter.(io.ReaderFrom); ok {
 		return rf.ReadFrom(r)

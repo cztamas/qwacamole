@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
@@ -304,7 +305,7 @@ func (h *Handler) Validate() error {
 	}
 	return fmt.Errorf("no explicit QWAC issuer policy for protected hostname")
 }
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) (err error) {
 	host := r.Host
 	if v, _, e := net.SplitHostPort(host); e == nil {
 		host = v
@@ -327,12 +328,29 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyht
 	if state.URL == "" || state.Expires <= time.Now().Unix() {
 		return caddyhttp.Error(503, fmt.Errorf("binding unavailable or expired"))
 	}
-	rw := &bindingWriter{ResponseWriter: w, manager: h.manager}
-	e = next.ServeHTTP(rw, r)
-	if e == nil && !rw.committed {
+	child, cancel := context.WithCancel(r.Context())
+	defer cancel()
+	rw := &bindingWriter{ResponseWriter: w, manager: h.manager, cancel: cancel}
+	defer func() {
+		if p := recover(); p != nil {
+			// Caddy's proxy closes the upstream body and then aborts on copy
+			// errors. Contain that abort only when our gate already replaced the
+			// response with 503; otherwise HTTP/2 would reset that rejection.
+			if rw.unavailable && p == http.ErrAbortHandler {
+				err = nil
+				return
+			}
+			panic(p)
+		}
+		if rw.unavailable && errors.Is(err, errBindingResponseRejected) {
+			err = nil
+		}
+	}()
+	err = next.ServeHTTP(rw, r.WithContext(child))
+	if err == nil && !rw.committed {
 		rw.WriteHeader(http.StatusOK)
 	}
-	return e
+	return err
 }
 
 var _ certmagic.Issuer = (*Issuer)(nil)

@@ -263,11 +263,11 @@ func TestCaddyDelayedProtocolUpgradeRejectsAtCommit(t *testing.T) {
 			time.Sleep(10 * time.Millisecond)
 		}
 		w.WriteHeader(http.StatusCreated)
-		if _, err := w.Write([]byte("protected body")); err != nil {
-			t.Fatal("rejected body write would reset proxy response", err)
+		if _, err := w.Write([]byte("protected body")); err == nil {
+			t.Fatal("rejected body write did not stop copying")
 		}
-		if _, err := w.(io.ReaderFrom).ReadFrom(strings.NewReader("protected copied body")); err != nil {
-			t.Fatal("rejected copy would reset proxy response", err)
+		if _, err := w.(io.ReaderFrom).ReadFrom(strings.NewReader("protected copied body")); err == nil {
+			t.Fatal("rejected copy did not stop reading")
 		}
 		_, _, err := http.NewResponseController(w).Hijack()
 		return err
