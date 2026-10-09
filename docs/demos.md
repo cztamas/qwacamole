@@ -538,4 +538,3 @@ certificate IDs, observed timings, representative native events and limitations.
 Keep generated private keys and browser profiles out of commits. The demo's page
 reports server state; its screenshot is useful for presentation, while the native
 NetLog chain and binding result supply browser verification evidence.
-
