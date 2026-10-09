@@ -1,0 +1,60 @@
+name: Publish owner-approved alpha
+on:
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Full merged agent/Caddy source SHA (checkout must match)
+        required: true
+      version:
+        description: Owner-approved version without v (0.1.0-alpha.1)
+        default: 0.1.0-alpha.1
+        required: true
+      candidate_run:
+        description: Successful manually dispatched candidate run at exact source
+        required: true
+      manifest_sha256:
+        description: Owner-reviewed manifest SHA256
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-alpha-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: public-alpha-release
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GOEXPERIMENT: nojsonv2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_commit }}
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - name: Download immutable run artifact
+        env:
+          SOURCE: ${{ inputs.source_commit }}
+          CANDIDATE_RUN: ${{ inputs.candidate_run }}
+        run: gh run download "$CANDIDATE_RUN" --repo cztamas/qwacamole --name "agent-candidate-$SOURCE" --dir candidate
+      - name: Verify every prerequisite and publish once
+        env:
+          SOURCE: ${{ inputs.source_commit }}
+          VERSION: ${{ inputs.version }}
+          CANDIDATE_RUN: ${{ inputs.candidate_run }}
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+        run: python3 scripts/publish-alpha.py --source "$SOURCE" --version "$VERSION" --candidate-run "$CANDIDATE_RUN" --manifest-sha256 "$MANIFEST_SHA256" --directory candidate --go go --publish

@@ -16,7 +16,7 @@ class Packages(unittest.TestCase):
         self.addCleanup(self.scratch.cleanup)
         self.directory = Path(self.scratch.name)
         self.manifest = {"schema": 1, "version": "0.1.0-alpha.1", "source_commit": "a" * 40,
-                         "core_version": "v0.0.0-20261008203612-8e62f4b8c340", "go_version": "go1.27.1",
+                         "core_version": "v0.0.0-20261008203612-8e62f4b8c340", "go_toolchain": "go1.27.1", "go_version": "go1.27.1-X:nojsonv2",
                          "go_experiment": "nojsonv2", "cgo_enabled": False, "candidate": True, "archives": []}
         for goos, arch in r.TARGETS:
             prefix = f"qwacamole-agent-0.1.0-alpha.1-{goos}-{arch}"
@@ -42,6 +42,10 @@ class Packages(unittest.TestCase):
         for version, source in [("v0.1.0-alpha.1", "a" * 40), ("0.1.0", "a" * 40), ("0.1.0-alpha.1", "main"), ("0.1.0-alpha.0", "a" * 40)]:
             with self.subTest(version=version, source=source), self.assertRaises(ValueError):
                 r.validate_identity(version, source)
+
+    def test_required_native_run_cannot_be_skipped(self):
+        with self.assertRaisesRegex(ValueError, "no matching target"):
+            r.verify(self.directory, smoke=False, require_native=True)
 
     def test_corruption_cannot_pass_outer_checksums(self):
         archive = self.directory / self.manifest["archives"][0]["name"]

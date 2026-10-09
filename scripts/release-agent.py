@@ -75,6 +75,8 @@ def build(args):
             # unsafe link if a future source tree accidentally introduces one.
             tar.extractall(source, filter="data")
         legal = legal_files(source, args.approved)
+        if args.approved and json.loads((source / "release/publication.json").read_text()).get("version") != args.version:
+            raise ValueError("approved publication version mismatch")
         go = Path(args.go).resolve() if "/" in args.go else args.go
         env = dict(os.environ, GOWORK="off", CGO_ENABLED="0", GOEXPERIMENT="nojsonv2")
         toolchain = run([go, "env", "GOVERSION"], env=env)
@@ -86,7 +88,7 @@ def build(args):
         if not core or core == "(devel)":
             raise ValueError("agent requires a real root module version")
         manifest = {"schema": 1, "version": args.version, "source_commit": args.source,
-                    "core_version": core, "go_version": toolchain, "go_experiment": "nojsonv2",
+                    "core_version": core, "go_toolchain": toolchain, "go_version": None, "go_experiment": "nojsonv2",
                     "cgo_enabled": False, "candidate": not args.approved, "archives": []}
         output = Path(args.output).resolve()
         output.mkdir(parents=True, exist_ok=False)
@@ -97,6 +99,10 @@ def build(args):
                  "-buildid= -X main.releaseVersion=" + args.version + " -X main.releaseSource=" + args.source,
                  "-o", binary, "./cmd/qwacamole-agent"], cwd=source / "agent", env=target_env)
             metadata = run([go, "version", "-m", binary], env=env)
+            runtime_version = metadata.splitlines()[0].split(": ", 1)[1]
+            if manifest["go_version"] not in (None, runtime_version):
+                raise ValueError("target build toolchains disagree")
+            manifest["go_version"] = runtime_version
             if "=>" in metadata or any(s in metadata for s in ("qwacamole/caddy", "qwacamole/devtools", "caddyserver", "chromedp", "k8s.io")):
                 raise ValueError("production package dependency boundary violated")
             prefix = f"qwacamole-agent-{args.version}-{goos}-{goarch}"
@@ -125,13 +131,13 @@ def build(args):
         verify(output, smoke=True)
 
 
-def verify(output, smoke=False):
+def verify(output, smoke=False, require_native=False):
     output = Path(output)
     manifest = json.loads((output / "manifest.json").read_text())
     validate_identity(manifest["version"], manifest["source_commit"])
     if manifest["schema"] != 1 or type(manifest["candidate"]) is not bool:
         raise ValueError("invalid manifest schema or candidate marker")
-    if manifest["go_experiment"] != "nojsonv2" or manifest["cgo_enabled"] is not False or not manifest["go_version"].startswith("go1.27."):
+    if manifest["go_experiment"] != "nojsonv2" or manifest["cgo_enabled"] is not False or manifest["go_toolchain"] != "go1.27.1" or manifest["go_version"] != "go1.27.1-X:nojsonv2":
         raise ValueError("unexpected build toolchain/settings")
     names = [a["name"] for a in manifest["archives"]]
     if len(names) != 3 or len(set(names)) != 3 or {(a["goos"], a["goarch"]) for a in manifest["archives"]} != set(TARGETS):
@@ -148,6 +154,7 @@ def verify(output, smoke=False):
     native = ("darwin" if platform.system() == "Darwin" else "linux", {"aarch64": "arm64", "arm64": "arm64", "x86_64": "amd64"}.get(platform.machine()))
     legal = {"LICENSE-PROPOSAL.txt", "NOTICE-PROPOSAL.txt"} if manifest["candidate"] else {"LICENSE", "NOTICE"}
     expected_files = legal | {"qwacamole-agent", "GO-NOTICES.txt", "INSTALL.txt"}
+    ran_native = False
     for a in manifest["archives"]:
         prefix = f"qwacamole-agent-{manifest['version']}-{a['goos']}-{a['goarch']}"
         if a["name"] != prefix + ".tar.gz":
@@ -177,7 +184,10 @@ def verify(output, smoke=False):
                     expected.update(goos=a["goos"], goarch=a["goarch"], modified=False)
                     if actual != expected:
                         raise ValueError("extracted binary identity disagrees with manifest")
+                    ran_native = True
                     print("PASS extracted native package version:", json.dumps(actual, sort_keys=True))
+    if require_native and not ran_native:
+        raise ValueError("no matching target was run; native package verification required")
     print("PASS package contents, modes, hashes and source/target identity")
     return manifest
 
@@ -194,11 +204,12 @@ def main():
     v = sub.add_parser("verify")
     v.add_argument("directory")
     v.add_argument("--smoke", action="store_true", help="run version from the extracted native package")
+    v.add_argument("--require-native", action="store_true", help="fail if no extracted native target ran")
     args = parser.parse_args()
     if args.command == "build":
         build(args)
     else:
-        verify(args.directory, args.smoke)
+        verify(args.directory, args.smoke, args.require_native)
 
 
 if __name__ == "__main__":
