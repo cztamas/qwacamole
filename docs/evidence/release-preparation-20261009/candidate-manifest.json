@@ -8,7 +8,7 @@
         },
         "INSTALL.txt": {
           "mode": "0o644",
-          "sha256": "c06160e5e4161a36ddcff6d4201b2c2eb8c16254f209ae454b8387a605baaf7d"
+          "sha256": "e9cd5826bf0ad00fce8bc0ead7a22deda7191589df9521efefc3823ca29bc983"
         },
         "LICENSE-PROPOSAL.txt": {
           "mode": "0o644",
@@ -20,13 +20,13 @@
         },
         "qwacamole-agent": {
           "mode": "0o755",
-          "sha256": "a3e8d8f78aa0fac7bf64ccbdacec04bf0aecc250c756e115f3a492e6647e6f8e"
+          "sha256": "7f59d91dff5e87a15d95aa926d28e202ef356438d380ae3da4d578ef665b7847"
         }
       },
       "goarch": "amd64",
       "goos": "linux",
       "name": "qwacamole-agent-0.1.0-alpha.1-linux-amd64.tar.gz",
-      "sha256": "94354a2ede740a6641e2981fd3da7d859586d51ca6c6d99f2899f2131d320305",
+      "sha256": "b80d7bd5b62d83eca119bfb76539e779689bf93c7a21cfdb7d47f7aa6aca40e9",
       "size": 6400747
     },
     {
@@ -37,7 +37,7 @@
         },
         "INSTALL.txt": {
           "mode": "0o644",
-          "sha256": "c509262ab1158451839227b20908efb0c035191937afc790c6d1c1b3687b2d2a"
+          "sha256": "8137374daf4f85bca1abeeaec058c0d19ce62925ba7b3d2ac8dcc8ba1ad8433a"
         },
         "LICENSE-PROPOSAL.txt": {
           "mode": "0o644",
@@ -49,14 +49,14 @@
         },
         "qwacamole-agent": {
           "mode": "0o755",
-          "sha256": "aef51fcc2158fa0f909c70534ccd85b73da03073efd5e6b9dfc14000f3ba6983"
+          "sha256": "259cbbe2cad37b35a84f5f5fe67abf6f66448a3a76104f23c59802240a49fcb9"
         }
       },
       "goarch": "arm64",
       "goos": "linux",
       "name": "qwacamole-agent-0.1.0-alpha.1-linux-arm64.tar.gz",
-      "sha256": "380130712e4d324023bf41a7891355dc0d4876e639925e40f8114e69e0968ec5",
-      "size": 5840757
+      "sha256": "b40b62a27e26fad44bd643f6dec98db3c7b2dbebf0f871c87f64c62dca568674",
+      "size": 5840759
     },
     {
       "files": {
@@ -66,7 +66,7 @@
         },
         "INSTALL.txt": {
           "mode": "0o644",
-          "sha256": "5fef9e12ee7982db110942e6189cebcb6dc12d0dc940d964b9eba3721e3d4334"
+          "sha256": "0ddad834ec649d10e2b566f1d97f051dbc87a36a61bc4d880bfe3825bf42e253"
         },
         "LICENSE-PROPOSAL.txt": {
           "mode": "0o644",
@@ -78,14 +78,14 @@
         },
         "qwacamole-agent": {
           "mode": "0o755",
-          "sha256": "94edfd99fc0a2642415aa52e88a6aa440bbcd834eb05810713ccdd250827714f"
+          "sha256": "15008c36072b2cca796972fdb42423de430e18b63c2b7fa52e8cb588d2043d81"
         }
       },
       "goarch": "arm64",
       "goos": "darwin",
       "name": "qwacamole-agent-0.1.0-alpha.1-darwin-arm64.tar.gz",
-      "sha256": "00e978b26037ab48af0f103273e0c07794879bb96061c7ab31a9fc624fc4a810",
-      "size": 6108692
+      "sha256": "69534badf2a9324d0635f54a895408b4188cf0a871d77cffd615f63df31238a3",
+      "size": 6108697
     }
   ],
   "candidate": true,
@@ -95,6 +95,6 @@
   "go_toolchain": "go1.27.1",
   "go_version": "go1.27.1-X:nojsonv2",
   "schema": 1,
-  "source_commit": "cb7d66730030600edbfc0cde5fafee106e3f8df9",
+  "source_commit": "bbf5117f309cb583ea5aaad8ffdd481028b77f16",
   "version": "0.1.0-alpha.1"
 }

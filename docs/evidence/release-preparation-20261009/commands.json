@@ -74,5 +74,65 @@
     "started": "2026-10-09T15:00:31.765660+00:00",
     "finished": "2026-10-09T15:12:31.717311+00:00",
     "exit": 1
+  },
+  {
+    "name": "caddy-firefox",
+    "command": [
+      "bin/qwacamole",
+      "firefox-integration",
+      "-state",
+      ".local/release-caddy-firefox-20261009",
+      "-browser",
+      "/Applications/Firefox.app/Contents/MacOS/firefox",
+      "-geckodriver",
+      ".tools/bin/geckodriver",
+      "-certutil",
+      "/opt/homebrew/bin/certutil"
+    ],
+    "started": "2026-10-09T15:12:31.717975+00:00",
+    "finished": "2026-10-09T15:18:29.362954+00:00",
+    "exit": 0
+  },
+  {
+    "name": "nginx-chrome",
+    "command": [
+      "bin/qwacamole",
+      "nginx-browser-integration",
+      "-native-browser",
+      "chrome",
+      "-state",
+      ".local/release-nginx-chrome-20261009",
+      "-agent-binary",
+      "bin/qwacamole-agent-remote",
+      "-browser",
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "-metadata",
+      "/Users/cztamas/Library/Application Support/Google/Chrome/PKIMetadata/1798"
+    ],
+    "started": "2026-10-09T15:18:29.364027+00:00",
+    "finished": "2026-10-09T15:20:13.935461+00:00",
+    "exit": 0
+  },
+  {
+    "name": "nginx-firefox",
+    "command": [
+      "bin/qwacamole",
+      "nginx-browser-integration",
+      "-native-browser",
+      "firefox",
+      "-state",
+      ".local/release-nginx-firefox-20261009",
+      "-agent-binary",
+      "bin/qwacamole-agent-remote",
+      "-browser",
+      "/Applications/Firefox.app/Contents/MacOS/firefox",
+      "-geckodriver",
+      ".tools/bin/geckodriver",
+      "-certutil",
+      "/opt/homebrew/bin/certutil"
+    ],
+    "started": "2026-10-09T15:20:13.936148+00:00",
+    "finished": "2026-10-09T15:21:21.126144+00:00",
+    "exit": 0
   }
 ]

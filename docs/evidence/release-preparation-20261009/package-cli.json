@@ -1,0 +1,69 @@
+{
+  "key_mode": "0600",
+  "csr_mode": "0600",
+  "private_key_output": false,
+  "commands": [
+    {
+      "command": [
+        "/Users/cztamas/.codex/worktrees/b54b/qwacamole/.local/release-extracted-bbf5117/qwacamole-agent-0.1.0-alpha.1-darwin-arm64/qwacamole-agent",
+        "version",
+        "-json"
+      ],
+      "started": "2026-10-09T15:26:04.361718+00:00",
+      "exit": 0,
+      "stdout": "{\"version\":\"0.1.0-alpha.1\",\"source_commit\":\"bbf5117f309cb583ea5aaad8ffdd481028b77f16\",\"core_version\":\"v0.0.0-20261008203612-8e62f4b8c340\",\"go_version\":\"go1.27.1-X:nojsonv2\",\"goos\":\"darwin\",\"goarch\":\"arm64\",\"modified\":false}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/cztamas/.codex/worktrees/b54b/qwacamole/.local/release-extracted-bbf5117/qwacamole-agent-0.1.0-alpha.1-darwin-arm64/qwacamole-agent",
+        "keygen",
+        "-out",
+        "/Users/cztamas/.codex/worktrees/b54b/qwacamole/.local/release-package-cli-bbf5117/key.pem",
+        "-bits",
+        "2048"
+      ],
+      "started": "2026-10-09T15:26:04.731252+00:00",
+      "exit": 0,
+      "stdout": "created private RSA key; keep this file local and protected\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/cztamas/.codex/worktrees/b54b/qwacamole/.local/release-extracted-bbf5117/qwacamole-agent-0.1.0-alpha.1-darwin-arm64/qwacamole-agent",
+        "csr",
+        "-key",
+        "/Users/cztamas/.codex/worktrees/b54b/qwacamole/.local/release-package-cli-bbf5117/key.pem",
+        "-out",
+        "/Users/cztamas/.codex/worktrees/b54b/qwacamole/.local/release-package-cli-bbf5117/request.pem",
+        "-country",
+        "HU",
+        "-organization",
+        "Packaged CLI TEST",
+        "-registration",
+        "NTRHU-TEST123456",
+        "-common-name",
+        "qwac.example.com",
+        "-hostname",
+        "qwac.example.com"
+      ],
+      "started": "2026-10-09T15:26:04.805976+00:00",
+      "exit": 0,
+      "stdout": "created PKCS#10 CSR; signature verified; requested fields and extensions do not guarantee compliant issuance\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "openssl",
+        "req",
+        "-in",
+        "/Users/cztamas/.codex/worktrees/b54b/qwacamole/.local/release-package-cli-bbf5117/request.pem",
+        "-noout",
+        "-verify"
+      ],
+      "exit": 0,
+      "stdout": "Certificate request self-signature verify OK\n",
+      "stderr": ""
+    }
+  ]
+}

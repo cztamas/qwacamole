@@ -1,0 +1,43 @@
+{
+  "release_tools": {
+    "tests": 15,
+    "exit_code": 0,
+    "raw_log": ".local/evidence/release-preparation-20261009/release-tool-tests.log"
+  },
+  "workspace_races": {
+    "command": "make test",
+    "exit_code": 0,
+    "cached_unchanged_packages": true,
+    "raw_log": ".local/evidence/release-preparation-20261009/all-module-races.log"
+  },
+  "independent_races": {
+    "command": "scripts/check-independent-modules.sh",
+    "gowork": "off",
+    "replacements": false,
+    "exit_code": 0,
+    "raw_log": ".local/evidence/release-preparation-20261009/independent-module-races.log"
+  },
+  "reproducibility": {
+    "sources": [
+      "cb7d66730030600edbfc0cde5fafee106e3f8df9",
+      "30a79ef864caa4397b872c15a8ae59418e3ae674",
+      "bbf5117f309cb583ea5aaad8ffdd481028b77f16"
+    ],
+    "same_source_same_toolchain_identical_checksums": true,
+    "linux_ci_and_macos_local_identical_checksums": true
+  },
+  "final_package_source": "bbf5117f309cb583ea5aaad8ffdd481028b77f16",
+  "manifest_sha256": "db6f7a8bf245308549329a67dfd3e33bb8c3ef815ebe2e90cefc0d2d9fb493f1",
+  "streaming_review": {
+    "command": "GOEXPERIMENT=nojsonv2 go test -race -count=1 ./devtools/internal/coretest -run TestCaddyExpiredReverseProxyCancelsUnboundedResponse|TestCaddy.*Panic -v",
+    "exit_code": 0,
+    "cases": [
+      "http1/streaming",
+      "http1/stalled",
+      "http2/streaming",
+      "http2/stalled"
+    ],
+    "other_panics_preserved": true,
+    "raw_log": ".local/evidence/release-preparation-20261009/streaming-review-races.log"
+  }
+}

@@ -68,6 +68,11 @@ with a fresh module cache, `GOWORK=off`, no replacements, and inspects binary
 metadata. The installed binary is also used in actual Nginx acceptance.
 For development on the feature branch, use `make agent-build`.
 
+`version -json` reports a full commit for packaged/VCS checkout builds. For
+ordinary Go installs, Go embeds the module version instead of a VCS commit, so
+`source_commit` uses `module:VERSION`; retain the resolved module origin/build
+metadata above when a full source SHA is needed. It performs no network lookup.
+
 Install the built binary under `/usr/local/bin` before following the service
 commands. Create the supplied inputs and config below before rendering Nginx.
 

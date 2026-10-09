@@ -52,6 +52,9 @@ def render_notes(template, version, root_source, source, manifest_sha256, candid
     # clean selected source after building or retagging it.
     return template.rstrip() + ("\n\n## Verified release identity\n\n"
         f"Version: `{version}`. Core source: `{root_source}`. Agent/Caddy source: `{source}`.\n\n"
+        "GitHub's automatic source archives follow the root/core tag. Use the "
+        "separate agent/Caddy module tags for their source; agent binaries use "
+        "the agent/Caddy source above.\n\n"
         f"Reviewed manifest SHA256: `{manifest_sha256}`. Candidate run: "
         f"https://github.com/{REPO}/actions/runs/{candidate_run}.\n")
 

@@ -1,8 +1,11 @@
 {
-  "scope": "all reachable Git objects from local --all refs; does not cover deleted/unreachable objects or remote-only refs",
-  "source_commit": "cb7d66730030600edbfc0cde5fafee106e3f8df9",
-  "scanned_unique_path_blobs": 505,
-  "private_key_findings": [],
+  "scope": "all reachable local --all refs plus staged index; excludes unreachable objects and remote-only refs; limited to full private-key PEM and recognized GitHub/OpenAI token formats and raw/profile filename patterns",
+  "history_baseline_commit": "fb5daeb36dbeb43e33ae7e12e5721813c0c8e78a",
+  "staged_changes_included": true,
+  "reachable_file_blobs": 533,
+  "unique_history_and_index_blobs_scanned": 550,
+  "working_tracked_files": 242,
+  "private_key_or_token_findings": [],
   "raw_profile_artifact_candidates": [],
   "allowed_mozilla_public_key": {
     "sha256": "0560d06fc2d28c8c66b873f823542dea3abd99b212b2ced76e9d5f331a1afccd",
@@ -13,6 +16,5 @@
         "category": "private-key PEM"
       }
     ]
-  },
-  "working_tracked_files": 222
+  }
 }

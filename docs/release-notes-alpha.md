@@ -3,8 +3,9 @@
 This is a review draft, not a release announcement. Version, licence, visibility,
 security reporting and publication require owner approval. The
 [maintainer checklist](alpha-release.md) defines the exact future source/tag
-sequence; replace C/E source placeholders with the selected full SHAs and reviewed
-manifest/run IDs before publication. No release tags have been created here.
+sequence. Finalize the approved generic notes before selecting E; the publication
+script appends verified C/E source SHAs and manifest/run identity without editing
+or retagging that source. No release tags have been created here.
 
 The root core provides strict supplied RSA 2-QWAC validation, local key/CSR
 preparation support, RS256 TLS bindings and durable lifecycle policy. The

@@ -42,17 +42,17 @@ and using authenticated installation as public evidence. Verify each directly.
 - [x] Config-free version identity, meaningful CLI tests, production-only build.
 - [x] Deterministic three-target archives, manifest/checksums, extracted native
   binary smoke, contents/modes/negative verification and reproducibility checks.
-- [ ] Candidate retention CI and manual publication gates with negative tests.
-- [ ] Current README/guides, support contract, exact multi-source tag sequence,
+- [x] Candidate retention CI and manual publication gates with negative tests.
+- [x] Current README/guides, support contract, exact multi-source tag sequence,
   source and package installs, update/rollback instructions and draft legal files.
-- [ ] Tracked content/history audit; confidential reporting and owner checklist.
+- [x] Tracked content/history audit; confidential reporting and owner checklist.
 - [x] Four-module races/boundaries/independence and production/plugin builds.
 - [x] Fresh-cache authenticated immutable agent/Caddy installs, metadata and real
   integration smoke using those binaries; anonymous check prepared separately.
-- [ ] Sequential fresh isolated Caddy Chrome/Firefox and Nginx Chrome/Firefox
+- [x] Sequential fresh isolated Caddy Chrome/Firefox and Nginx Chrome/Firefox
   native acceptance; only documented Chrome exp failure remains nonzero.
-- [ ] Fresh dated evidence with exact source/package/tool identities.
-- [ ] Final requirement-by-requirement audit, diff review and PR against main.
+- [x] Fresh dated evidence with exact source/package/tool identities.
+- [x] Final requirement-by-requirement audit, diff review and PR against main.
 
 Owner decisions/public-only verification may remain explicitly pending. Available
 engineering checks must complete before this ledger and goal can be closed.

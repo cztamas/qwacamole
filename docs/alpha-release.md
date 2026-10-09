@@ -29,9 +29,9 @@ compatibility is explicit. Preserve Chromium's expired-exp failing assertion.
 Tested tool pair: Go 1.27.1 with `GOEXPERIMENT=nojsonv2`, xcaddy 0.4.5, Caddy
 2.10.2, CertMagic 0.24.0, Pebble 2.8.0; Nginx 1.30.5/Certbot 5.8.0 on macOS
 arm64. Fresh native runs use Chrome 154.0.8037.99 / genuine PKIMetadata 1798,
-Firefox 157.0.1 / geckodriver 0.37.1. Linux amd64 integration evidence previously
-used Nginx 1.28.0 and Certbot 5.8.0; fresh hosted CI identifies its actual runner
-versions. See [the dated release report](evidence-release-preparation-20261009.md)
+Firefox 157.0.1 / geckodriver 0.37.1. Fresh Ubuntu 24.04 amd64 integration CI
+uses Nginx 1.24.0-2ubuntu7.18 and Certbot 5.8.0. See
+[the dated release report](evidence-release-preparation-20261009.md)
 for completed checks rather than assuming a newer toolchain/browser is compatible.
 
 Archives target Linux amd64, Linux arm64 and macOS arm64. macOS arm64 is runtime
@@ -167,6 +167,8 @@ The two distributed production source identities are **C** (core) and **E**
 7. Run the publication script without `--publish` to review its rendered notes.
    The approved generic notes must already be committed at E; the script appends
    actual C/E SHAs, reviewed manifest digest and run ID from verified inputs.
+   GitHub's automatic source archives follow root tag C; nested module installs
+   and agent packages use E. The rendered source ledger makes this explicit.
    Do not edit/retag E to put its own SHA or later CI run ID into its source.
    Confirm tested runtime targets and unresolved limits. Manually dispatch
    `Publish owner-approved alpha` **from main**, supplying version, E, successful
