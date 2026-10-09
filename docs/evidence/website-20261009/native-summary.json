@@ -1,0 +1,238 @@
+{
+  "date": "2026-10-09",
+  "production_source": "e24ed287023f0ec7800c93858ced76a92009f681",
+  "runtime_changes": false,
+  "native_browser_versions": {
+    "chromium": "154.0.8037.99",
+    "firefox": "157.0.1"
+  },
+  "runs": [
+    {
+      "name": "caddy-chrome",
+      "expected_exit": 1,
+      "exit": 1,
+      "started": "2026-10-09T18:04:30.706473+00:00",
+      "finished": "2026-10-09T18:17:00.125641+00:00",
+      "command": [
+        "bin/qwacamole",
+        "integration-test",
+        "-state",
+        ".local/website-caddy-chrome-20261009",
+        "-browser",
+        "<stock-chrome>",
+        "-metadata",
+        "<installed-chrome-pki-metadata>"
+      ],
+      "lifecycle": {
+        "cached_discovery_after_expiry_renewal_replacement": true,
+        "continuous_http2_through_tls_expiry": true,
+        "independent_refresh": true,
+        "initial_native_verified": true,
+        "negative_suite_passed": false,
+        "profile_unchanged": true,
+        "renewal_failure_gates": true,
+        "renewal_native_verified": true,
+        "replacement_native_verified": true,
+        "restart_recovered": true
+      },
+      "fixtures": {
+        "ct-required": {
+          "passed": true
+        },
+        "expired-binding": {
+          "error": "BROWSER INCOMPATIBILITY: native verifier accepted expired exp header",
+          "passed": false
+        },
+        "no-qwac-trust": {
+          "passed": true
+        },
+        "no-tls-trust": {
+          "passed": true
+        },
+        "positive": {
+          "passed": true
+        },
+        "qwac-hostname": {
+          "passed": true
+        },
+        "qwac-profile": {
+          "passed": true
+        },
+        "signature": {
+          "passed": true
+        },
+        "tls-expiry": {
+          "passed": true
+        },
+        "tls-hostname": {
+          "passed": true
+        },
+        "wrong-tls": {
+          "passed": true
+        }
+      }
+    },
+    {
+      "name": "caddy-firefox",
+      "expected_exit": 0,
+      "exit": 0,
+      "started": "2026-10-09T18:17:00.126632+00:00",
+      "finished": "2026-10-09T18:22:57.590612+00:00",
+      "command": [
+        "bin/qwacamole",
+        "firefox-integration",
+        "-state",
+        ".local/website-caddy-firefox-20261009",
+        "-browser",
+        "<stock-firefox>",
+        "-geckodriver",
+        ".tools/bin/geckodriver",
+        "-certutil",
+        "<certutil>"
+      ],
+      "lifecycle": {
+        "cached_discovery_after_expiry_renewal_replacement": true,
+        "fixture_checks": 11,
+        "independent_refresh": true,
+        "initial_native_verified": true,
+        "profile_trust_unchanged": true,
+        "renewal_failure_gates": true,
+        "renewal_native_verified": true,
+        "restart_recovered": true
+      },
+      "fixtures": {
+        "critical-header": {
+          "passed": true
+        },
+        "expired-binding": {
+          "passed": true
+        },
+        "no-qwac-trust": {
+          "passed": true
+        },
+        "no-tls-trust": {
+          "passed": true
+        },
+        "positive": {
+          "passed": true
+        },
+        "qwac-hostname": {
+          "passed": true
+        },
+        "qwac-profile": {
+          "passed": true
+        },
+        "signature": {
+          "passed": true
+        },
+        "tls-expiry": {
+          "passed": true
+        },
+        "tls-hostname": {
+          "passed": true
+        },
+        "wrong-tls": {
+          "passed": true
+        }
+      }
+    },
+    {
+      "name": "nginx-chrome",
+      "expected_exit": 0,
+      "exit": 0,
+      "started": "2026-10-09T18:22:57.591148+00:00",
+      "finished": "2026-10-09T18:24:42.512061+00:00",
+      "command": [
+        "bin/qwacamole",
+        "nginx-browser-integration",
+        "-native-browser",
+        "chrome",
+        "-state",
+        ".local/website-nginx-chrome-20261009",
+        "-agent-binary",
+        "bin/qwacamole-agent",
+        "-browser",
+        "<stock-chrome>",
+        "-metadata",
+        "<installed-chrome-pki-metadata>"
+      ],
+      "checks": [
+        "isolated production agent and HTTP-only Nginx bootstrap",
+        "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=false)",
+        "private runtime/socket permissions and control methods/body validation; public control/file paths reject",
+        "real Certbot HTTP-01 issuance, deploy-hook publication and verified Nginx activation",
+        "fresh verified browser-facing TLS leaf covered by qualified binding",
+        "ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses",
+        "Nginx replaces forged forwarding metadata, preserves external port/encoded URL, origin secure cookies and absolute redirects; unsupported Host rejected",
+        "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=true)",
+        "configured body limit: 2 MiB upload status 413",
+        "real Nginx TLS WebSocket 101, discovery/upstream Link and bidirectional frame traffic",
+        "binding GET/HEAD/no-store/method rejection and nonrecursive discovery",
+        "Nginx internal gate/control and invalid binding paths are inaccessible",
+        "independent signed binding refresh without TLS renewal",
+        "automatic Certbot renewal and fresh verified controlled activation",
+        "original active TLS stream survives Nginx reload with both leaves bound",
+        "second real Certbot renewal freshly verified with original active stream and all TLS retained",
+        "agent-backpressure upload preserves complete body/hash with origin backpressure beyond ten seconds",
+        "nginx-buffered upload preserves complete body/hash with origin backpressure beyond ten seconds",
+        "real cache longer than original signed lifetime discovers renewed binding",
+        "same-key QWAC replacement publishes retained coverage through unchanged discovery",
+        "same-authority QWAC replacement through unchanged cached discovery",
+        "authenticated automatic collection preserves current document and retained leaves",
+        "agent unavailability rejects protected application requests",
+        "agent restart reconciles files and actual verified served TLS"
+      ],
+      "error": "<nil>"
+    },
+    {
+      "name": "nginx-firefox",
+      "expected_exit": 0,
+      "exit": 0,
+      "started": "2026-10-09T18:24:42.513053+00:00",
+      "finished": "2026-10-09T18:25:48.834008+00:00",
+      "command": [
+        "bin/qwacamole",
+        "nginx-browser-integration",
+        "-native-browser",
+        "firefox",
+        "-state",
+        ".local/website-nginx-firefox-20261009",
+        "-agent-binary",
+        "bin/qwacamole-agent",
+        "-browser",
+        "<stock-firefox>",
+        "-geckodriver",
+        ".tools/bin/geckodriver",
+        "-certutil",
+        "<certutil>"
+      ],
+      "checks": [
+        "isolated production agent and HTTP-only Nginx bootstrap",
+        "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=false)",
+        "private runtime/socket permissions and control methods/body validation; public control/file paths reject",
+        "real Certbot HTTP-01 issuance, deploy-hook publication and verified Nginx activation",
+        "fresh verified browser-facing TLS leaf covered by qualified binding",
+        "ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses",
+        "Nginx replaces forged forwarding metadata, preserves external port/encoded URL, origin secure cookies and absolute redirects; unsupported Host rejected",
+        "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=true)",
+        "configured body limit: 2 MiB upload status 413",
+        "real Nginx TLS WebSocket 101, discovery/upstream Link and bidirectional frame traffic",
+        "binding GET/HEAD/no-store/method rejection and nonrecursive discovery",
+        "Nginx internal gate/control and invalid binding paths are inaccessible",
+        "independent signed binding refresh without TLS renewal",
+        "automatic Certbot renewal and fresh verified controlled activation",
+        "original active TLS stream survives Nginx reload with both leaves bound",
+        "second real Certbot renewal freshly verified with original active stream and all TLS retained",
+        "agent-backpressure upload preserves complete body/hash with origin backpressure beyond ten seconds",
+        "nginx-buffered upload preserves complete body/hash with origin backpressure beyond ten seconds",
+        "real cache longer than original signed lifetime discovers renewed binding",
+        "same-key QWAC replacement publishes retained coverage through unchanged discovery",
+        "same-authority QWAC replacement through unchanged cached discovery",
+        "authenticated automatic collection preserves current document and retained leaves",
+        "agent unavailability rejects protected application requests",
+        "agent restart reconciles files and actual verified served TLS"
+      ],
+      "error": "<nil>"
+    }
+  ]
+}

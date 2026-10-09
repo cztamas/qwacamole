@@ -190,5 +190,6 @@ rebuilds the approved source. Public publication is available only through the
 explicit manual action; ordinary pushes and PRs cannot publish.
 
 Caddy package registration and hosted-builder testing are separate future owner
-work. The supported installation path here is xcaddy. Website deployment is out
-of scope. Devtools has no independently supported alpha tag.
+work. The supported installation path here is xcaddy. Website deployment uses the
+separate [Cloudflare Pages setup](website-deployment.md); it does not publish
+software. Devtools has no independently supported alpha tag.

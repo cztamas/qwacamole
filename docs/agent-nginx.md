@@ -66,7 +66,7 @@ Use your authorized HTTPS credential helper or SSH URL rewrite. This is
 public installation. `scripts/check-remote-agent.sh REF` runs outside the checkout
 with a fresh module cache, `GOWORK=off`, no replacements, and inspects binary
 metadata. The installed binary is also used in actual Nginx acceptance.
-For development on the feature branch, use `make agent-build`.
+For development from the authenticated main checkout, use `make agent-build`.
 
 `version -json` reports a full commit for packaged/VCS checkout builds. For
 ordinary Go installs, Go embeds the module version instead of a VCS commit, so

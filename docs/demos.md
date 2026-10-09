@@ -59,7 +59,7 @@ example site in a **visible stock Chrome window**:
 ```sh
 git clone https://github.com/cztamas/qwacamole.git
 cd qwacamole
-git checkout codex/public-alpha-hardening
+git checkout main
 make browser-demo DEMO_ARGS='-organization "Example Synthetic Owner TEST" -country HU -locality Budapest -registration NTRHU-TEST-0001'
 ```
 
@@ -497,6 +497,21 @@ state directories and shared build logs remain. No normal browser profile or
 system trust is changed by cleanup.
 
 ## Troubleshooting and evidence
+
+### Isolated browser trust and CT
+
+The Chrome demonstration patches a copy of PKI Metadata and prepares a separate
+profile with explicit synthetic QWAC/TLS authorities. Its `-ct-exception`
+disables only Certificate Transparency enforcement in that isolated test process
+for the private test TLS setup. Ordinary chain, hostname and expiry checks remain enabled;
+the negative CT control runs without that exception. Do not reuse this isolated
+test trust in a production browser or count it as legal qualification.
+
+Firefox uses its own explicit test QWAC authority list and a fresh NSS profile
+for ordinary TLS trust. It runs with `acceptInsecureCerts: false` and no CT
+or certificate-error bypass. The normal browser profiles and system roots remain
+unchanged. Native identity assertions and signed fingerprints provide evidence;
+the demonstration's HTML labels do not.
 
 | Symptom | Check / action |
 |---|---|

@@ -1,6 +1,6 @@
 # Binding discovery and sustained operation
 
-This describes the unpublished hardening branch. The plugin guide pins its
+This describes the merged, unpublished implementation. The plugin guide pins its
 implemented immutable ref; [the dated hardening report](evidence-hardening-20261007.md)
 separates new validation from historical results.
 

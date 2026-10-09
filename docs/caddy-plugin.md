@@ -23,9 +23,8 @@ xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@9322bd566e825a2c2
 
 The implemented plugin resolves to `v0.0.0-20261009072701-9322bd566e82`;
 the [dated evidence](evidence-release-preparation-20261009.md) records the fresh-cache remote
-build and module inventory. Repository examples and checks for this stage are on
-`codex/public-alpha-release`; after an authenticated clone, use
-`git checkout codex/public-alpha-release` to work with them. The immutable
+build and module inventory. Repository examples and checks are merged on
+`main`; after an authenticated clone, use `git checkout main`. The immutable
 installation command above does not require a checkout.
 Use Go **1.27.1** (other toolchains require separate validation), xcaddy **0.4.5**,
 Caddy **2.10.2**. The `nojsonv2` workaround preserves the reflected identity of
@@ -301,6 +300,6 @@ Future stable module releases need separate tags: root `vX.Y.Z`, nested Caddy
 requirement to the resolvable version, then release/tag the nested module and
 verify a remote build of that exact ref. Do not tag all modules with the root
 name. This task publishes no tags/releases and does not merge the feature branch.
-Public distribution still needs the repository owner's visibility and license
-choice; this stage neither changes privacy nor invents a license. Retain fixture
+Public distribution still needs the repository owner's visibility and publication
+approval. Original code is MIT licensed; see [attribution](licensing.md). Retain fixture
 attribution in devtools and exclude its public test keys from plugin builds.

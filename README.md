@@ -14,6 +14,10 @@ trust. Synthetic demonstrations make no legal identity claim.
 
 ## Choose an integration
 
+Start with the [Caddy quickstart](docs/caddy-quickstart.md) or
+[Certbot/Nginx quickstart](docs/nginx-quickstart.md). The
+[binding overview](docs/site-overview.md) explains the two certificate roles.
+
 | Component | Distribution and entry point |
 | --- | --- |
 | Shared core | Root Go module; stdlib-only credentials, profiles, bindings, storage and lifecycle |
@@ -99,6 +103,14 @@ and `make agent-build` produce production components. Root tests alone miss the
 three nested modules. Generated keys, profiles and raw logs stay ignored.
 
 ## Release preparation and evidence
+
+The static documentation website is isolated under [website/](website/README.md):
+Node 24.21.0, `npm ci`, `npm run check`, `npm run build` and
+`npm run dev`. It renders the same operator Markdown used here, with static
+search and no Go/build credentials. [Cloudflare Pages deployment](docs/website-deployment.md)
+defaults disabled until account setup; qwacamole.com hosting is not yet verified.
+The [dated website report](docs/evidence-website-20261009.md) includes responsive
+screenshots, website checks and fresh native demonstration results.
 
 [The alpha checklist](docs/alpha-release.md) defines support, separate module tags,
 licensing/security prerequisites, candidate packaging and the exact manual
