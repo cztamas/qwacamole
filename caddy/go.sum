@@ -122,6 +122,8 @@ github.com/cztamas/qwacamole v0.0.0-20261008190939-709ce8d17ba5 h1:2sHL8VygxdySJ
 github.com/cztamas/qwacamole v0.0.0-20261008190939-709ce8d17ba5/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
 github.com/cztamas/qwacamole v0.0.0-20261008191916-4b3cd1c4a5f1 h1:V+SSnatqblsCsWBd9uBpePFbJjWKDN0Jzqt6CbmuxWg=
 github.com/cztamas/qwacamole v0.0.0-20261008191916-4b3cd1c4a5f1/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
+github.com/cztamas/qwacamole v0.0.0-20261008203612-8e62f4b8c340 h1:S/2dbYa6hxLZNqL0SwvVxd2bkDvKmTxHbHvHR6gTq3w=
+github.com/cztamas/qwacamole v0.0.0-20261008203612-8e62f4b8c340/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
@@ -223,9 +224,9 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 		return e
 	}
 	cfgPath := filepath.Join(dir, "agent.json")
-	// Explicit development capacity permits two rotations and then exercises a
+	// Explicit development capacity permits three rotations and then exercises a
 	// refusal. Production defaults remain 256 retained certificates.
-	cfg.MaxCertificates = 3
+	cfg.MaxCertificates = 4
 	if e = writeJSON(cfgPath, cfg); e != nil {
 		return e
 	}
@@ -570,6 +571,46 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 	}
 	c.pass("automatic Certbot renewal and fresh verified controlled activation")
 	c.pass("original active TLS stream survives Nginx reload with both leaves bound")
+	firstRenewed := status.Deployment.Active
+	second := exec.Command(certbotBin, append(append([]string(nil), renewArgs...), "--force-renewal")...)
+	second.Env = issue.Env
+	out, err := second.CombinedOutput()
+	if writeErr := os.WriteFile(filepath.Join(dir, "evidence/certbot-second-renew.log"), out, 0600); writeErr != nil {
+		return writeErr
+	}
+	if err != nil {
+		return fmt.Errorf("second real Certbot renewal: %w: %s", err, out)
+	}
+	raw, e = agent.Control(ctx, cfg, "status")
+	if e != nil {
+		return e
+	}
+	if e = json.Unmarshal(raw, &status); e != nil {
+		return e
+	}
+	if !status.Ready || status.Deployment.Active == firstRenewed || status.Deployment.Active == originalID {
+		return fmt.Errorf("second renewal not confirmed active")
+	}
+	if e = agent.Check(ctx, cfg); e != nil {
+		return e
+	}
+	transport.CloseIdleConnections()
+	r, b, e = get(store.DiscoveryURL, "GET", false)
+	if e != nil {
+		return e
+	}
+	if e = verify(string(b), cfg.Host, []*x509.Certificate{held.ConnectionState().PeerCertificates[0], r.TLS.PeerCertificates[0]}, root, time.Now()); e != nil {
+		return e
+	}
+	select {
+	case err := <-streamErr:
+		return fmt.Errorf("original stream ended during repeated renewal: %w", err)
+	default:
+	}
+	if e = writeJSON(filepath.Join(dir, "evidence/repeated-renewal-held.json"), map[string]any{"old_tls_id": oldID, "first_renewed_tls_id": firstRenewed, "second_renewed_tls_id": status.Deployment.Active, "renewals": 2, "same_held_connection": true, "chunks": chunks.Load(), "all_bound": true}); e != nil {
+		return e
+	}
+	c.pass("second real Certbot renewal freshly verified with original active stream and all TLS retained")
 	close(releaseHeld)
 	if !independentRefresh {
 		return fmt.Errorf("renewal occurred without separately observed independent refresh")
@@ -603,6 +644,31 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 		}
 	}
 
+	sameKey, e := replaceDemoQWACKey(pkidir, "Nginx same-key replacement TEST", true)
+	if e != nil {
+		return e
+	}
+	if !sameKey.PublicKey.(*rsa.PublicKey).Equal(initialQWAC.PublicKey) {
+		return fmt.Errorf("same-key replacement changed signing key")
+	}
+	if _, e = agent.Control(ctx, cfg, "replace-qwac"); e != nil {
+		return e
+	}
+	r, b, e = get(store.DiscoveryURL, "GET", false)
+	if e != nil {
+		return e
+	}
+	if e = verify(string(b), cfg.Host, []*x509.Certificate{r.TLS.PeerCertificates[0]}, root, time.Now()); e != nil {
+		return e
+	}
+	_, sameChain, _, _, e := binding.Decode(string(b))
+	if e != nil {
+		return e
+	}
+	if !sameChain[0].Equal(sameKey) {
+		return fmt.Errorf("same-key credential not activated")
+	}
+	c.pass("same-key QWAC replacement publishes retained coverage through unchanged discovery")
 	replacement, e := replaceDemoQWAC(pkidir, "Nginx Replacement TEST")
 	if e != nil {
 		return e
@@ -652,7 +718,7 @@ func nginxLifecycle(parent, agentBin, nginxBin, certbotBin string, native *nginx
 	if e != nil {
 		return e
 	}
-	if len(current.IDs) != 2 {
+	if len(current.IDs) != 3 {
 		return fmt.Errorf("collection lost held TLS coverage")
 	}
 	c.pass("authenticated automatic collection preserves current document and retained leaves")

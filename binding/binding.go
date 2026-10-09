@@ -75,7 +75,11 @@ func sign(m *credentials.Credentials, certs []*x509.Certificate, now time.Time, 
 			latest = c.NotAfter
 		}
 	}
-	for _, end := range []time.Time{latest, m.Chain[0].NotAfter} {
+	ends := []time.Time{latest}
+	for _, c := range m.Chain {
+		ends = append(ends, c.NotAfter)
+	}
+	for _, end := range ends {
 		if h.Exp > end.Unix() {
 			h.Exp = end.Unix()
 		}
@@ -215,8 +219,13 @@ func verify(doc, host string, certs []*x509.Certificate, root *x509.Certificate,
 			return errors.New("invalid sigD hash")
 		}
 	}
-	if h.Exp > cs[0].NotAfter.Unix() {
-		return errors.New("expiry exceeds QWAC maximum")
+	for _, c := range cs {
+		if now.Before(c.NotBefore) || !now.Before(c.NotAfter) {
+			return errors.New("QWAC chain outside validity")
+		}
+		if h.Exp > c.NotAfter.Unix() {
+			return errors.New("expiry exceeds QWAC chain maximum")
+		}
 	}
 	if inspect {
 		return nil

@@ -4,11 +4,12 @@ go 1.27.1
 
 require (
 	github.com/caddyserver/caddy/v2 v2.10.2
+	github.com/caddyserver/certmagic v0.24.0
 	github.com/chromedp/cdproto v0.0.0-20250724212937-08a3db8b4327
 	github.com/chromedp/chromedp v0.14.2
-	github.com/cztamas/qwacamole v0.0.0-20261008191916-4b3cd1c4a5f1
-	github.com/cztamas/qwacamole/agent v0.0.0-20261008191952-02f7569a230a
-	github.com/cztamas/qwacamole/caddy v0.0.0-20261008191952-02f7569a230a
+	github.com/cztamas/qwacamole v0.0.0-20261008203612-8e62f4b8c340
+	github.com/cztamas/qwacamole/agent v0.0.0-20261008203929-bdd733dc62ab
+	github.com/cztamas/qwacamole/caddy v0.0.0-20261009072701-9322bd566e82
 	github.com/gobwas/ws v1.4.0
 	github.com/miekg/dns v1.1.63
 	google.golang.org/protobuf v1.36.10
@@ -30,7 +31,6 @@ require (
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/aryann/difflib v0.0.0-20210328193216-ff5ff6dc229b // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/caddyserver/certmagic v0.24.0 // indirect
 	github.com/caddyserver/zerossl v0.1.3 // indirect
 	github.com/ccoveille/go-safecast v1.6.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
@@ -81,6 +81,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
+	github.com/pires/go-proxyproto v0.8.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.23.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect

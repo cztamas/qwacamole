@@ -1,0 +1,19 @@
+{
+  "harness_source": "57fa86ed74e0a9e2725030cdb72d3e39cd36f7b5",
+  "core_source": "8e62f4b8c340e572584f6d71355a8f89a7d0be42",
+  "agent_source": "bdd733dc62ab94e01d17837070c1f286a5ceeb3c",
+  "caddy_source": "2089dd5b673e3358924179aa4700a56475356633",
+  "started_at": "2026-10-08T21:11:46.929110+00:00",
+  "completed_at": "2026-10-08T21:16:50.310770+00:00",
+  "exit_code": 1,
+  "raw_log": ".local/evidence/lifecycle-caddy-chrome-final.log",
+  "error": "independent refresh not observed",
+  "held_connection": {
+    "initial_tls_id": "7f8e2a5e8ab80cde9d741083ab9f8d7622a73c595e20344863359dfd3ef412b0",
+    "final_tls_id": "7f8e2a5e8ab80cde9d741083ab9f8d7622a73c595e20344863359dfd3ef412b0",
+    "initial_not_after": "2026-10-08T21:14:14Z",
+    "checked_at": "2026-10-08T23:15:01.038101+02:00"
+  },
+  "observation": "Held native HTTP/2 and native cached replacement checks passed, then independent refresh failed: the 120-second TLS fixture renews every 24 seconds, before the 30-second binding refresh deadline. The fixture suite was not reached.",
+  "raw_evidence": ".local/lifecycle-caddy-chrome-final/integration-20261008-231147/evidence"
+}

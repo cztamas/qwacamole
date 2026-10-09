@@ -1,0 +1,36 @@
+{
+  "test_source": "934f4f9749763a8c265cdbb73441b853ebf522d0",
+  "build_source": "934f4f9749763a8c265cdbb73441b853ebf522d0",
+  "checks": [
+    {
+      "command": "make build agent-build plugin-build",
+      "exit_code": 0,
+      "raw_log": ".local/evidence/lifecycle-final-build.log"
+    },
+    {
+      "command": "make test",
+      "exit_code": 0,
+      "raw_log": ".local/evidence/lifecycle-final934-required-checks.log",
+      "all_four_module_races": true,
+      "dependency_boundaries": true
+    },
+    {
+      "command": "scripts/check-independent-modules.sh",
+      "exit_code": 0,
+      "raw_log": ".local/evidence/lifecycle-final934-independent.log",
+      "gowork": "off",
+      "replacements": false,
+      "all_four_module_races": true
+    },
+    {
+      "command": "bin/caddy-plugin list-modules",
+      "exit_code": 0,
+      "raw_log": ".local/evidence/lifecycle-plugin-modules.txt"
+    },
+    {
+      "command": ".tools/go/bin/go version -m bin/caddy-plugin",
+      "exit_code": 0,
+      "raw_log": ".local/evidence/lifecycle-plugin-build-modules.txt"
+    }
+  ]
+}

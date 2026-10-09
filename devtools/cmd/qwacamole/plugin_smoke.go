@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
@@ -187,7 +186,20 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		return e
 	}
 	defer ln.Close()
+	delayedArrived := make(chan string, 2)
+	delayedRelease := make(chan struct{})
 	upstream := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/delayed" || r.URL.Path == "/delayed-ws" {
+			delayedArrived <- r.URL.Path
+			select {
+			case <-delayedRelease:
+			case <-r.Context().Done():
+				return
+			}
+			if r.URL.Path == "/delayed-ws" {
+				r.URL.Path = "/ws"
+			}
+		}
 		w.Header().Set("Link", `</style>; rel="preload"`)
 		w.Header().Add("Link", `</next>; rel="next"`)
 		w.Header().Set("Cache-Control", "public, max-age=321")
@@ -435,6 +447,13 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		return fmt.Errorf("application/header preservation failed: %v %s", res, body)
 	}
 	c.pass("real reverse_proxy status/body/streaming and header preservation")
+	held, e := tls.Dial("tcp", "127.0.0.1:8443", &tls.Config{RootCAs: tlsPool, ServerName: id.Host})
+	if e != nil {
+		return e
+	}
+	defer held.Close()
+	heldLeaf := held.ConnectionState().PeerCertificates[0]
+	heldReader := bufio.NewReader(held)
 	cached, cachedBody, e := c.get("/cached", "GET")
 	if e != nil || cached.StatusCode != 200 || cached.Header.Get("X-Qwac-Cache") != "miss" || len(cached.Header.Values("Link")) != 3 || !strings.Contains(strings.Join(cached.Header.Values("Link"), ","), store.DiscoveryURL) {
 		return fmt.Errorf("cache population failed: %v %v", cached, e)
@@ -523,19 +542,66 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 	}
 	conn.Close()
 	c.pass("real WebSocket upgrade advertises binding and preserves bidirectional traffic")
-	// Detect automatic renewal without restart/credential changes and verify union.
+	// Keep one authenticated connection through two actual automatic renewals.
+	// A fresh normally verified handshake confirms each new served leaf; durable
+	// publication or a successful command alone is not activation evidence.
 	var renewed store.State
-	for end := time.Now().Add(100 * time.Second); time.Now().Before(end); {
-		renewed, e = c.state()
-		if e == nil && len(renewed.IDs) > len(initial.IDs) {
+	root, _ := pki.ReadCert(filepath.Join(pkidir, "qwac-root.pem"))
+	servedIDs := []string{binding.ID(heldLeaf)}
+	for cycle := 1; cycle <= 2; cycle++ {
+		observed := false
+		for end := time.Now().Add(100 * time.Second); time.Now().Before(end); time.Sleep(250 * time.Millisecond) {
+			renewed, e = c.state()
+			if e != nil {
+				return e
+			}
+			if len(renewed.IDs) < len(initial.IDs)+cycle {
+				continue
+			}
+			fresh, err := tls.Dial("tcp", "127.0.0.1:8443", &tls.Config{RootCAs: tlsPool, ServerName: id.Host})
+			if err != nil {
+				return err
+			}
+			leaf := fresh.ConnectionState().PeerCertificates[0]
+			fresh.Close()
+			known := false
+			for _, old := range servedIDs {
+				known = known || old == binding.ID(leaf)
+			}
+			if known {
+				continue
+			}
+			held.SetDeadline(time.Now().Add(5 * time.Second))
+			if _, err = fmt.Fprintf(held, "GET %s HTTP/1.1\r\nHost: %s:8443\r\nConnection: keep-alive\r\n\r\n", store.DiscoveryURL, id.Host); err != nil {
+				return err
+			}
+			response, err := http.ReadResponse(heldReader, nil)
+			if err != nil {
+				return err
+			}
+			document, err := io.ReadAll(response.Body)
+			response.Body.Close()
+			if err != nil {
+				return err
+			}
+			if response.StatusCode != 200 || response.Close {
+				return fmt.Errorf("held Caddy connection lost during renewal")
+			}
+			if err = binding.Verify(string(document), id.Host, []*x509.Certificate{heldLeaf, leaf}, root, time.Now()); err != nil {
+				return err
+			}
+			servedIDs = append(servedIDs, binding.ID(leaf))
+			observed = true
 			break
 		}
-		time.Sleep(250 * time.Millisecond)
+		if !observed {
+			return fmt.Errorf("automatic renewal cycle %d not served with held coverage", cycle)
+		}
 	}
-	if len(renewed.IDs) <= len(initial.IDs) {
-		return fmt.Errorf("no real automatic renewal")
+	if e = writeJSON(filepath.Join(dir, "evidence/renewal-held.json"), map[string]any{"held_tls_id": binding.ID(heldLeaf), "served_tls_ids": servedIDs, "renewals": 2, "same_held_connection": true, "retained_certificates": len(renewed.IDs)}); e != nil {
+		return e
 	}
-	root, _ := pki.ReadCert(filepath.Join(pkidir, "qwac-root.pem"))
+	c.pass("two real automatic renewals freshly verified while original connection remains bound")
 	var certs []*x509.Certificate
 	for _, raw := range renewed.Certs {
 		der, _ := base64.StdEncoding.DecodeString(raw)
@@ -595,33 +661,39 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 	}
 	c.pass("conflicting process rejected by exclusive state lock")
 	// Replace leaf and key at exactly the same configured paths, same authority.
-	oldLeaf, e := pki.ReadCert(filepath.Join(pkidir, "qwac-leaf.pem"))
-	if e != nil {
-		return e
-	}
-	ca, _ := pki.ReadCert(filepath.Join(pkidir, "qwac-intermediate.pem"))
-	caKey, _ := pki.ReadKey(filepath.Join(pkidir, "qwac-intermediate-key.pem"))
-	key, e := rsa.GenerateKey(rand.Reader, 2048)
-	if e != nil {
-		return e
-	}
-	tmpl := *oldLeaf
-	tmpl.RawSubject = nil
-	tmpl.SerialNumber = pki.Serial()
-	tmpl.Subject.Organization = []string{"Plugin replacement TEST"}
-	tmpl.Subject.ExtraNames = append(tmpl.Subject.ExtraNames, oldLeaf.Subject.Names...)
-	for n, v := range tmpl.Subject.ExtraNames {
-		if v.Type.String() == "2.5.4.10" {
-			tmpl.Subject.ExtraNames[n].Value = "Plugin replacement TEST"
+	for _, sameKey := range []bool{true, false} {
+		owner := "Plugin same-key replacement TEST"
+		if !sameKey {
+			owner = "Plugin replacement TEST"
+		}
+		oldLeaf, err := pki.ReadCert(filepath.Join(pkidir, "qwac-leaf.pem"))
+		if err != nil {
+			return err
+		}
+		candidate, err := replaceDemoQWACKey(pkidir, owner, sameKey)
+		if err != nil {
+			return err
+		}
+		if oldLeaf.PublicKey.(*rsa.PublicKey).Equal(candidate.PublicKey) != sameKey {
+			return fmt.Errorf("replacement key choice not exercised")
+		}
+		if sameKey {
+			if _, err = c.command("same-key-replacement", "reload", "--config", configPath, "--force"); err != nil {
+				return err
+			}
+			if err = c.ready(); err != nil {
+				return err
+			}
+			if err = checkCached(); err != nil {
+				return err
+			}
+			current, err := c.state()
+			if err != nil || current.Owner.Organization != owner || len(current.IDs) < len(after.IDs) {
+				return fmt.Errorf("same-key replacement not active: %v", err)
+			}
+			c.pass("same-key QWAC replacement with stable cached discovery and retained TLS")
 		}
 	}
-	tmpl.ExtraExtensions = oldLeaf.Extensions
-	crt, e := pki.Issue(&tmpl, ca, &key.PublicKey, caKey)
-	if e != nil {
-		return e
-	}
-	pki.WriteCert(filepath.Join(pkidir, "qwac-leaf.pem"), crt)
-	pki.WriteKey(filepath.Join(pkidir, "qwac-leaf-key.pem"), key)
 	if _, e = c.command("replacement-reload", "reload", "--config", configPath, "--force"); e != nil {
 		return e
 	}
@@ -665,6 +737,9 @@ func pluginSmoke(parent, pluginBin string) (retErr error) {
 		return e
 	}
 	c.pass("invalid credentials and inconsistent config reloads reject; old application remains active")
+	if e = pluginExpiryCheck(c, configPath, pkidir, tlsPool, delayedArrived, delayedRelease); e != nil {
+		return e
+	}
 	stopChild(c.caddy)
 	c.caddy = nil
 	c.client.CloseIdleConnections()

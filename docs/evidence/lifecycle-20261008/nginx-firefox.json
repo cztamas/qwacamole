@@ -1,0 +1,115 @@
+{
+  "checks": [
+    "isolated production agent and HTTP-only Nginx bootstrap",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=false)",
+    "private runtime/socket permissions and control methods/body validation; public control/file paths reject",
+    "real Certbot HTTP-01 issuance, deploy-hook publication and verified Nginx activation",
+    "fresh verified browser-facing TLS leaf covered by qualified binding",
+    "ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses",
+    "Nginx replaces forged forwarding metadata, preserves external port/encoded URL, origin secure cookies and absolute redirects; unsupported Host rejected",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=true)",
+    "configured body limit: 2 MiB upload status 413",
+    "real Nginx TLS WebSocket 101, discovery/upstream Link and bidirectional frame traffic",
+    "binding GET/HEAD/no-store/method rejection and nonrecursive discovery",
+    "Nginx internal gate/control and invalid binding paths are inaccessible",
+    "independent signed binding refresh without TLS renewal",
+    "automatic Certbot renewal and fresh verified controlled activation",
+    "original active TLS stream survives Nginx reload with both leaves bound",
+    "second real Certbot renewal freshly verified with original active stream and all TLS retained",
+    "agent-backpressure upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "nginx-buffered upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "real cache longer than original signed lifetime discovers renewed binding",
+    "same-key QWAC replacement publishes retained coverage through unchanged discovery",
+    "same-authority QWAC replacement through unchanged cached discovery",
+    "authenticated automatic collection preserves current document and retained leaves",
+    "agent unavailability rejects protected application requests",
+    "agent restart reconciles files and actual verified served TLS"
+  ],
+  "error": "<nil>",
+  "harness_source": "85a7335b9de98427520c3aed7a7318fdecbb49c8",
+  "core_source": "8e62f4b8c340e572584f6d71355a8f89a7d0be42",
+  "agent_source": "bdd733dc62ab94e01d17837070c1f286a5ceeb3c",
+  "caddy_source": "2089dd5b673e3358924179aa4700a56475356633",
+  "exit_code": 0,
+  "raw_evidence": ".local/lifecycle-nginx-firefox/nginx-smoke-3632189127/evidence",
+  "native_phases": {
+    "native-firefox-initial": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Nginx Agent TEST",
+        "country": "HU",
+        "qwac_fingerprint": "53:58:30:C0:C1:CB:9C:26:63:FB:EA:66:D8:A6:8B:EA:7B:E7:D9:7E:82:82:A8:56:F7:40:3E:CF:37:E6:31:0F",
+        "tls_fingerprint": "9E:CA:73:6D:DE:80:EF:84:F0:FF:28:4B:2A:49:BB:10:D3:21:A6:DF:5F:FD:C2:5D:17:6F:8C:8F:8E:E3:CB:A2",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      },
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Agent TEST"
+        ],
+        "qwac_id": "535830c0c1cb9c2663fbea66d8a68bea7be7d97e8282a856f7403ecf37e6310f",
+        "tls_id": "9eca736dde80ef84f0ff284b2a49bb10d321a6df5ffdc25d176f8c8f8ee3cba2",
+        "unchanged_trust_sha256": "f74a382f814494f5cc66a56c274d1d6e5e5c3713d62fe3df928a90f09a60fd62"
+      }
+    },
+    "native-firefox-renewed-cached-after-expiry": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Nginx Agent TEST",
+        "country": "HU",
+        "qwac_fingerprint": "53:58:30:C0:C1:CB:9C:26:63:FB:EA:66:D8:A6:8B:EA:7B:E7:D9:7E:82:82:A8:56:F7:40:3E:CF:37:E6:31:0F",
+        "tls_fingerprint": "1E:84:EA:0A:2F:F8:D7:5B:56:42:DF:0E:1C:A2:F4:E3:11:C8:22:EB:B9:B2:16:91:3E:5F:68:92:F3:CF:DA:9F",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      },
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Agent TEST"
+        ],
+        "qwac_id": "535830c0c1cb9c2663fbea66d8a68bea7be7d97e8282a856f7403ecf37e6310f",
+        "tls_id": "1e84ea0a2ff8d75b5642df0e1ca2f4e311c822ebb9b216913e5f6892f3cfda9f",
+        "unchanged_trust_sha256": "f74a382f814494f5cc66a56c274d1d6e5e5c3713d62fe3df928a90f09a60fd62"
+      }
+    },
+    "native-firefox-replacement-cached-after-expiry": {
+      "version": "157.0.1",
+      "accept_insecure_certs": false,
+      "native_ui": {
+        "url": "https://qwac.example.com:8443/cached",
+        "connection": "secure-etsi",
+        "organization": "Nginx Replacement TEST",
+        "country": "HU",
+        "qwac_fingerprint": "D2:37:9D:D3:4A:AE:DB:C3:BC:4D:FF:71:97:65:93:47:DE:08:60:1F:2A:74:EF:11:B7:AA:D5:D0:16:2C:6E:17",
+        "tls_fingerprint": "1E:84:EA:0A:2F:F8:D7:5B:56:42:DF:0E:1C:A2:F4:E3:11:C8:22:EB:B9:B2:16:91:3E:5F:68:92:F3:CF:DA:9F",
+        "qualified_text": "Qualified as specified in Regulation (EU) 2024/1183.",
+        "qualified_visible": true,
+        "certificate_overridden": false
+      },
+      "identity_and_trust": {
+        "owner": [
+          "Nginx Replacement TEST"
+        ],
+        "qwac_id": "d2379dd34aaedbc3bc4dff7197659347de08601f2a74ef11b7aad5d0162c6e17",
+        "tls_id": "1e84ea0a2ff8d75b5642df0e1ca2f4e311c822ebb9b216913e5f6892f3cfda9f",
+        "unchanged_trust_sha256": "f74a382f814494f5cc66a56c274d1d6e5e5c3713d62fe3df928a90f09a60fd62"
+      }
+    }
+  },
+  "repeated_renewal_held": {
+    "all_bound": true,
+    "chunks": 123,
+    "first_renewed_tls_id": "c9d990e4dbc38cfc5e2f5f3e3d59f55210c74ad87ab506bc0dc6fdf764b616af",
+    "old_tls_id": "9eca736dde80ef84f0ff284b2a49bb10d321a6df5ffdc25d176f8c8f8ee3cba2",
+    "renewals": 2,
+    "same_held_connection": true,
+    "second_renewed_tls_id": "1e84ea0a2ff8d75b5642df0e1ca2f4e311c822ebb9b216913e5f6892f3cfda9f"
+  }
+}

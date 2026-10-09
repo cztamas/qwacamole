@@ -19,6 +19,7 @@ import (
 
 type nginxNative struct {
 	mode, binary, metadata, driver, certutil string
+	server                                   string
 	dir, profile                             string
 	root                                     *x509.Certificate
 	trust                                    []byte
@@ -139,14 +140,16 @@ func (n *nginxNative) check(name string, leaf *x509.Certificate, tlsID string) e
 			return e
 		}
 		leafSeen, tlsSeen := false, false
+		observedTLS := ""
 		for _, event := range r.Events {
 			if event.Type == "CERT_VERIFY_PROC_2QWAC_BINDING" && event.Phase == 1 {
 				text, _ := event.Params["tls_certificate"].(string)
 				block, _ := pem.Decode([]byte(text))
 				if block != nil {
 					cert, e := x509.ParseCertificate(block.Bytes)
-					if e == nil && binding.ID(cert) == tlsID {
+					if e == nil && (tlsID == "" || binding.ID(cert) == tlsID) {
 						tlsSeen = true
+						observedTLS = binding.ID(cert)
 					}
 				}
 			}
@@ -168,6 +171,9 @@ func (n *nginxNative) check(name string, leaf *x509.Certificate, tlsID string) e
 		if !leafSeen || !tlsSeen {
 			return fmt.Errorf("native Chrome expected QWAC identity/TLS leaf evidence missing")
 		}
+		if tlsID == "" {
+			tlsID = observedTLS // Caddy may renew while a native check is running.
+		}
 	}
 	trust, e := n.readTrust()
 	if e != nil {
@@ -180,6 +186,10 @@ func (n *nginxNative) check(name string, leaf *x509.Certificate, tlsID string) e
 	if e = writeJSON(filepath.Join(evidence, "identity-trust.json"), map[string]any{"owner": leaf.Subject.Organization, "qwac_id": binding.ID(leaf), "tls_id": tlsID, "same_profile": n.profile, "unchanged_trust_sha256": fmt.Sprintf("%x", sum)}); e != nil {
 		return e
 	}
-	fmt.Println("PASS native Nginx", n.mode, name, "owner", leaf.Subject.Organization, "unchanged profile/trust")
+	server := n.server
+	if server == "" {
+		server = "Nginx"
+	}
+	fmt.Println("PASS native", server, n.mode, name, "owner", leaf.Subject.Organization, "unchanged profile/trust")
 	return nil
 }

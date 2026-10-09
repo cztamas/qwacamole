@@ -6,11 +6,13 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/caddyserver/caddy/v2/modules/caddytls"
 	"github.com/caddyserver/certmagic"
+	"github.com/cztamas/qwacamole/bindinghttp"
 	"github.com/cztamas/qwacamole/store"
 	"go.uber.org/zap"
 	"net"
@@ -116,6 +118,45 @@ func (i *Issuer) SetConfig(cfg *certmagic.Config) {
 		cfg.Issuers = []certmagic.Issuer{i}
 	}
 	i.ACMEIssuer.SetConfig(cfg)
+	previousEvent := cfg.OnEvent
+	cfg.OnEvent = func(ctx context.Context, event string, data map[string]any) error {
+		if previousEvent != nil {
+			if err := previousEvent(ctx, event, data); err != nil {
+				return err
+			}
+		}
+		if event == "cached_managed_cert" {
+			// This event runs during TLS app startup, after provisioning, even
+			// without application traffic. Its error cannot evict an already
+			// cached certificate, so the abortable handshake event also gates it.
+			return i.lease.Activate()
+		}
+		if event == "tls_get_certificate" {
+			// CertMagic deliberately supplies a serializable copy, not
+			// *tls.ClientHelloInfo. Read only its public ALPN field.
+			var hello struct{ SupportedProtos []string }
+			encoded, err := json.Marshal(data["client_hello"])
+			if err != nil {
+				return err
+			}
+			if err = json.Unmarshal(encoded, &hello); err != nil {
+				return err
+			}
+			if len(hello.SupportedProtos) == 1 && hello.SupportedProtos[0] == "acme-tls/1" {
+				return nil // ACME validation is not protected application TLS.
+			}
+			if i.startupErr != nil {
+				return i.startupErr
+			}
+			if err := i.lease.ActivateForServing(); err != nil {
+				return err
+			}
+			if !bindinghttp.Available(i.manager) {
+				return fmt.Errorf("TLS activation requires a current verified binding")
+			}
+		}
+		return nil
+	}
 	// Recover even when TLS assets predate binding installation. SetConfig runs
 	// before HTTP app startup and certificate management. Errors fail validation.
 	d, e := cfg.Storage.Load(context.Background(), certmagic.StorageKeys.SiteCert(i.IssuerKey(), i.Binding.Host))
@@ -264,7 +305,7 @@ func (h *Handler) Validate() error {
 	}
 	return fmt.Errorf("no explicit QWAC issuer policy for protected hostname")
 }
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) (err error) {
 	host := r.Host
 	if v, _, e := net.SplitHostPort(host); e == nil {
 		host = v
@@ -287,12 +328,29 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyht
 	if state.URL == "" || state.Expires <= time.Now().Unix() {
 		return caddyhttp.Error(503, fmt.Errorf("binding unavailable or expired"))
 	}
-	rw := &bindingWriter{ResponseWriter: w, manager: h.manager}
-	e = next.ServeHTTP(rw, r)
-	if e == nil && !rw.committed {
+	child, cancel := context.WithCancel(r.Context())
+	defer cancel()
+	rw := &bindingWriter{ResponseWriter: w, manager: h.manager, cancel: cancel}
+	defer func() {
+		if p := recover(); p != nil {
+			// Caddy's proxy closes the upstream body and then aborts on copy
+			// errors. Contain that abort only when our gate already replaced the
+			// response with 503; otherwise HTTP/2 would reset that rejection.
+			if rw.unavailable && p == http.ErrAbortHandler {
+				err = nil
+				return
+			}
+			panic(p)
+		}
+		if rw.unavailable && errors.Is(err, errBindingResponseRejected) {
+			err = nil
+		}
+	}()
+	err = next.ServeHTTP(rw, r.WithContext(child))
+	if err == nil && !rw.committed {
 		rw.WriteHeader(http.StatusOK)
 	}
-	return e
+	return err
 }
 
 var _ certmagic.Issuer = (*Issuer)(nil)

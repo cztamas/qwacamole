@@ -897,3 +897,5 @@ NetLog asserts `CERT_VERIFY_PROC_2QWAC_BINDING` success and the verified QWAC ch
 ending at our injected authority. Negative tests demand the intended native
 error, not merely a timeout or network failure. Keys, profiles, logs, and source
 snapshots stay in ignored `.local/`; browser binaries/runtimes stay in `.tools/`.
+
+See the [lifecycle contract and acceptance matrix](docs/lifecycle.md) for publication, activation, retention, recovery and diagnostic guarantees.

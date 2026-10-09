@@ -33,7 +33,15 @@ func integration(dir, binary, metadata string) error {
 		return e
 	}
 	start := func(sub string) (*exec.Cmd, error) {
-		c := exec.Command(exe, sub, "-state", dir)
+		args := []string{sub, "-state", dir}
+		if sub == "demo" {
+			// Preserve the same native held-connection/expiry assertions while
+			// keeping this synthetic lifetime below unrelated background updates.
+			// Renewal at 48s leaves room for the 30s independent refresh,
+			// while expiry plus 45s completes before a six-minute update.
+			args = append(args, "-tls-lifetime", "4m")
+		}
+		c := exec.Command(exe, args...)
 		f, e := os.OpenFile(filepath.Join(dir, "evidence", sub+"-console.log"), os.O_CREATE|os.O_WRONLY, 0600)
 		if e != nil {
 			return nil, e
@@ -73,6 +81,14 @@ func integration(dir, binary, metadata string) error {
 	if e = browser.Prepare(profile, metadata, tr, qr, true, true); e != nil {
 		return e
 	}
+	cached, e := newChromeCache(dir, binary, profile, tr, qr)
+	if e != nil {
+		return e
+	}
+	qwac, e := pki.ReadCert(filepath.Join(dir, "pki/qwac-leaf.pem"))
+	if e != nil {
+		return e
+	}
 	run := func(name string) error {
 		r, e := browser.Run(browser.Options{Binary: binary, Profile: profile, NetLog: filepath.Join(dir, "evidence", name+"-netlog.json"), URL: "https://qwac.example.com:8443/?fresh=" + name, InitURL: "https://qwac.example.com:8443/init", CTException: true, ThroughTLSExpiry: name == "held-through-tls-expiry"})
 		_ = writeJSON(filepath.Join(dir, "evidence", name+"-result.json"), r)
@@ -85,6 +101,9 @@ func integration(dir, binary, metadata string) error {
 		return e
 	}
 	fmt.Println("PASS native ACME initial binding")
+	if e = cached.check("cached-initial", qwac); e != nil {
+		return e
+	}
 	if e = lifecycle(dir); e != nil {
 		return e
 	}
@@ -96,6 +115,19 @@ func integration(dir, binary, metadata string) error {
 		return e
 	}
 	fmt.Println("PASS continuous native HTTP/2 verification through TLS expiry and a full binding refresh lifetime")
+	if e = cached.check("renewed-cached-after-expiry", qwac); e != nil {
+		return e
+	}
+	replaced, e := replaceDemoQWAC(filepath.Join(dir, "pki"), "Alpha Chromium Replacement TEST")
+	if e != nil {
+		return e
+	}
+	if out, err := exec.Command("bin/caddy", "reload", "--config", filepath.Join(dir, "caddy.json"), "--force").CombinedOutput(); err != nil {
+		return fmt.Errorf("Chromium replacement reload: %w: %s", err, out)
+	}
+	if e = cached.check("replacement-cached-after-expiry", replaced); e != nil {
+		return e
+	}
 	if e = os.WriteFile(filepath.Join(dir, "restart-request"), nil, 0600); e != nil {
 		return e
 	}
@@ -130,7 +162,7 @@ func integration(dir, binary, metadata string) error {
 	defer func() { _ = fixture.Process.Signal(syscall.SIGTERM); _ = fixture.Wait() }()
 	time.Sleep(time.Second)
 	err := suite(dir, binary, metadata)
-	summary := map[string]any{"initial_native_verified": true, "renewal_native_verified": true, "continuous_http2_through_tls_expiry": true, "profile_unchanged": true, "restart_recovered": true, "independent_refresh": true, "renewal_failure_gates": true, "negative_suite_passed": err == nil}
+	summary := map[string]any{"initial_native_verified": true, "renewal_native_verified": true, "continuous_http2_through_tls_expiry": true, "profile_unchanged": true, "cached_discovery_after_expiry_renewal_replacement": true, "replacement_native_verified": true, "restart_recovered": true, "independent_refresh": true, "renewal_failure_gates": true, "negative_suite_passed": err == nil}
 	if err != nil {
 		summary["blocker"] = err.Error()
 	}

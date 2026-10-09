@@ -318,6 +318,10 @@ func firefoxIntegration(base, binary, driver, certutil string) error {
 }
 
 func replaceDemoQWAC(pkidir, organization string) (*x509.Certificate, error) {
+	return replaceDemoQWACKey(pkidir, organization, false)
+}
+
+func replaceDemoQWACKey(pkidir, organization string, sameKey bool) (*x509.Certificate, error) {
 	old, e := pki.ReadCert(filepath.Join(pkidir, "qwac-leaf.pem"))
 	if e != nil {
 		return nil, e
@@ -330,7 +334,10 @@ func replaceDemoQWAC(pkidir, organization string) (*x509.Certificate, error) {
 	if e != nil {
 		return nil, e
 	}
-	key, e := rsa.GenerateKey(rand.Reader, 2048)
+	key, e := pki.ReadKey(filepath.Join(pkidir, "qwac-leaf-key.pem"))
+	if !sameKey {
+		key, e = rsa.GenerateKey(rand.Reader, 2048)
+	}
 	if e != nil {
 		return nil, e
 	}
