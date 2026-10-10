@@ -115,6 +115,8 @@ See [local setup and testing](website/README.md) for exact Node commands,
 checks and preview/search behavior. It renders the same operator Markdown used here, with static
 search and no Go/build credentials. [Cloudflare Pages deployment](docs/website-deployment.md)
 defaults disabled until account setup; qwacamole.com hosting is not yet verified.
+The [audience and ordering report](docs/evidence-website-audience-20261010.md) records
+new deployment regressions, product-route boundaries and local browser review.
 The [dated website report](docs/evidence-website-20261009.md) includes responsive
 screenshots, website checks and fresh native demonstration results.
 

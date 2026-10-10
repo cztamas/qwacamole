@@ -1,0 +1,54 @@
+{
+  "source": "3471a7c13f173c594361019b8d060fbece02f34d",
+  "reviewDate": "2026-10-10",
+  "server": "./scripts/start-website.sh",
+  "url": "http://127.0.0.1:4321/",
+  "layouts": [
+    {
+      "route": "/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/caddy/quickstart/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/nginx/quickstart/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/caddy/quickstart/",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/nginx/quickstart/",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    }
+  ],
+  "navigation": true,
+  "liveReload": true,
+  "mobileMenuAndCodeFocus": true,
+  "browserVersion": "156.0.8078.4"
+}

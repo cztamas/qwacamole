@@ -44,6 +44,10 @@ work; environment-scoped credentials are preferred):
 | Secret | `CLOUDFLARE_API_TOKEN` | Account-scoped Pages Edit token |
 | Variable | `WEBSITE_DEPLOY_ENABLED` | `true` after completing setup; absent/`false` disables uploads |
 
+Before first enabling, retire pending pre-guard workflow jobs and use this
+workflow revision or a descendant; rerunning historical code cannot acquire fixes
+retroactively. Keep Git builds disabled and preserve deployment source history.
+
 Leave the enable variable absent/false until the project, production branch,
 credentials and permission scope have been verified. Disabled runs still check
 and build; their summary explains the missing setup and performs no upload.
