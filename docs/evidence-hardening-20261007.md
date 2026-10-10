@@ -50,7 +50,7 @@ local server leaf. These hooks do not establish safe per-leaf retirement across
 protocols/reloads/issuer-only use. There is no automatic TLS pruning. The tested
 procedure fully stops the owning process, archives the whole binding directory,
 keeps Caddy's normal TLS storage, and reconstructs current coverage on restart.
-Capacity refusal can ultimately cause downtime. See [operations](operations.md)
+Capacity refusal can ultimately cause downtime. See [operations](guides/operations.md)
 for migrations, grace, replacement, draining and recovery.
 
 ## Portable validation

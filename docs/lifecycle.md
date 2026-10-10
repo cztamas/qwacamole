@@ -6,7 +6,7 @@ not activation proof. Production uses one explicit same-authority 2-QWAC signer
 and one literal hostname per binding store. Supplied credentials are validated
 for key matching, profile, hostname, dates and the configured chain. Importing
 credentials, selecting their filesystem paths and activating them are separate
-operations; see [the credential guide](byo-credentials.md).
+operations; see [the credential guide](guides/byo-credentials.md).
 
 ## Integration comparison
 
@@ -63,8 +63,8 @@ replacement, restore the previous selected inputs **before restarting**, or a
 restart may fail validation or intentionally reconcile the newly selected valid
 credential. Trust stays outside the credential pointer and is never expanded by
 import/replacement. Automatic QWAC renewal, authority migration and automatic
-online TLS retirement remain outside scope. Follow [Caddy retirement](caddy-plugin.md)
-and [agent offline migration/retirement](agent-nginx.md).
+online TLS retirement remain outside scope. Follow [Caddy retirement](guides/caddy-plugin.md)
+and [agent offline migration/retirement](guides/agent-nginx.md).
 
 ## Operational evidence
 

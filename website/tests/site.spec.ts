@@ -73,3 +73,27 @@ test('documentation dark theme retains contrast', async ({ page }) => {
     expect(result.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) }))).toEqual([]);
   }
 });
+test('maintainer routes and release/setup material stay outside product navigation and search', async ({ page }) => {
+  for (const route of ['/project/readme/', '/project/contributing/', '/project/website/', '/project/alpha/', '/development/firefox/', '/development/demos/']) {
+    expect((await page.goto(route))?.status()).toBe(404);
+  }
+  await page.goto('/overview/');
+  for (const route of ['/project/readme/', '/project/contributing/', '/project/website/', '/project/alpha/'])
+    await expect(page.locator(`a[href="${route}"]`)).toHaveCount(0);
+  // Inspect every indexed page rather than a fuzzy query that can match words
+  // like "website" and "deployment" in legitimate credential documentation.
+  const indexed = await page.evaluate(async () => {
+    const bundle = '/pagefind/pagefind.js';
+    const pagefind = await import(/* @vite-ignore */ bundle);
+    const results = await pagefind.search(null);
+    return Promise.all(results.results.map(async (result: { data: () => Promise<{ url: string; content: string }> }) => {
+      const data = await result.data();
+      return { route: new URL(data.url, location.origin).pathname, content: data.content };
+    }));
+  });
+  expect(indexed.map(result => result.route).sort()).toEqual([
+    '/overview/', '/caddy/quickstart/', '/nginx/quickstart/', '/caddy/reference/', '/nginx/reference/',
+    '/credentials/', '/operations/', '/nginx/migration/', '/support/', '/demonstration/', '/project/licensing/', '/project/security/',
+  ].sort());
+  expect(indexed.some(result => /WEBSITE_DEPLOY_ENABLED|owner publication approval|this task is complete/i.test(result.content))).toBe(false);
+});

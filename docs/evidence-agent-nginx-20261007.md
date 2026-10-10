@@ -282,5 +282,5 @@ installs/CI, and operating/retirement documentation have current evidence.
 The accepted Chrome ignored-exp incompatibility remains explicitly failed and
 nonzero; no other native failure is accepted. No requirement remains outstanding.
 
-The Nginx config/service guide is prepared in [agent-nginx.md](agent-nginx.md).
+The Nginx config/service guide is prepared in [agent-nginx.md](guides/agent-nginx.md).
 No merge, tags, publication, visibility or license change has been performed.

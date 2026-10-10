@@ -42,8 +42,8 @@ Breaking alpha changes must document migration and rollback before release.
 Current state/config migration remains additive and versioned; use the existing
 full-stop migration for incompatible changes, preserving complete private state,
 TLS history and recovery generations. Do not rebuild journals or drop coverage.
-See [agent operations](agent-nginx.md), [migration](agent-migration.md),
-[Caddy operations](operations.md) and [credential handling](byo-credentials.md).
+See [agent operations](guides/agent-nginx.md), [migration](guides/agent-migration.md),
+[Caddy operations](guides/operations.md) and [credential handling](guides/byo-credentials.md).
 
 Current executable installation refs are core 8e62f4b8c340, Caddy 9322bd566e82 and
 agent bb911a8f69a8. They are authenticated private installations and are not

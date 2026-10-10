@@ -15,7 +15,7 @@ creation, public credential inspection and offline import into a new private
 directory. Core owns reusable preparation and supplied-credential validation;
 agent and Caddy share it. The agent accepts a root omitted from the supplied
 chain, matching Caddy. Root selection stays explicit and separate from import.
-The [operator guide](byo-credentials.md) covers subject fields, local key handling,
+The [operator guide](guides/byo-credentials.md) covers subject fields, local key handling,
 trust, initial configuration, stable paths, replacement and rejected-update recovery.
 
 Strict checks cover RSA matching/minimum size, exact QNCP-w-gen and binding-only

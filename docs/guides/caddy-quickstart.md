@@ -18,7 +18,7 @@ qwacamole does not enroll with an issuer.
 The reserved `qwac.example.com` and `admin@example.com` below are placeholders.
 Replace the hostname consistently with the single SAN you will bind, the email
 with your ACME contact, and input paths with your supplied files. Synthetic
-credentials are for [isolated demonstrations](demos.md) only.
+credentials are for [isolated demonstrations](demonstration.md) only.
 
 ## 2. Build and verify the plugin
 
@@ -76,9 +76,9 @@ qwac.example.com {
 ```
 
 The sole `qwac` directive configures both issuer and middleware. Full
-[reverse proxy](../config/Caddyfile.reverse-proxy),
-[file server](../config/Caddyfile.file-server) and
-[JSON](../config/plugin.json.example) examples remain available.
+[reverse proxy](../../config/Caddyfile.reverse-proxy),
+[file server](../../config/Caddyfile.file-server) and
+[JSON](../../config/plugin.json.example) examples remain available.
 
 ## 4. Validate, start and verify
 

@@ -1,11 +1,9 @@
 # Agent configuration versions and offline migration
 
-This procedure upgrades merged `main` at
-`4a93ce6c43bf4a728a69625ac7ed567d54db53f1` to the configurable agent. It also
-changes compatible `serving` settings in existing versioned deployments without
-rebuilding certificate/binding state. See [the agent guide](agent-nginx.md) for
-field defaults and [current evidence](evidence-agent-serving-20261008.md) for
-executed tests and immutable sources.
+Use this procedure when upgrading an unversioned agent deployment to the
+configurable agent or changing compatible `serving` settings in an existing
+versioned deployment. It preserves certificate and binding state. See the
+[agent reference](agent-nginx.md) for field defaults.
 
 ## Formats and compatibility
 

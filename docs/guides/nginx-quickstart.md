@@ -37,7 +37,7 @@ git checkout main
 The clone supplies the canonical configuration example; installation itself
 uses the immutable ref and no local replacements. Public tags and package assets
 are **not available yet**. [Packaged installation](agent-nginx.md#packaged-agent)
-is a future procedure after publication.
+is unavailable; use the source install above.
 
 ## 2. Prepare the dedicated deployment
 
@@ -54,7 +54,7 @@ sudo install -m 0600 config/agent.json.example /etc/qwacamole/agent.json
 ```
 
 Edit `/etc/qwacamole/agent.json` before continuing. The
-[complete shared JSON example](../config/agent.json.example) specifies every
+[complete shared JSON example](../../config/agent.json.example) specifies every
 deployment path, hostname, Certbot lineage, listener/probe address and application.
 Replace `example.com` everywhere, select your real Nginx binary path, and
 review serving/body/redirect policy. Keep one hostname per state. The selected
@@ -119,7 +119,7 @@ its systemd units are untested examples. Recreate private `/run` state on boot.
 
 Native browser identity is separate from `check`. See
 [browser profiles](site-support.md#browser-profiles) and
-[isolated demonstrations](demos.md) before interpreting qualified UI.
+[isolated demonstrations](demonstration.md) before interpreting qualified UI.
 
 ## 5. Replace credentials and recover
 

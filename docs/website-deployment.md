@@ -58,7 +58,8 @@ on relevant PRs and pushes to main. It uploads exactly the checked static artifa
 Only main push/manual dispatch can enter deployment. Deployment concurrency
 serializes production uploads. PR jobs receive no Cloudflare credentials and
 create no previews. GitHub needs only contents: read; Wrangler directly uploads,
-without writing GitHub deployment records.
+without writing GitHub deployment records. Freshness uses contents-read GitHub
+source comparisons inside that production slot; see the rules below.
 
 ## First deployment and verification
 
@@ -125,3 +126,44 @@ build on Free; this workflow builds on GitHub, whose own Actions quotas apply.
 These are current plan limits, not a promise of unlimited free service.
 [Pages limits](https://developers.cloudflare.com/pages/platform/limits/)
 (checked 9 October 2026). Recheck plan/usage before changing scope.
+
+## Freshness inside the production slot
+
+Uploads remain serialized with `cancel-in-progress: false`. After setup and
+checked-artifact identity validation, the deployment script reads the Pages
+project and **all retained production deployment pages** while holding that slot.
+It compares full source commits with GitHub's contents-read comparison API.
+No commit string, workflow timestamp or build completion order is used as age.
+[Pages deployment history API](https://developers.cloudflare.com/api/resources/pages/subresources/projects/subresources/deployments/methods/list/)
+and [GitHub commit comparison](https://docs.github.com/en/rest/commits/commits#compare-two-commits)
+provide the inputs; `GITHUB_TOKEN` is used only for repository reads.
+
+- A checked source must remain an ancestor of main. A later Go-only commit is
+  allowed: the guard does **not** require exact HEAD equality. Existing path
+  filters still decide which changes start a website build.
+- A source older than any retained successful production source is **skipped**,
+  with both commits and the reason in the workflow summary. A rerun of an already
+  deployed source also skips. No Wrangler upload is attempted. The same rule
+  covers delayed builds, reruns and manual dispatch of superseded workflows.
+- First deployment requires an explicit null canonical deployment and complete
+  history showing no successful production source. API denial, missing metadata,
+  unknown/diverged ancestry, incomplete pagination or an unfinished production
+  write fails clearly before upload. History traversal is capped at 100 pages;
+  exceeding that bound fails rather than assuming freshness.
+- Successful deployment history is the high-water mark even after a dashboard
+  rollback. Keep those history records; do not delete them to bypass this guard.
+  Cloudflare metadata must contain a clean full commit and main branch. An older
+  deployment created outside this mechanism with unknown source blocks uploads
+  until its identity/history is investigated under a separate maintainer action.
+
+On rollback, disable uploads first and stop pending deployment jobs **before**
+external writes begin. Never cancel an active upload to order jobs. Roll back
+through Pages, verify its immutable identity, then create a new main commit that
+reverts the faulty content. Dispatch/check that new descendant after re-enabling;
+an old workflow or an identical old source cannot be used to undo the high-water
+mark. Serialize separately approved manual Pages writes with this workflow;
+GitHub concurrency cannot lock a dashboard or another external writer.
+
+The upload still uses the checked artifact, sets its full commit metadata and
+verifies immutable deployment URL/build-info identity. Failed or uncertain writes
+are never retried automatically. Inspect Pages before any subsequent action.

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deploymentSetup } from './deployment-setup.mjs';
+import { deploymentFreshness } from './deployment-freshness.mjs';
 
 export async function deploy({ env = process.env, directory = 'dist', execute = execFileSync, request = fetch } = {}) {
   if (!deploymentSetup(env)) throw new Error('Deployment is disabled');
@@ -23,15 +24,19 @@ export async function deploy({ env = process.env, directory = 'dist', execute = 
       source.config?.deployments_enabled !== false &&
       (source.config?.production_deployments_enabled !== false || source.config?.preview_deployment_setting !== 'none'))
     throw new Error('Disable automatic Git production and preview builds before Direct Upload; no upload attempted');
+  const freshness = await deploymentFreshness({ env, project: project.result, request,
+    pagesUrl: 'https://api.cloudflare.com/client/v4/accounts/' + env.CLOUDFLARE_ACCOUNT_ID + '/pages/projects/' + env.CLOUDFLARE_PAGES_PROJECT });
+  if (freshness.skipped) return { ...freshness, sha };
   const scratch = mkdtempSync(path.join(tmpdir(), 'qwacamole-pages-'));
   const outputFile = path.join(scratch, 'output.jsonl');
   try {
     try {
+      const { GITHUB_TOKEN: _githubReadToken, ...uploadEnv } = env;
       execute('./node_modules/.bin/wrangler', [
         'pages', 'deploy', directory, '--project-name', env.CLOUDFLARE_PAGES_PROJECT,
         '--branch', 'main', '--commit-hash', sha, '--commit-message', 'Documentation at ' + sha,
         '--commit-dirty=false',
-      ], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...env, WRANGLER_OUTPUT_FILE_PATH: outputFile, WRANGLER_SEND_METRICS: 'false' } });
+      ], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...uploadEnv, WRANGLER_OUTPUT_FILE_PATH: outputFile, WRANGLER_SEND_METRICS: 'false' } });
     } catch (error) {
       // Do not print captured process output or credentials; never retry a write.
       throw new Error('Pages upload failed (exit ' + (error.status ?? 'unknown') + '). Inspect the project before retrying.');
@@ -57,6 +62,12 @@ export async function deploy({ env = process.env, directory = 'dist', execute = 
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const result = await deploy();
-  appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## Website deployed\nCommit: `' + result.sha + '`\n\nDeployment: ' + result.url + '\n\nDeployment ID: `' + result.deploymentId + '`\n\nVerified production metadata and build-info.json at the immutable deployment URL.\n');
-  console.log('Verified website commit ' + result.sha + ' at ' + result.url);
+  if (result.skipped) {
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## Website deployment skipped\n' + result.reason + '\n\nNo production upload performed.\n');
+    appendFileSync(process.env.GITHUB_OUTPUT, 'deployment=skipped\n');
+    console.log('SKIPPED: ' + result.reason);
+  } else {
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## Website deployed\nCommit: `' + result.sha + '`\n\nDeployment: ' + result.url + '\n\nDeployment ID: `' + result.deploymentId + '`\n\nVerified production metadata and build-info.json at the immutable deployment URL.\n');
+    console.log('Verified website commit ' + result.sha + ' at ' + result.url);
+  }
 }

@@ -1,8 +1,8 @@
 # Binding discovery and sustained operation
 
-This describes the merged, unpublished implementation. The plugin guide pins its
-implemented immutable ref; [the dated hardening report](evidence-hardening-20261007.md)
-separates new validation from historical results.
+Use these procedures to monitor binding freshness, maintain coverage for held
+connections, and recover without bypassing the activation gate. Start with the
+[Caddy](caddy-quickstart.md) or [Certbot/Nginx](nginx-quickstart.md) quickstart.
 
 ## Discovery, caching and migration
 
@@ -65,8 +65,8 @@ effective validity, avoid continuously signing the same near-expiry document;
 renewal/replacement wakes the worker, otherwise refresh fails at expiry.
 
 The deployed defaults normally produce approximately 36 documents per day per
-host (40-minute refresh cadence), rather than the former 2,880. Development
-demos explicitly retain 45s; the portable smoke explicitly uses 6s/3s grace.
+host (40-minute refresh cadence). Shorter lifetimes increase storage and signing
+load; choose them only for isolated evaluation.
 Collection runs at grace/4, bounded between one second and one hour. It holds
 the same lock as publication and reads, protects the committed current artifact,
 and only removes regular, correctly hash-named files whose signature, authority,
@@ -174,4 +174,4 @@ Status is only on the permission-protected local socket. Do not proxy it into th
 public site. The daemon's structured events report maintenance failures and
 recovery without logging private keys, request bodies or credentials. Monitor
 Nginx process/log and disk state separately; service-manager examples remain
-operator procedures unless the acceptance report records an actual execution.
+untested examples requiring adaptation to your service manager.

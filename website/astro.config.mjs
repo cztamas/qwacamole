@@ -51,7 +51,7 @@ export default defineConfig({
       { label: 'Start here', items: [{ label: 'Overview', slug: 'overview' }, { label: 'Caddy quickstart', slug: 'caddy/quickstart' }, { label: 'Certbot / Nginx quickstart', slug: 'nginx/quickstart' }] },
       { label: 'Configure', items: [{ label: 'Caddy reference', slug: 'caddy/reference' }, { label: 'Agent reference', slug: 'nginx/reference' }, { label: 'Keys, CSRs & credentials', slug: 'credentials' }] },
       { label: 'Operate', items: [{ label: 'Discovery & maintenance', slug: 'operations' }, { label: 'Agent migration & rollback', slug: 'nginx/migration' }, { label: 'Support & troubleshooting', slug: 'support' }] },
-      { label: 'Project', items: [{ label: 'Browser demonstrations', slug: 'development/demos' }, { label: 'Firefox compatibility', slug: 'development/firefox' }, { label: 'Release preparation', slug: 'project/alpha' }, { label: 'License & attribution', slug: 'project/licensing' }, { label: 'Security', slug: 'project/security' }, { label: 'Contributing', slug: 'project/contributing' }, { label: 'Website deployment', slug: 'project/website' }] },
+      { label: 'Evaluate & support', items: [{ label: 'Isolated demonstration', slug: 'demonstration' }, { label: 'License & attribution', slug: 'project/licensing' }, { label: 'Security reporting', slug: 'project/security' }] },
     ],
   })],
 });

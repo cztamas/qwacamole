@@ -3,7 +3,7 @@
 These synthetic demonstrations belong to devtools, separately from production
 distribution. Run one browser/server harness at a time in a new ignored state.
 The current project entry points and release scope are in [the README](../README.md).
-For the dedicated Nginx native harness, use [the agent guide](agent-nginx.md);
+For the dedicated Nginx native harness, use [the agent guide](guides/agent-nginx.md);
 Caddy manual/automated browser controls below retain their existing assertions.
 
 ## Prerequisites
@@ -17,7 +17,7 @@ validated and need a port of the bootstrap and browser discovery.
 
 You need `git`, `curl`, `tar`, `shasum`, `make`, and network access to Go download
 and module servers. The repository is currently private; use authorized Git
-credentials and the private-module setup in the [plugin guide](caddy-plugin.md#installation-from-the-private-github-repository).
+credentials and the private-module setup in the [plugin guide](guides/caddy-plugin.md#installation-from-the-private-github-repository).
 Go does not need to be installed beforehand: `make build`
 downloads a checksum-verified runtime, xcaddy, and Pebble into `.tools/`, then
 builds `bin/qwacamole` and `bin/caddy`. The first build may take several minutes.

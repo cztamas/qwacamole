@@ -14,16 +14,16 @@ trust. Synthetic demonstrations make no legal identity claim.
 
 ## Choose an integration
 
-Start with the [Caddy quickstart](docs/caddy-quickstart.md) or
-[Certbot/Nginx quickstart](docs/nginx-quickstart.md). The
-[binding overview](docs/site-overview.md) explains the two certificate roles.
+Start with the [Caddy quickstart](docs/guides/caddy-quickstart.md) or
+[Certbot/Nginx quickstart](docs/guides/nginx-quickstart.md). The
+[binding overview](docs/guides/site-overview.md) explains the two certificate roles.
 
 | Component | Distribution and entry point |
 | --- | --- |
 | Shared core | Root Go module; stdlib-only credentials, profiles, bindings, storage and lifecycle |
-| Caddy integration | Separate `caddy` module, installed with xcaddy; [installation/configuration](docs/caddy-plugin.md) |
-| Certbot/Nginx agent | Separate `agent` module and production executable; [installation/operation](docs/agent-nginx.md) |
-| Credential workflow | [Local RSA key and CSR, inspection, import and replacement](docs/byo-credentials.md), usable for both integrations |
+| Caddy integration | Separate `caddy` module, installed with xcaddy; [installation/configuration](docs/guides/caddy-plugin.md) |
+| Certbot/Nginx agent | Separate `agent` module and production executable; [installation/operation](docs/guides/agent-nginx.md) |
+| Credential workflow | [Local RSA key and CSR, inspection, import and replacement](docs/guides/byo-credentials.md), usable for both integrations |
 | Development demos | Separate `devtools` module and `qwacamole` executable; [Chrome/Firefox setup and checks](docs/demos.md), [Firefox details](docs/firefox.md) |
 
 Production supports supplied RSA keys of at least 2048 bits, RS256 bindings,
@@ -63,8 +63,8 @@ file ownership, service startup, status, updates and rollback.
 The release plan provides Linux amd64, Linux arm64 and macOS arm64 agent archives.
 Candidate packages are private review artifacts carrying the selected MIT license
 and third-party notices; publication approval remains pending.
-After publication, use [the packaged installation procedure](docs/agent-nginx.md#packaged-agent)
-with the matching target, SHA256SUMS, manifest and `version` identity. Nginx and
+Future package verification belongs to the [release checklist](docs/alpha-release.md).
+Current installation uses the immutable source commands above. Nginx and
 Certbot remain external dependencies. Caddy distribution uses the module and
 xcaddy; no custom prebuilt Caddy or hosted-builder support is claimed.
 
@@ -81,8 +81,8 @@ Bindings publish and verify before TLS activation. Replacement candidates are
 validated before activation; rejected updates preserve the current valid signer
 and complete retained TLS coverage. Maintenance refreshes independently of TLS
 renewal. Expiry closes availability until repair; capacity refusal cannot discard
-coverage to hide failure. See [operations/recovery](docs/operations.md),
-[agent migration](docs/agent-migration.md) and [credential replacement](docs/byo-credentials.md#replacement-and-rejected-update-recovery).
+coverage to hide failure. See [operations/recovery](docs/guides/operations.md),
+[agent migration](docs/guides/agent-migration.md) and [credential replacement](docs/guides/byo-credentials.md#replacement-and-rejected-update-recovery).
 
 ## Develop and verify
 
@@ -97,7 +97,7 @@ make nginx-smoke STATE=.local/new-nginx-smoke
 ```
 
 Run native checks sequentially in distinct isolated state, following
-[the demo guide](docs/demos.md) and [agent guide](docs/agent-nginx.md).
+[the demo guide](docs/demos.md) and [agent guide](docs/guides/agent-nginx.md).
 `make build` includes synthetic development adapters; only `make plugin-build`
 and `make agent-build` produce production components. Root tests alone miss the
 three nested modules. Generated keys, profiles and raw logs stay ignored.
@@ -121,7 +121,7 @@ screenshots, website checks and fresh native demonstration results.
 [The alpha checklist](docs/alpha-release.md) defines support, separate module tags,
 licensing/security prerequisites, candidate packaging and the exact manual
 publication sequence. [Draft release notes](docs/release-notes-alpha.md) describe
-the proposed first alpha. [Licensing and attribution inventory](docs/licensing.md)
+the proposed first alpha. [Licensing and attribution inventory](docs/guides/licensing.md)
 describes MIT and the retained third-party notices. [SECURITY.md](SECURITY.md) describes current reporting limits.
 
 The [9 October release-preparation report](docs/evidence-release-preparation-20261009.md)

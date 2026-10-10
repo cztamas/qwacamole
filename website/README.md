@@ -74,7 +74,9 @@ observed on macOS. Search stays fully static; no retry or service is added.
 
 ## Shared documentation
 
-Edit canonical Markdown in ../docs/, README, SECURITY or CONTRIBUTING.
+Edit canonical product Markdown in ../docs/guides/ or the root SECURITY.md.
+Root README, CONTRIBUTING, engineering reports, Firefox research and maintainer
+release/website guides are repository-only. See ../docs/README.md for audiences.
 docs-map.mjs is the explicit page/asset publication allowlist. sync-docs parses
 Markdown links/references/images, rewrites included docs to site routes, copies
 only allowed public assets and links historical/source-only files to GitHub.
@@ -83,8 +85,7 @@ Frontmatter points Edit this page to the canonical source. Site navigation is
 explicit in astro.config.mjs. Add a route and CI path filter together.
 
 GitHub Markdown stays usable without Astro frontmatter or duplicate copies.
-Historical reports remain dated in the repository; Firefox research is explicitly
-dated. No recursive docs/state copying occurs. Generated keys/profiles/logs are
+Historical reports and detailed Firefox research remain in the repository. No recursive docs/state copying occurs. Generated keys/profiles/logs are
 excluded. The homepage is a tailored Astro page; operator instructions are shared.
 
 The dev server watches shared docs/assets and rebuilds generated content on edits.
@@ -95,5 +96,7 @@ All generated output, search caches, dependencies and browser artifacts are igno
 See [the maintainer guide](../docs/website-deployment.md) for exact settings.
 Deployment defaults disabled. Direct Upload in GitHub Actions is the sole
 automatic mechanism, main-only and serialized, without PR previews. The separate
-deployment job consumes checked dist/ and records/verifies full commit identity.
+deployment job consumes checked dist/, compares Git ancestry against retained
+successful production history, skips superseded sources and verifies full commit
+identity. Reruns, unknown history and rollback are documented in the guide.
 No live deployment or custom-domain binding is claimed yet.

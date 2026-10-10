@@ -50,7 +50,6 @@ make no legal identity claim. See [support and browser limitations](site-support
 [configuration and verification](caddy-quickstart.md) →
 [replacement and recovery](byo-credentials.md#replacement-and-rejected-update-recovery).
 
-For reproducible local experiments use the [browser demonstrations](demos.md).
-For tested versions, release prerequisites and future distributions consult the
-[release contract](alpha-release.md). Dated reports linked from the guides record
-historical runs; their results are not fresh acceptance of a newer build.
+Try the [isolated demonstration](demonstration.md) before selecting production
+credentials. Check [supported versions and browser compatibility](site-support.md)
+before installing or upgrading.

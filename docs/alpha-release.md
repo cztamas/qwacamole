@@ -101,7 +101,7 @@ commands from inherited reports:
 
 - [ ] Approve version/support scope and publication timing.
 - [x] Select MIT and install matching LICENSE/NOTICE files at root and in nested
-  modules. See [licensing inventory](licensing.md).
+  modules. See [licensing inventory](guides/licensing.md).
 - [ ] Review ownership/third-party notices for the final release and verify the
   legal-file copies and recorded hashes still match.
 - [ ] Review [tracked-content/history audit](evidence-release-preparation-20261009.md).
