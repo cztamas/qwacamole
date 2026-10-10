@@ -1,17 +1,17 @@
 # Security reporting and scope
 
-This is an unpublished experimental alpha, with no supported production release
-or response-time guarantee. The synthetic demonstrations do not establish legal
-qualification, QTSP status, EU Trusted List registration or production revocation
-handling. Do not use development test keys/authorities for real identity claims.
+This is an unpublished experimental alpha, with no supported production release.
+Support is best-effort only, with no response-time guarantee. The synthetic
+demonstrations do not establish legal qualification, QTSP status, EU Trusted List
+registration or production revocation handling. Do not use development test
+keys/authorities for real identity claims.
 
+The primary contact for security reports is
+[tamas.czank@gmail.com](mailto:tamas.czank@gmail.com).
 Do not post private credentials, exploitable details or browser profiles in public
-issues. If GitHub private vulnerability reporting is enabled, use this
-repository's **Security → Report a vulnerability** flow. Its availability has not
-been verified. Authorized collaborators should use their existing private
-channel to the repository owner. No public confidential email address or
-response-time commitment is currently available. Do not send sensitive material
-to an invented address or post it publicly when this flow is unavailable.
+issues. If GitHub private vulnerability reporting is enabled, you can also use
+this repository's **Security → Report a vulnerability** flow. Its availability
+has not been verified.
 
 Include the immutable source ref, Go/Caddy/browser versions, affected
 configuration, expected versus observed behavior and a minimal synthetic
