@@ -192,7 +192,7 @@ The owner selected standard MIT on 9 October 2026. Commit
 `212492497c3be3f4789e470f5b7683d6d70dbb92` installs matching LICENSE/NOTICE files
 at root and in agent/Caddy/devtools, removes the Apache proposal files, updates
 operator documentation and records the actual legal-file hashes. Mozilla's MPL
-fixture and Go/transitive attribution remain intact. See [licensing](licensing.md).
+fixture and Go/transitive attribution remain intact. See [licensing](guides/licensing.md).
 The older manifest/checksum evidence above intentionally still describes its
 original pre-MIT source; it is not the current candidate or licence decision.
 

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+src/content/docs/
+public/shared/
+playwright-report/
+test-results/

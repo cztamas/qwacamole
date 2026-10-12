@@ -1,0 +1,52 @@
+{
+  "source": "944375e82281136b252838bfe9bebd7f78dbda54",
+  "server": "./scripts/start-website.sh",
+  "url": "http://127.0.0.1:4321/",
+  "layouts": [
+    {
+      "route": "/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/caddy/quickstart/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/nginx/quickstart/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/caddy/quickstart/",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/nginx/quickstart/",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    }
+  ],
+  "navigation": true,
+  "liveReload": true,
+  "mobileMenuAndCodeFocus": true
+}

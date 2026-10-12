@@ -1,0 +1,137 @@
+name: Documentation website
+on:
+  pull_request:
+    paths:
+      - 'website/**'
+      - '.github/workflows/website.yml'
+      - 'scripts/start-website.sh'
+      - 'docs/guides/site-overview.md'
+      - 'docs/guides/caddy-quickstart.md'
+      - 'docs/guides/nginx-quickstart.md'
+      - 'docs/guides/caddy-plugin.md'
+      - 'docs/guides/agent-nginx.md'
+      - 'docs/guides/byo-credentials.md'
+      - 'docs/guides/operations.md'
+      - 'docs/guides/agent-migration.md'
+      - 'docs/guides/site-support.md'
+      - 'docs/guides/demonstration.md'
+      - 'docs/guides/licensing.md'
+      - 'SECURITY.md'
+      - 'docs/images/qualified-status.png'
+      - 'docs/images/qwac-certificate-viewer.png'
+      - 'docs/images/firefox-qualified-status.png'
+      - 'config/Caddyfile.reverse-proxy'
+      - 'config/Caddyfile.file-server'
+      - 'config/Caddyfile.pebble'
+      - 'config/plugin.json.example'
+      - 'config/agent.json.example'
+      - 'LICENSE'
+      - 'NOTICE'
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - '.github/workflows/website.yml'
+      - 'scripts/start-website.sh'
+      - 'docs/guides/site-overview.md'
+      - 'docs/guides/caddy-quickstart.md'
+      - 'docs/guides/nginx-quickstart.md'
+      - 'docs/guides/caddy-plugin.md'
+      - 'docs/guides/agent-nginx.md'
+      - 'docs/guides/byo-credentials.md'
+      - 'docs/guides/operations.md'
+      - 'docs/guides/agent-migration.md'
+      - 'docs/guides/site-support.md'
+      - 'docs/guides/demonstration.md'
+      - 'docs/guides/licensing.md'
+      - 'SECURITY.md'
+      - 'docs/images/qualified-status.png'
+      - 'docs/images/qwac-certificate-viewer.png'
+      - 'docs/images/firefox-qualified-status.png'
+      - 'config/Caddyfile.reverse-proxy'
+      - 'config/Caddyfile.file-server'
+      - 'config/Caddyfile.pebble'
+      - 'config/plugin.json.example'
+      - 'config/agent.json.example'
+      - 'LICENSE'
+      - 'NOTICE'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: website/.node-version
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npx --no-install playwright install --with-deps chromium
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@v7
+        with:
+          name: website-static-${{ github.sha }}
+          path: website/dist/
+          retention-days: 14
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: website-browser-${{ github.sha }}
+          path: website/test-results/
+          retention-days: 14
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: website-production
+    concurrency:
+      group: qwacamole-website-production
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: website/.node-version
+          package-manager-cache: false
+      - name: Validate deployment setup
+        id: setup
+        run: node scripts/deployment-setup.mjs
+        env:
+          WEBSITE_DEPLOY_ENABLED: ${{ vars.WEBSITE_DEPLOY_ENABLED }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - uses: actions/download-artifact@v8
+        if: steps.setup.outputs.enabled == 'true'
+        with:
+          name: website-static-${{ github.sha }}
+          path: website/dist/
+      - if: steps.setup.outputs.enabled == 'true'
+        run: npm ci
+      - name: Upload checked main build and verify identity
+        if: steps.setup.outputs.enabled == 'true'
+        run: node scripts/deploy.mjs
+        env:
+          WEBSITE_DEPLOY_ENABLED: ${{ vars.WEBSITE_DEPLOY_ENABLED }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}

@@ -1,0 +1,28 @@
+:root{
+  --sl-color-accent-low:#16382e;
+  --sl-color-accent:#507a42;
+  --sl-color-accent-high:#c3ddb2;
+  --sl-font:Arial,Helvetica,sans-serif;
+  --sl-font-mono:ui-monospace,SFMono-Regular,Consolas,monospace;
+  --sl-content-width:52rem;
+}
+:root[data-theme='light']{
+  --sl-color-accent-low:#e2ecd7;
+  --sl-color-accent:#28543e;
+  --sl-color-accent-high:#173c31;
+  --sl-color-white:#173c31;
+  --sl-color-gray-1:#253e32;
+  --sl-color-gray-2:#415449;
+  --sl-color-gray-3:#5b6b60;
+  --sl-color-gray-4:#879386;
+  --sl-color-gray-5:#dce2d7;
+  --sl-color-gray-6:#eef0e7;
+  --sl-color-black:#f8f8f1;
+}
+h1{font-family:Georgia,'Times New Roman',serif;font-weight:400;letter-spacing:-1px}
+.site-title{letter-spacing:-.6px;font-size:1.3rem}
+.sl-markdown-content{line-height:1.8}
+.sl-markdown-content pre{border-radius:5px}
+:focus-visible{outline:3px solid #a5681d!important;outline-offset:3px}
+.sl-markdown-content table{font-size:.9rem}
+@media(max-width:50rem){h1{font-size:2.35rem}.sl-markdown-content{font-size:1rem}}

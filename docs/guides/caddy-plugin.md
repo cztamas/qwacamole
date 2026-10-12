@@ -21,12 +21,9 @@ go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
 xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@9322bd566e825a2c2c645e464a630e09d7aa68d6
 ```
 
-The implemented plugin resolves to `v0.0.0-20261009072701-9322bd566e82`;
-the [dated evidence](evidence-release-preparation-20261009.md) records the fresh-cache remote
-build and module inventory. Repository examples and checks for this stage are on
-`codex/public-alpha-release`; after an authenticated clone, use
-`git checkout codex/public-alpha-release` to work with them. The immutable
-installation command above does not require a checkout.
+The pinned plugin resolves to `v0.0.0-20261009072701-9322bd566e82`.
+After an authenticated clone, use `git checkout main` for configuration examples.
+The immutable installation command above does not require a checkout.
 Use Go **1.27.1** (other toolchains require separate validation), xcaddy **0.4.5**,
 Caddy **2.10.2**. The `nojsonv2` workaround preserves the reflected identity of
 `encoding/json.RawMessage` expected by Caddy 2.10.2. No downstream `go.work` or
@@ -55,21 +52,9 @@ go version -m ./caddy
 Expect `tls.issuance.qwac` and `http.handlers.qwac`, no `qwac_demo` modules and no
 `qwacamole/devtools` dependency. The core dependency is the remotely resolved
 `v0.0.0-20261008203612-8e62f4b8c340` (commit
-`8e62f4b8c340e572584f6d71355a8f89a7d0be42`). Local development retains the root
-workspace; `make build` includes development adapters and `make plugin-build`
-builds only the integration using explicit local replacements.
-
-After owner-approved publication only, this module command becomes valid:
-
-```sh
-GOWORK=off GOEXPERIMENT=nojsonv2 xcaddy build v2.10.2 \
-  --with github.com/cztamas/qwacamole/caddy@v0.1.0-alpha.1
-```
-
-No such tag is created by this preparation. Use the current immutable command
-above until publication. No prebuilt custom Caddy or hosted-builder support is
-claimed. The [release checklist](alpha-release.md) defines source identities,
-publication order and anonymous verification.
+`8e62f4b8c340e572584f6d71355a8f89a7d0be42`). There are no published alpha tags or prebuilt custom Caddy packages.
+Use the immutable installation command above; hosted-builder distribution is
+unsupported.
 
 For an update, build a separate binary at the selected immutable/module version,
 inspect `list-modules`/`go version -m`, and validate config before replacement.
@@ -94,10 +79,10 @@ Ordinary unprotected sites may use their own Caddy TLS and application settings.
 
 Complete examples:
 
-- [Reverse proxy](../config/Caddyfile.reverse-proxy).
-- [File server](../config/Caddyfile.file-server).
-- [Local Pebble smoke](../config/Caddyfile.pebble).
-- [Native JSON](../config/plugin.json.example) (replace `{STATE}` with an absolute
+- [Reverse proxy](../../config/Caddyfile.reverse-proxy).
+- [File server](../../config/Caddyfile.file-server).
+- [Local Pebble smoke](../../config/Caddyfile.pebble).
+- [Native JSON](../../config/plugin.json.example) (replace `{STATE}` with an absolute
   directory; it is a documentation placeholder, not a Caddy runtime variable).
 
 Example site:
@@ -210,7 +195,7 @@ and credentials active and protected requests fail closed if it expires.
 
 Only leaf/key replacement **under the same configured authority** is supported.
 Authority migration requires a separately designed operational/browser trust
-transition and is outside this stage. Hostname, profile, lifetime/state ownership
+transition and is unsupported. Hostname, profile, lifetime/state ownership
 changes are rejected while overlapping with a conflicting live owner; plan a
 stop/reconfigure rather than mutating shared state settings during reload.
 Restart validates/reuses the atomic manifest and immutable documents, reconstructs
@@ -271,36 +256,11 @@ In advanced JSON, pair the same middleware in `servers.*.errors.routes`.
 | Reload does not pick up new files | Use `caddy reload --force`; unchanged configuration bytes otherwise need not reprovision. Check the reload exit status and the activated signer in structured logs. |
 | Reload is rejected | Repair the supplied files or inconsistent settings and retry. The previous live configuration remains active; no candidate worker is started by validation. |
 | Protected response is 503 | Inspect refresh/publication logs, credential validity, state permissions and disk space. Restore signing/publication so independent refresh or gated issuance can recover. Do not bypass the gate or erase retained history. |
-| HTTPS works but the browser shows no qualified identity | Local plugin validation is separate from the browser's QWAC authority list, feature support and binding profile. Use native browser evidence and the README's isolated development instructions; a page label is insufficient. |
+| HTTPS works but the browser shows no qualified identity | Local plugin validation is separate from the browser's QWAC authority list, feature support and binding profile. Use the isolated demonstration and browser compatibility guide; a page label is insufficient. |
 
-## Repeatable checks and future releases
+## Evaluate before deployment
 
-```sh
-make test                 # race tests in all four modules; boundaries
-make plugin-smoke STATE=.local/plugin-smoke
-# Uses a fresh outside-checkout module cache and no replacements/devtools:
-scripts/check-remote-install.sh 9322bd566e825a2c2c645e464a630e09d7aa68d6
-```
-
-The portable smoke builds no browsers: it supplies synthetic TEST PEMs from
-**devtools**, runs real Pebble validation/issuance/automatic renewal, serves a real
-proxy/static application, exercises reload/replacement/rejection/restart, and
-records logs plus result JSON in a new state subdirectory. The `Caddyfile.pebble`
-example is adapted with accelerated renewal and explicit 6s binding lifetime/3s
-document grace. Checks include a real cache across expiry/renewal/replacement,
-conditional responses, redirects, WebSocket traffic, collection, two independent
-protected sites and an unprotected site, custom error routes, and full-stop offline
-retirement with preserved Caddy TLS storage. It uses local
-ports 8443, 5002, 8053/UDP, 14000, 15000 and 2019 plus temporary loopback ports; stop
-other owned demos before running. The CI workflow runs portable Go/plugin checks
-on Linux without the macOS bootstrap. Native Chrome/Firefox checks remain a
-separate tested-macOS check; see [the demo guide](demos.md) and dated evidence.
-
-Future stable module releases need separate tags: root `vX.Y.Z`, nested Caddy
-`caddy/vX.Y.Z`. Commit/push the core release first, update the plugin's core
-requirement to the resolvable version, then release/tag the nested module and
-verify a remote build of that exact ref. Do not tag all modules with the root
-name. This task publishes no tags/releases and does not merge the feature branch.
-Public distribution still needs the repository owner's visibility and license
-choice; this stage neither changes privacy nor invents a license. Retain fixture
-attribution in devtools and exclude its public test keys from plugin builds.
+Use the [isolated demonstration](demonstration.md) to see native identity and
+binding refresh with synthetic credentials. Check [support and browser
+compatibility](site-support.md) before interpreting native identity indicators.
+Original project code is [MIT licensed](licensing.md).

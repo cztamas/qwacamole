@@ -7,7 +7,8 @@ remote enrollment, issuer account or paid service. A qualified issuer remains
 responsible for issuing your real certificate.
 
 Preparation commands belong to the existing production `qwacamole-agent` CLI
-(`make agent-build` locally) and work for **both Caddy and Nginx**, without a
+([installation](agent-nginx.md#installation-and-configuration)) and work for
+**both Caddy and Nginx**, without a
 deployment configuration, Nginx or devtools. Each production binding configuration
 owns one literal hostname; use separate state/configuration for multiple sites.
 
@@ -40,7 +41,7 @@ Send only the CSR to your issuer. Keep the signing key local and out of Git,
 logs, tickets and web roots; protect backups with your secret-storage policy.
 Supported key inputs are unencrypted PKCS#1 or PKCS#8 RSA PEM. Encrypted PEM,
 PKCS#12, DER keys, EC keys and HSM/remote references are unsupported. Bindings use
-RS256. Core CSR generation accepts `crypto.Signer` for future signer integration.
+RS256.
 
 ## Inspect and import
 
@@ -132,10 +133,10 @@ In the full [dedicated Certbot/Nginx agent configuration](agent-nginx.md), use:
 
 Render/validate Nginx, start the agent and obtain/deploy ordinary TLS through the
 existing Certbot hook. `validate` checks the complete deployment; `inspect-qwac`
-checks only the supplied credential. The agent now accepts an omitted root like
-Caddy; existing full-chain and separate-file configurations remain supported.
-Previously accepted weak RSA keys, incompatible key usages and malformed or
-mixed website/seal QCStatements intentionally reject after this change.
+checks only the supplied credential. Both integrations accept a chain with the root included or omitted, while
+requiring an independently selected trust anchor. Full-chain and separate-file
+configurations are supported. Weak RSA keys, incompatible key usages and malformed
+or mixed website/seal QCStatements are rejected.
 
 ## Replacement and rejected-update recovery
 

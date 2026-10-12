@@ -3,7 +3,7 @@
 These synthetic demonstrations belong to devtools, separately from production
 distribution. Run one browser/server harness at a time in a new ignored state.
 The current project entry points and release scope are in [the README](../README.md).
-For the dedicated Nginx native harness, use [the agent guide](agent-nginx.md);
+For the dedicated Nginx native harness, use [the agent guide](guides/agent-nginx.md);
 Caddy manual/automated browser controls below retain their existing assertions.
 
 ## Prerequisites
@@ -17,7 +17,7 @@ validated and need a port of the bootstrap and browser discovery.
 
 You need `git`, `curl`, `tar`, `shasum`, `make`, and network access to Go download
 and module servers. The repository is currently private; use authorized Git
-credentials and the private-module setup in the [plugin guide](caddy-plugin.md#installation-from-the-private-github-repository).
+credentials and the private-module setup in the [plugin guide](guides/caddy-plugin.md#installation-from-the-private-github-repository).
 Go does not need to be installed beforehand: `make build`
 downloads a checksum-verified runtime, xcaddy, and Pebble into `.tools/`, then
 builds `bin/qwacamole` and `bin/caddy`. The first build may take several minutes.
@@ -59,7 +59,7 @@ example site in a **visible stock Chrome window**:
 ```sh
 git clone https://github.com/cztamas/qwacamole.git
 cd qwacamole
-git checkout codex/public-alpha-hardening
+git checkout main
 make browser-demo DEMO_ARGS='-organization "Example Synthetic Owner TEST" -country HU -locality Budapest -registration NTRHU-TEST-0001'
 ```
 
@@ -497,6 +497,21 @@ state directories and shared build logs remain. No normal browser profile or
 system trust is changed by cleanup.
 
 ## Troubleshooting and evidence
+
+### Isolated browser trust and CT
+
+The Chrome demonstration patches a copy of PKI Metadata and prepares a separate
+profile with explicit synthetic QWAC/TLS authorities. Its `-ct-exception`
+disables only Certificate Transparency enforcement in that isolated test process
+for the private test TLS setup. Ordinary chain, hostname and expiry checks remain enabled;
+the negative CT control runs without that exception. Do not reuse this isolated
+test trust in a production browser or count it as legal qualification.
+
+Firefox uses its own explicit test QWAC authority list and a fresh NSS profile
+for ordinary TLS trust. It runs with `acceptInsecureCerts: false` and no CT
+or certificate-error bypass. The normal browser profiles and system roots remain
+unchanged. Native identity assertions and signed fingerprints provide evidence;
+the demonstration's HTML labels do not.
 
 | Symptom | Check / action |
 |---|---|

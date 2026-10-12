@@ -101,7 +101,7 @@ commands from inherited reports:
 
 - [ ] Approve version/support scope and publication timing.
 - [x] Select MIT and install matching LICENSE/NOTICE files at root and in nested
-  modules. See [licensing inventory](licensing.md).
+  modules. See [licensing inventory](guides/licensing.md).
 - [ ] Review ownership/third-party notices for the final release and verify the
   legal-file copies and recorded hashes still match.
 - [ ] Review [tracked-content/history audit](evidence-release-preparation-20261009.md).
@@ -190,5 +190,6 @@ rebuilds the approved source. Public publication is available only through the
 explicit manual action; ordinary pushes and PRs cannot publish.
 
 Caddy package registration and hosted-builder testing are separate future owner
-work. The supported installation path here is xcaddy. Website deployment is out
-of scope. Devtools has no independently supported alpha tag.
+work. The supported installation path here is xcaddy. Website deployment uses the
+separate [Cloudflare Pages setup](website-deployment.md); it does not publish
+software. Devtools has no independently supported alpha tag.

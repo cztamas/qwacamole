@@ -1,20 +1,18 @@
 # Agent configuration versions and offline migration
 
-This procedure upgrades merged `main` at
-`4a93ce6c43bf4a728a69625ac7ed567d54db53f1` to the configurable agent. It also
-changes compatible `serving` settings in existing versioned deployments without
-rebuilding certificate/binding state. See [the agent guide](agent-nginx.md) for
-field defaults and [current evidence](evidence-agent-serving-20261008.md) for
-executed tests and immutable sources.
+Use this procedure when upgrading an unversioned agent deployment to the
+configurable agent or changing compatible `serving` settings in an existing
+versioned deployment. It preserves certificate and binding state. See the
+[agent reference](agent-nginx.md) for field defaults.
 
 ## Formats and compatibility
 
 | Artifact | Current format | Supported legacy |
 |---|---|---|
 | Operator JSON | `config_version: 1` | Omitted/0 accepted as legacy input; new state is still versioned |
-| `format.json` | `state_version: 1`, `nginx_format_version: 1` | Absent only for the merged unversioned deployment |
-| `deployment.json` | `state_version: 1` | Missing/0 version with the merged journal schema |
-| Complete Nginx config and generation `https.conf` | `# qwacamole nginx-format: 1` | Exact merged-main templates retained by the migration verifier |
+| `format.json` | `state_version: 1`, `nginx_format_version: 1` | Absent only for the supported unversioned deployment |
+| `deployment.json` | `state_version: 1` | Missing/0 version with the supported unversioned journal schema |
+| Complete Nginx config and generation `https.conf` | `# qwacamole nginx-format: 1` | Exact legacy templates retained by the migration verifier |
 | Shared binding storage | Existing signed manifest/document schema | Existing verified recovery; no migration rewrite |
 
 Unknown future input, state or journal versions reject without upgrading or
@@ -126,7 +124,7 @@ For rollback before accepting new deployments, fully stop everything again and
 restore a consistent original snapshot with its old JSON, old binary and
 `top-level.conf`. Restore the backup's complete state at its original path,
 excluding transient runtime locks/sockets, and reconcile. The new versioned state
-is **not** claimed to be readable by the merged old binary. Once new certificate
+is **not** claimed to be readable by the prior unversioned binary. Once new certificate
 or binding generations have been deployed, rolling back to the earlier snapshot
 can lose their coverage; use a separately planned consistent restoration and full
 stop, not selective copies. HSTS already stored in browsers survives this rollback.

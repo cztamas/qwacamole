@@ -5,7 +5,7 @@ This is new execution evidence for `codex/installable-caddy-plugin`, based on
 in [the monorepo report](evidence-monorepo-20261005.md). The private feature
 branch has not been merged and no tags/releases or visibility/license changes
 were made. Configuration and operational instructions are in
-[the plugin guide](caddy-plugin.md); the README retains both manual demos.
+[the plugin guide](guides/caddy-plugin.md); the README retains both manual demos.
 
 ## Immutable remote installation
 
