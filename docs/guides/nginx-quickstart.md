@@ -13,12 +13,26 @@ hostname, email, upstream and `/path/to/*` inputs below.
 ## 1. Install
 
 [Download, verify and install the agent package](binary-installation.md) at
-`/opt/qwacamole-agent`. Install Nginx with HTTP SSL/auth_request, Certbot with
-webroot support, and systemd. The supported setup uses `/usr/sbin/nginx` and
-`/usr/bin/certbot`; [supported versions](site-support.md) lists tested pairs.
+`/opt/qwacamole-agent`. On the supported Ubuntu host, install prerequisites:
+
+```sh
+sudo apt update
+sudo apt install nginx certbot
+```
+
+Ubuntu's Nginx includes HTTP SSL/auth_request and Certbot includes webroot support.
+Setup uses `/usr/sbin/nginx`, `/usr/bin/certbot` and systemd;
+[supported versions](site-support.md) lists tested pairs.
 
 Use a dedicated host. If package installation started the default Nginx service,
-inspect it and explicitly stop/disable it before continuing. Setup detects
+inspect it and explicitly stop/disable it before continuing. On a fresh dedicated
+host with no other Nginx deployment or Certbot lineages:
+
+```sh
+sudo systemctl disable --now nginx.service certbot.timer
+```
+
+The qwacamole timer installed below owns this deployment's renewal. Setup detects
 existing masters and listener conflicts; it never stops another service.
 
 ## 2. Configure
@@ -38,7 +52,7 @@ The service identity is root; Nginx workers have a separate owned upload directo
 No full JSON editing or repository clone is needed.
 
 An identical repeat preserves files and binding state. Changed credentials or
-operator-edited files are refused: use [replacement and recovery](byo-credentials.md#replacement-and-rejected-update-recovery).
+operator-edited files are refused: use [replacement and recovery](byo-credentials.md#credentials-in-generated-setups).
 Setup does not start services or contact ACME. Strict bindings remain the default.
 
 ## 3. Start

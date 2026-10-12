@@ -100,6 +100,10 @@ but does not select or activate credentials, change configuration, or expand tru
 
 ## Initial integration configuration
 
+The quickstart setup commands copy credentials to fixed private paths. Use
+[generated-setup maintenance](#credentials-in-generated-setups) for those installations.
+The stable-pointer configuration below is an advanced manual arrangement.
+
 For replacement without changing configured paths, create a stable pointer:
 
 ```sh
@@ -137,6 +141,57 @@ checks only the supplied credential. Both integrations accept a chain with the r
 requiring an independently selected trust anchor. Full-chain and separate-file
 configurations are supported. Weak RSA keys, incompatible key usages and malformed
 or mixed website/seal QCStatements are rejected.
+
+## Credentials in generated setups
+
+Setup is a fresh-install command. It refuses changed credentials or configuration
+on a repeat run. To replace credentials copied by setup, schedule maintenance:
+validate/import the new pair first, then stop all owning services before replacing
+the two fixed files. Keep the selected authority, configuration, complete binding
+state, TLS history and deployment journal. Do not edit a live chain/key pair.
+
+For the Nginx quickstart, import into a new protected directory:
+
+```sh
+sudo /opt/qwacamole-agent/bin/qwacamole-agent import-qwac \
+  -chain /path/to/new-chain.pem -key /path/to/new-key.pem \
+  -trust /etc/qwacamole/authority.pem -hostname example.com \
+  -out /etc/qwacamole-credentials-v2
+sudo systemctl stop qwacamole-renew.timer qwacamole-renew.service \
+  qwacamole-agent.service qwacamole-nginx.service
+```
+
+Confirm that both services have exited and their listeners are closed. Make a
+restricted backup of the complete deployment, then save and replace the pair:
+
+```sh
+sudo mkdir -m 0700 /root/qwacamole-credentials-before
+sudo cp -p /etc/qwacamole/chain.pem /etc/qwacamole/key.pem /root/qwacamole-credentials-before/
+sudo install -m 0600 /etc/qwacamole-credentials-v2/chain.pem /etc/qwacamole/chain.pem
+sudo install -m 0600 /etc/qwacamole-credentials-v2/key.pem /etc/qwacamole/key.pem
+sudo systemctl start qwacamole-agent.service qwacamole-renew.timer
+sudo /opt/qwacamole-agent/bin/qwacamole-agent verify -config /etc/qwacamole/agent.json
+```
+
+Choose new backup/import directories for each update. If startup or verification
+fails, stop the same services, restore **both** saved files, then restart and verify.
+Preserve state for diagnosis; never delete binding coverage to force readiness.
+After an intentional update, setup continues to refuse replacing the edited files.
+
+For packaged Caddy, use the same import command with
+`-trust /etc/caddy-qwac/authority.pem`. Stop `qwacamole-caddy.service`, confirm
+process/listener shutdown, back up its configuration and complete
+`/var/lib/caddy-qwac` state, then save and replace
+`/etc/caddy-qwac/chain.pem` and `key.pem` as above. Start the service and run:
+
+```sh
+sudo /opt/qwacamole-caddy/bin/caddy-qwac qwac-check \
+  --hostname example.com --authority /etc/caddy-qwac/authority.pem
+```
+
+Retain the previous pair for rollback. Online replacement with atomic pointers
+requires the explicit manual configuration below; changing authorities remains
+a separate deployment/trust decision.
 
 ## Replacement and rejected-update recovery
 

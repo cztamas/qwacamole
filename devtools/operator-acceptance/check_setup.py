@@ -6,9 +6,11 @@ from pathlib import Path
 import socket
 import subprocess
 import tempfile
+import time
 
 binary='/opt/qwacamole-agent/bin/qwacamole-agent'
 args=[binary,'setup','--hostname','qwac.example.com','--upstream','http://127.0.0.1:8080','--chain','/inputs/qwac-chain.pem','--key','/inputs/qwac-leaf-key.pem','--authority','/inputs/qwac-root.pem','--email','operator@example.com']
+if os.environ.get('OPERATOR_ACME_SERVER'):args+=['--acme-server',os.environ['OPERATOR_ACME_SERVER']]
 results=[]
 managed=list(json.loads(Path('/etc/qwacamole/setup-manifest.json').read_text()))+['/etc/qwacamole/setup-manifest.json']
 state=Path('/var/lib/qwacamole/qwac.example.com')
@@ -25,6 +27,11 @@ def run(name,argv=args,error=None):
  assert snapshot()==before,name+' changed deployment/state'
  results.append({'check':name,'exit':p.returncode,'output':p.stdout,'error':p.stderr})
 run('identical repeat preserves files and binding state')
+next_chain=Path('/inputs/valid-changed-chain.pem')
+next_chain.write_bytes(Path('/inputs/qwac-chain.pem').read_bytes()+b'\n')
+next_chain.chmod(0o600)
+changed=args.copy();changed[changed.index('--chain')+1]=str(next_chain)
+run('valid changed credential input refused',changed,'existing file or credentials changed')
 for name,flag,value,error in [
  ('wrong hostname','--hostname','wrong.example.test','credential preflight'),
  ('mismatched key','--key','/inputs/tls-leaf-key.pem','credential preflight'),
@@ -58,6 +65,21 @@ with tempfile.TemporaryDirectory(prefix='operator-conflicts-') as directory:
   assert p.returncode!=0 and 'listener 0.0.0.0:80 is unavailable' in p.stderr,(p.stdout,p.stderr)
   assert all(not Path(p).exists() for p in managed)
   results.append({'check':'occupied port rejected before writes','exit':p.returncode,'error':p.stderr})
+  config=backup/'unrelated-nginx.conf'
+  config.write_text('pid '+str(backup/'nginx.pid')+'; error_log stderr; events {} http { server { listen 127.0.0.1:19089; } }\n')
+  master=subprocess.Popen(['/usr/sbin/nginx','-p',str(backup),'-c',str(config),'-g','daemon off;'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+  try:
+   for attempt in range(50):
+    assert master.poll() is None,'unrelated Nginx failed to start'
+    try:
+     with socket.create_connection(('127.0.0.1',19089),timeout=.1):break
+    except OSError:time.sleep(.1)
+   else:raise AssertionError('unrelated Nginx listener did not start')
+   p=subprocess.run(args,text=True,capture_output=True)
+   assert p.returncode!=0 and 'existing Nginx master detected' in p.stderr,(p.stdout,p.stderr)
+   assert master.poll() is None and all(not Path(p).exists() for p in managed)
+   results.append({'check':'existing unrelated master refused and left running','exit':p.returncode,'error':p.stderr})
+  finally:master.terminate();master.wait(timeout=10)
   nginx=Path('/usr/sbin/nginx');old_nginx=Path('/usr/sbin/nginx.acceptance-backup')
   nginx.rename(old_nginx)
   try:

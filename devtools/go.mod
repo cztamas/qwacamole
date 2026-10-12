@@ -7,7 +7,7 @@ require (
 	github.com/caddyserver/certmagic v0.24.0
 	github.com/chromedp/cdproto v0.0.0-20250724212937-08a3db8b4327
 	github.com/chromedp/chromedp v0.14.2
-	github.com/cztamas/qwacamole v0.0.0-20261012102652-3020eb3e808e
+	github.com/cztamas/qwacamole v0.0.0-20261012130422-b3fb51784945
 	github.com/cztamas/qwacamole/agent v0.0.0-20261009145422-bb911a8f69a8
 	github.com/cztamas/qwacamole/caddy v0.0.0-20261009072701-9322bd566e82
 	github.com/gobwas/ws v1.4.0

@@ -236,7 +236,11 @@ WantedBy=multi-user.target
 		fmt.Println("Dry run: private configuration/state directories, three supplied inputs, Caddyfile and qwacamole-caddy.service; no deployment files changed.")
 		return nil
 	}
-	lock, e := os.OpenFile("/run/lock/qwacamole-caddy-setup.lock", os.O_CREATE|os.O_RDWR, 0600)
+	lockPath := "/run/qwacamole-caddy-setup.lock"
+	if e = caddyOwned(lockPath); e != nil {
+		return e
+	}
+	lock, e := os.OpenFile(lockPath, os.O_CREATE|os.O_RDWR, 0600)
 	if e != nil {
 		return e
 	}

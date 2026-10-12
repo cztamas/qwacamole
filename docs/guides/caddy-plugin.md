@@ -32,7 +32,11 @@ TLS policies are rejected by the existing policy validator.
 
 `qwac-check --hostname HOST --authority AUTHORITY.pem` verifies normal HTTPS,
 stable discovery, signer authority and current TLS coverage. Add `--json` for
-machine diagnostics; add `--firefox-compatibility` only for a deployment explicitly
+machine diagnostics. Run on the owning host: it also reads the committed TLS set
+from the packaged service's conventional state directory. For manual deployments,
+pass `--state /your/binding/directory`. A publication changing during verification
+can report a generation mismatch; retry after renewal settles.
+Add `--firefox-compatibility` only for a deployment explicitly
 configured with the bare `firefox_compatibility` switch. It does not establish
 native browser acceptance or legal qualification.
 

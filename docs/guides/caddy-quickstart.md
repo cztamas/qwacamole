@@ -72,13 +72,24 @@ sudo /opt/qwacamole-caddy/bin/caddy-qwac qwac-check \
   --hostname qwac.example.com --authority /etc/caddy-qwac/authority.pem
 ```
 
-Expected output reports `PASS HTTPS`, `PASS discovery`, `PASS authority` and
-`PASS TLS binding`, followed by `Ready`. **Setup is complete when verification
-succeeds.** A failure names the check and next action; add `--json` for automation.
+Expected successful output:
+
+```text
+PASS HTTPS: ordinary certificate verification succeeded
+PASS discovery: signed binding is available at /bindings/current.jose
+PASS authority: selected authority validates the supplied signer and signature
+PASS TLS binding: binding is current and covers the served TLS certificate
+Ready: qwac.example.com serves verified HTTPS and a current signed TLS binding.
+Browser acceptance and legal qualification are separate checks.
+```
+
+**Setup is complete when verification succeeds.** A failure names the check and
+next action; add `--json` for automation.
 Server verification is separate from native browser acceptance and legal qualification.
 
 Use [the Caddy reference](caddy-plugin.md) for JSON/custom arrangements and
-[operations](operations.md) for renewal, reload, replacement and recovery.
+[operations](operations.md) for renewal, reload and recovery, and
+[credential maintenance](byo-credentials.md#credentials-in-generated-setups) for generated setups.
 Strict bindings remain default; [Firefox compatibility](site-support.md#browser-profiles)
 is an explicit choice. Synthetic credentials belong in the separate
 [isolated demonstration](demonstration.md).

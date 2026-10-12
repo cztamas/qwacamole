@@ -408,7 +408,11 @@ func Setup(ctx context.Context, o SetupOptions) (SetupPlan, error) {
 	if o.DryRun {
 		return p, nil
 	}
-	lock, e := lockState("/run/lock/qwacamole-setup.lock")
+	lockPath := "/run/qwacamole-setup.lock"
+	if e = setupOwnedPath(lockPath); e != nil {
+		return p, e
+	}
+	lock, e := lockState(lockPath)
 	if e != nil {
 		return p, e
 	}
