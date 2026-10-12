@@ -1,0 +1,38 @@
+{
+  "hostname": "qwac.example.com",
+  "ready": true,
+  "checks": [
+    {
+      "name": "HTTPS",
+      "ok": true,
+      "detail": "ordinary certificate verification succeeded"
+    },
+    {
+      "name": "discovery",
+      "ok": true,
+      "detail": "signed binding is available at /bindings/current.jose"
+    },
+    {
+      "name": "authority",
+      "ok": true,
+      "detail": "selected authority validates the supplied signer and signature"
+    },
+    {
+      "name": "TLS binding",
+      "ok": true,
+      "detail": "binding is current and covers the served TLS certificate"
+    },
+    {
+      "name": "Nginx deployment",
+      "ok": true,
+      "detail": "dedicated deployment is ready"
+    }
+  ],
+  "source_commit": "c13676e0805fae7389b1c3de32f91cb6521c9c3b",
+  "new_boot_id_assertion": true,
+  "runtime_mode": "0700",
+  "runtime_owner": "root",
+  "volatile_marker_removed": true,
+  "upload_mode": "0700",
+  "upload_owner": "www-data"
+}

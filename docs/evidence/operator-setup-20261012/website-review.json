@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-12",
+  "url": "http://127.0.0.1:4406",
+  "server": "npm --prefix website run preview -- --port 4406",
+  "layouts": [
+    {
+      "route": "/caddy/quickstart/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/nginx/quickstart/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/installation/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/caddy/quickstart/",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/nginx/quickstart/",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    },
+    {
+      "route": "/installation/",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "axeViolations": 0
+    }
+  ]
+}

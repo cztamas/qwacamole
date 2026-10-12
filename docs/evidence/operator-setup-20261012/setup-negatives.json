@@ -1,0 +1,81 @@
+{
+  "platform": "Linux x86_64",
+  "checks": [
+    {
+      "check": "identical repeat preserves files and binding state",
+      "exit": 0,
+      "output": "Setup already matches; files, credentials and binding state preserved.\nStart, issue ordinary TLS, then verify:\nsudo systemctl daemon-reload\nsudo systemctl enable --now qwacamole-agent.service qwacamole-renew.timer\nsudo certbot certonly --config /etc/qwacamole/certbot.ini --agree-tos --webroot -w /var/lib/qwacamole-acme -d qwac.example.com --cert-name qwac.example.com --deploy-hook /etc/qwacamole/deploy-hook --no-directory-hooks\nsudo /opt/qwacamole-agent/bin/qwacamole-agent verify -config /etc/qwacamole/agent.json\n",
+      "error": ""
+    },
+    {
+      "check": "valid changed credential input refused",
+      "exit": 1,
+      "output": "",
+      "error": "existing file or credentials changed: /etc/qwacamole/chain.pem; use replacement, maintenance or recovery; setup never overwrites\n"
+    },
+    {
+      "check": "wrong hostname",
+      "exit": 1,
+      "output": "",
+      "error": "credential preflight: QWAC credential for wrong.example.test: x509: certificate is valid for qwac.example.com, not wrong.example.test\n"
+    },
+    {
+      "check": "mismatched key",
+      "exit": 1,
+      "output": "",
+      "error": "credential preflight: QWAC credential for qwac.example.com: signing key does not match RSA QWAC leaf\n"
+    },
+    {
+      "check": "incomplete chain",
+      "exit": 1,
+      "output": "",
+      "error": "credential preflight: QWAC credential for qwac.example.com: QWAC chain is not leaf-first: crypto/rsa: verification error\n"
+    },
+    {
+      "check": "wrong authority",
+      "exit": 1,
+      "output": "",
+      "error": "credential preflight: QWAC credential for qwac.example.com: QWAC chain is not leaf-first: crypto/rsa: verification error\n"
+    },
+    {
+      "check": "operator edit refused",
+      "exit": 1,
+      "output": "",
+      "error": "existing file or credentials changed: /etc/qwacamole/agent.json; use replacement, maintenance or recovery; setup never overwrites\n"
+    },
+    {
+      "check": "public private-key permissions refused",
+      "exit": 1,
+      "output": "",
+      "error": "existing file /etc/qwacamole/key.pem has incompatible type or permissions\n"
+    },
+    {
+      "check": "unsafe ownership refused",
+      "exit": 1,
+      "output": "",
+      "error": "unsafe ownership, permissions or symlink at /etc/qwacamole/key.pem\n"
+    },
+    {
+      "check": "missing Certbot refused",
+      "exit": 1,
+      "output": "",
+      "error": "/usr/bin/certbot prerequisite: fork/exec /usr/bin/certbot: no such file or directory: \n"
+    },
+    {
+      "check": "occupied port rejected before writes",
+      "exit": 1,
+      "error": "listener 0.0.0.0:80 is unavailable: listen tcp 0.0.0.0:80: bind: address already in use\n"
+    },
+    {
+      "check": "existing unrelated master refused and left running",
+      "exit": 1,
+      "error": "existing Nginx master detected; dedicate this host before setup; no service was stopped\n"
+    },
+    {
+      "check": "missing Nginx capability rejected before writes",
+      "exit": 1,
+      "error": "Nginx needs --with-http_ssl_module\n"
+    }
+  ],
+  "source_commit": "1825f77b0cfe49b6a4778eedde33f83e01a11d6b"
+}
