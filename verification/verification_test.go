@@ -37,7 +37,7 @@ func TestLiveVerificationAndFailedChecks(t *testing.T) {
 		}
 		return cert
 	}
-	caTemplate := &x509.Certificate{SerialNumber: big.NewInt(1), Subject: pkix.Name{CommonName: "test"}, NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour), IsCA: true, BasicConstraintsValid: true, KeyUsage: x509.KeyUsageCertSign}
+	caTemplate := &x509.Certificate{SerialNumber: big.NewInt(1), Subject: pkix.Name{CommonName: "test", Organization: []string{"TEST ONLY"}, Country: []string{"HU"}}, NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour), IsCA: true, BasicConstraintsValid: true, KeyUsage: x509.KeyUsageCertSign}
 	ca := issue(caTemplate, caTemplate)
 	web, _ := asn1.Marshal([]asn1.ObjectIdentifier{profile.WebType})
 	qc, _ := asn1.Marshal([]profile.Statement{{ID: profile.Compliance}, {ID: profile.QCType, Info: asn1.RawValue{FullBytes: web}}})
