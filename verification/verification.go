@@ -3,12 +3,18 @@ package verification
 
 import (
 	"context"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -30,8 +36,11 @@ type Report struct {
 }
 type Options struct {
 	Hostname, Authority, Address, HTTPSAuthority string
-	TLSRoots                                     *x509.CertPool
-	FirefoxCompatibility                         bool
+	// StateDirectory supplies the committed complete TLS set for local server
+	// verification. A binding can outlive the older leaf currently being served.
+	StateDirectory       string
+	TLSRoots             *x509.CertPool
+	FirefoxCompatibility bool
 }
 
 func (r *Report) Fail(name string, err error, action string) error {
@@ -132,6 +141,13 @@ func Verify(ctx context.Context, o Options) (Report, error) {
 	if !protectedLeaf.Equal(resp.TLS.PeerCertificates[0]) {
 		leaves = append(leaves, resp.TLS.PeerCertificates[0])
 	}
+	if o.StateDirectory != "" {
+		retained, err := retainedTLS(o.StateDirectory, body)
+		if err != nil {
+			return r.failure("TLS state", err, "retry after renewal settles; check the configured binding state directory and its permissions")
+		}
+		leaves = append(leaves, retained...)
+	}
 	if e = verify(string(body), o.Hostname, leaves, roots[0], time.Now()); e != nil {
 		return r.failure("signed binding", e, "check hostname, selected authority, signer validity, binding profile and current TLS coverage; inspect service logs")
 	}
@@ -139,4 +155,74 @@ func Verify(ctx context.Context, o Options) (Report, error) {
 	r.Pass("TLS binding", "binding is current and covers the served TLS certificate")
 	r.Ready = true
 	return r, nil
+}
+
+// Read only a bounded regular committed manifest. Matching the public content
+// hash prevents mixing two publication generations; the existing verifier then
+// authenticates the document and checks every stored and observed TLS leaf.
+func retainedTLS(directory string, document []byte) ([]*x509.Certificate, error) {
+	path := filepath.Join(directory, "current.json")
+	info, err := os.Lstat(path)
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("binding manifest must be a regular file")
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	info, err = f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("binding manifest must be a regular file")
+	}
+	data, err := io.ReadAll(io.LimitReader(f, (4<<20)+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(data) > 4<<20 {
+		return nil, fmt.Errorf("binding manifest exceeds verification size limit")
+	}
+	var state store.State
+	if err = json.Unmarshal(data, &state); err != nil {
+		return nil, err
+	}
+	hash := sha256.Sum256(document)
+	if state.URL != "/bindings/"+hex.EncodeToString(hash[:])+".jose" {
+		return nil, fmt.Errorf("public binding and committed TLS state differ")
+	}
+	if len(state.Certs) == 0 || len(state.Certs) > 4096 {
+		return nil, fmt.Errorf("committed TLS certificate set is empty or exceeds verification limit")
+	}
+	header, _, _, _, err := binding.Decode(string(document))
+	if err != nil {
+		return nil, err
+	}
+	if len(state.Certs) != len(header.SigD.Pars) {
+		return nil, fmt.Errorf("committed TLS set does not match the signed certificate count")
+	}
+	certs := make([]*x509.Certificate, 0, len(state.Certs))
+	seen := make(map[string]bool)
+	for _, encoded := range state.Certs {
+		der, e := base64.StdEncoding.DecodeString(encoded)
+		if e != nil {
+			return nil, e
+		}
+		cert, e := x509.ParseCertificate(der)
+		if e != nil {
+			return nil, e
+		}
+		id := binding.ID(cert)
+		if seen[id] {
+			return nil, fmt.Errorf("duplicate committed TLS certificate")
+		}
+		seen[id] = true
+		certs = append(certs, cert)
+	}
+	return certs, nil
 }

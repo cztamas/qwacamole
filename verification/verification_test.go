@@ -4,10 +4,14 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
 	"encoding/pem"
 	"math/big"
 	"net/http"
@@ -21,6 +25,7 @@ import (
 	"github.com/cztamas/qwacamole/binding"
 	"github.com/cztamas/qwacamole/credentials"
 	"github.com/cztamas/qwacamole/profile"
+	"github.com/cztamas/qwacamole/store"
 )
 
 func TestLiveVerificationAndFailedChecks(t *testing.T) {
@@ -109,5 +114,39 @@ func TestLiveVerificationAndFailedChecks(t *testing.T) {
 	options.FirefoxCompatibility = true
 	if _, e = Verify(context.Background(), options); e == nil {
 		t.Fatal("strict binding accepted as compatibility")
+	}
+	options.FirefoxCompatibility = false
+	newer := issue(&x509.Certificate{SerialNumber: big.NewInt(4), Subject: leaf.Subject, DNSNames: leaf.DNSNames, NotBefore: leaf.NotBefore, NotAfter: now.Add(40 * time.Minute), KeyUsage: leaf.KeyUsage, ExtKeyUsage: leaf.ExtKeyUsage}, ca)
+	doc, _, e = binding.Sign(material, []*x509.Certificate{leaf, newer}, now, 25*time.Minute)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, e = Verify(context.Background(), options); e == nil {
+		t.Fatal("subset incorrectly establishes full-set maximum expiry")
+	}
+	options.StateDirectory = dir
+	writeState := func(document string, certs []*x509.Certificate) {
+		t.Helper()
+		hash := sha256.Sum256([]byte(document))
+		state := store.State{URL: "/bindings/" + hex.EncodeToString(hash[:]) + ".jose"}
+		for _, cert := range certs {
+			state.Certs = append(state.Certs, base64.StdEncoding.EncodeToString(cert.Raw))
+		}
+		data, _ := json.Marshal(state)
+		if e := os.WriteFile(filepath.Join(dir, "current.json"), data, 0600); e != nil {
+			t.Fatal(e)
+		}
+	}
+	writeState(doc, []*x509.Certificate{leaf, newer})
+	if report, e = Verify(context.Background(), options); e != nil || !report.Ready {
+		t.Fatal(report, e)
+	}
+	writeState("different generation", []*x509.Certificate{leaf, newer})
+	if _, e = Verify(context.Background(), options); e == nil || !strings.Contains(e.Error(), "public binding and committed TLS state differ") {
+		t.Fatal(e)
+	}
+	writeState(doc, []*x509.Certificate{leaf, ca})
+	if _, e = Verify(context.Background(), options); e == nil || !strings.Contains(e.Error(), "TLS certificate not bound") {
+		t.Fatal(e)
 	}
 }
