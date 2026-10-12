@@ -36,7 +36,7 @@ legal qualification and native browser acceptance are separate checks.
 | Browser/profile | What works and what fails | Explicit settings |
 | --- | --- | --- |
 | Chrome 154, strict bindings | Qualified identity is displayed when both ordinary TLS and QWAC trust succeed. **The tested verifier accepts an expired binding `exp`**, so it cannot be relied on to enforce binding expiry. Server-side expiry still rejects new protected responses. | Strict JAdES critical-header declaration is the default. No User-Agent selection or production trust override. |
-| Firefox 157 | Native qualified identity, chain/signature/hostname/TLS hashes and expiry checks work in the compatibility profile. Its verifier rejects the strict `crit` declaration. | Set `firefox_compatibility: true` in agent JSON or `firefox_compatibility true` in the Caddy qwac block. This omits the declaration and does **not** establish strict JAdES conformance. |
+| Firefox 157 | Native qualified identity, chain/signature/hostname/TLS hashes and expiry checks work in the compatibility profile. Its verifier rejects the strict `crit` declaration. | Set `"firefox_compatibility": true` in agent JSON or the bare `firefox_compatibility` switch in the Caddy qwac block. This omits the declaration and does **not** establish strict JAdES conformance. |
 
 Browser QWAC authority lists and feature availability are independent of server
 configuration. Neither profile installs browser trust. The [isolated demo](demonstration.md)
