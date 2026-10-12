@@ -78,10 +78,10 @@ func setupPrerequisites(ctx context.Context, c Config) error {
 			return fmt.Errorf("Nginx needs %s", capability)
 		}
 	}
-	if _, e = setupRun(ctx, "certbot", "--version"); e != nil {
+	if _, e = setupRun(ctx, "/usr/bin/certbot", "--version"); e != nil {
 		return e
 	}
-	out, e = setupRun(ctx, "certbot", "plugins")
+	out, e = setupRun(ctx, "/usr/bin/certbot", "plugins")
 	if e != nil {
 		return e
 	}
@@ -363,6 +363,9 @@ func Setup(ctx context.Context, o SetupOptions) (SetupPlan, error) {
 	binary, e := os.Executable()
 	if e != nil {
 		return p, e
+	}
+	if e = setupOwnedPath(binary); e != nil {
+		return p, fmt.Errorf("install the agent in a root-owned path before setup: %w", e)
 	}
 	p, e = buildSetupPlan(o, binary)
 	if e != nil {

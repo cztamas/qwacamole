@@ -120,7 +120,7 @@ class ApprovedPublication(unittest.TestCase):
         (self.root / "docs").mkdir()
         self.notes = "# Approved synthetic test release\n"
         (self.root / "docs/release-notes-alpha.md").write_text(self.notes)
-        self.manifest = {"schema": 1, "version": self.version,
+        self.manifest = {"schema": 2, "core_source_commit": self.core, "caddy_version":"v2.10.2", "plugin_source_commit":self.source, "caddy_dependencies":[{"path":"github.com/caddyserver/caddy/v2","version":"v2.10.2","sum":"synthetic"}], "version": self.version,
             "source_commit": self.source, "core_version": "v" + self.version,
             "go_toolchain": "go1.27.1", "go_version": "go1.27.1-X:nojsonv2",
             "go_experiment": "nojsonv2", "cgo_enabled": False,
@@ -130,7 +130,7 @@ class ApprovedPublication(unittest.TestCase):
             files = {n: ((self.root / n).read_bytes(), 0o644) for n in ("LICENSE", "NOTICE")}
             files.update({"GO-NOTICES.txt": (b"Synthetic Go notices", 0o644),
                           "INSTALL.txt": (b"Synthetic installation instructions", 0o644),
-                          "qwacamole-agent": (b"Mock built executable", 0o755)})
+                          "agent.json.example":(b"synthetic template",0o644), "install.sh":(b"synthetic installer",0o755), "qwacamole-agent": (b"Mock built executable", 0o755)})
             data = publish.packages.archive_bytes(prefix, files)
             (self.artifacts / (prefix + ".tar.gz")).write_bytes(data)
             self.manifest["archives"].append({"name": prefix + ".tar.gz",
@@ -138,6 +138,12 @@ class ApprovedPublication(unittest.TestCase):
                 "sha256": hashlib.sha256(data).hexdigest(), "files": {
                     n: {"sha256": hashlib.sha256(d).hexdigest(), "mode": oct(m)}
                     for n, (d, m) in files.items()}})
+        prefix=f"qwacamole-caddy-{self.version}-linux-amd64"
+        files={n:(n.encode(),0o644) for n in ("LICENSE","NOTICE","GO-NOTICES.txt","DEPENDENCY-NOTICES.txt","BUILD.txt","INSTALL.txt","Caddyfile.example")}
+        files.update({"caddy-qwac":(b"synthetic executable",0o755),"install.sh":(b"synthetic installer",0o755)})
+        data=publish.packages.archive_bytes(prefix,files)
+        (self.artifacts/(prefix+".tar.gz")).write_bytes(data)
+        self.manifest["archives"].append({"component":"caddy","name":prefix+".tar.gz","goos":"linux","goarch":"amd64","size":len(data),"sha256":hashlib.sha256(data).hexdigest(),"files":{n:{"sha256":hashlib.sha256(d).hexdigest(),"mode":oct(m)} for n,(d,m) in files.items()}})
         self.seal()
         self.responses = {
             "repos/" + publish.REPO: {"private": False, "default_branch": "main"},
@@ -204,6 +210,11 @@ class ApprovedPublication(unittest.TestCase):
             self.fail("unexpected external command: " + repr(argv))
 
     def native_version(self, argv):
+        if "caddy-qwac" in str(argv[0]):
+            if argv[1:]==["list-modules","--packages"]:return "tls.issuance.qwac http.handlers.qwac"
+            self.assertEqual(argv[1:],["qwac-version","--json"])
+            identity={k:self.manifest[k] for k in ("version","source_commit","core_version","go_version","caddy_version")}
+            return json.dumps(dict(identity,goos="linux",goarch="amd64"))
         self.assertEqual(argv[1:], ["version", "-json"])
         goos, arch = Path(argv[0]).parent.name.rsplit("-", 2)[-2:]
         identity = {k: self.manifest[k] for k in ("version", "source_commit", "core_version", "go_version")}
@@ -246,7 +257,7 @@ class ApprovedPublication(unittest.TestCase):
         self.assertIn("--prerelease", argv)
         self.assertEqual(argv[argv.index("--repo") + 1], publish.REPO)
         self.assertNotIn("--clobber", argv)
-        self.assertEqual(set(argv[-5:]), {str(p) for p in self.artifacts.iterdir()})
+        self.assertEqual(set(argv[-len(list(self.artifacts.iterdir())):]), {str(p) for p in self.artifacts.iterdir()})
         self.assertIn(self.args.manifest_sha256, notes)
         self.assertIn(self.core, notes)
         self.assertIn(self.source, notes)
