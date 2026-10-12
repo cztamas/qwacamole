@@ -144,6 +144,7 @@ def build(args):
         run([go, "build", "-trimpath", "-buildvcs=false", "-ldflags", "-buildid= -X github.com/cztamas/qwacamole/caddy.releaseVersion="+args.version+" -X github.com/cztamas/qwacamole/caddy.releaseSource="+args.source,
              "-o", binary, "./cmd/caddy-qwac"], cwd=source / "caddy", env=target_env)
         metadata = run([go, "version", "-m", binary], env=env)
+        metadata = metadata.replace(str(binary), "caddy-qwac", 1)
         if "=>" in metadata or any(s in metadata for s in ("qwacamole/agent", "qwacamole/devtools", "chromedp", "k8s.io")):
             raise ValueError("Caddy package dependency boundary violated")
         if "github.com/caddyserver/caddy/v2\tv2.10.2" not in metadata or core not in metadata:

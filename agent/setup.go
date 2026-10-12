@@ -69,6 +69,9 @@ func setupPlatform() error {
 	return nil
 }
 func setupPrerequisites(ctx context.Context, c Config) error {
+	if _, e := user.Lookup("www-data"); e != nil {
+		return fmt.Errorf("required Nginx worker identity www-data: %w", e)
+	}
 	out, e := setupRun(ctx, c.NginxBinary, "-V")
 	if e != nil {
 		return e
@@ -146,6 +149,22 @@ func setupOwnedPath(path string) error {
 	}
 	return nil
 }
+
+func validateSetupMaterial(host string, chain, key, authority []byte) error {
+	dir, e := os.MkdirTemp("", "qwacamole-setup-inputs-")
+	if e != nil {
+		return e
+	}
+	defer os.RemoveAll(dir)
+	for name, data := range map[string][]byte{"chain.pem": chain, "key.pem": key, "authority.pem": authority} {
+		if e = os.WriteFile(filepath.Join(dir, name), data, 0600); e != nil {
+			return e
+		}
+	}
+	_, e = credentials.LoadFor([]string{filepath.Join(dir, "chain.pem")}, filepath.Join(dir, "key.pem"), []string{filepath.Join(dir, "authority.pem")}, []string{host}, time.Now())
+	return e
+}
+
 func buildSetupPlan(o SetupOptions, binary string) (SetupPlan, error) {
 	c := setupConfig(o)
 	p := SetupPlan{Config: c, Directories: map[string]os.FileMode{}}
@@ -178,7 +197,7 @@ func buildSetupPlan(o SetupOptions, binary string) (SetupPlan, error) {
 	if e != nil {
 		return p, e
 	}
-	if _, e = credentials.LoadFor([]string{o.Chain}, o.Key, []string{o.Authority}, []string{o.Hostname}, time.Now()); e != nil {
+	if e = validateSetupMaterial(o.Hostname, chain, key, authority); e != nil {
 		return p, fmt.Errorf("credential preflight: %w", e)
 	}
 	config, _ := json.MarshalIndent(c, "", "  ")
