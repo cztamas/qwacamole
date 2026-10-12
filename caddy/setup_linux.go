@@ -22,7 +22,7 @@ import (
 
 func init() {
 	f := flag.NewFlagSet("qwac-setup", flag.ContinueOnError)
-	for _, name := range []string{"hostname", "upstream", "chain", "key", "authority", "email"} {
+	for _, name := range []string{"hostname", "upstream", "chain", "key", "authority", "email", "acme-server"} {
 		f.String(name, "", "explicit operator input")
 	}
 	f.Bool("dry-run", false, "validate and show intended files without installation")
@@ -95,6 +95,14 @@ func setupCaddy(f caddycmd.Flags) error {
 	if e != nil || contact.Address != email || strings.ContainsAny(email, "\"\\\r\n ") {
 		return fmt.Errorf("one ACME contact email required")
 	}
+	acmeOptions := "email " + email
+	if server := f.String("acme-server"); server != "" {
+		u, err := url.Parse(server)
+		if err != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.Fragment != "" || strings.ContainsAny(server, "\"\\\r\n ") {
+			return fmt.Errorf("HTTPS ACME directory URL required")
+		}
+		acmeOptions += "\n            dir " + server
+	}
 	files := map[string][]byte{}
 	for source, destination := range map[string]string{b.ChainFiles[0]: "/etc/caddy-qwac/chain.pem", b.KeyFile: "/etc/caddy-qwac/key.pem", b.TrustFiles[0]: "/etc/caddy-qwac/authority.pem"} {
 		info, e := os.Lstat(source)
@@ -118,12 +126,12 @@ func setupCaddy(f caddycmd.Flags) error {
         key_file %s
         trust_files %s
         acme {
-            email %s
+            %s
         }
     }
     reverse_proxy %s
 }
-`, host, host, strconv.Quote(chain), strconv.Quote(key), strconv.Quote(authority), email, upstream)
+`, host, host, strconv.Quote(chain), strconv.Quote(key), strconv.Quote(authority), acmeOptions, upstream)
 	}
 	files["/etc/caddy-qwac/Caddyfile"] = []byte(render("/etc/caddy-qwac/chain.pem", "/etc/caddy-qwac/key.pem", "/etc/caddy-qwac/authority.pem"))
 	files["/etc/systemd/system/qwacamole-caddy.service"] = []byte(`[Unit]

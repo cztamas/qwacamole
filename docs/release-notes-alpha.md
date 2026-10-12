@@ -21,13 +21,20 @@ retry, capacity refusal, crash/restart recovery and held-connection coverage
 remain part of the lifecycle. Rejected delayed streaming proxy responses cancel
 upstream work while completing a clean bodyless 503 over HTTP/1.1 and HTTP/2.
 
-Agent packages target Linux amd64, Linux arm64 and macOS arm64, containing only
-the production executable and legal/install documents. Source and target identity,
-exact toolchain/experiment and SHA256s are recorded in the manifest. `version`
-works without config/credentials. Nginx, Certbot and Caddy are external packages;
-Caddy installation uses xcaddy. Linux arm64 is cross-compiled only. Runtime and
-native-browser combinations are recorded in the dated preparation report, not
-inferred from compilation. No Windows, notarization or hosted Caddy builder claim.
+Agent packages target Linux amd64, Linux arm64 and macOS arm64, with templates,
+installation information, a non-overwriting installer and notices. A separate
+Linux amd64 package includes Caddy 2.10.2 and the plugin. The manifest records
+exact source/core/plugin/dependency/toolchain identities and checksums. Linux
+arm64 is cross-compiled only; runtime and native-browser evidence is recorded
+separately. No Windows, notarization or hosted Caddy builder claim.
+
+Ubuntu 24.04 amd64 supports dedicated fresh setup through agent `setup` or Caddy
+`qwac-setup`, generated private configuration/services and clear verification
+commands. Setup requires supplied credentials and selected authority, preserves
+strict defaults, and refuses changed files/credentials on repeat. No Go or clone
+is needed for packaged installation. Nginx/Certbot remain external prerequisites.
+Public releases/downloads are unavailable until the controlled publication is
+approved and executed. Authenticated candidates do not establish public access.
 
 This first alpha is experimental. Scope remains supplied RSA/RS256, explicit
 trust, one literal hostname per independent state, exclusive local storage,

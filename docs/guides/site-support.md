@@ -1,21 +1,22 @@
 # Supported versions, browser compatibility and troubleshooting
 
 Qwacamole is an experimental, unpublished alpha. Source installation requires
-authorized repository access; public release tags and downloads are unavailable.
-There is no stable production support or response-time guarantee. Check these
+authorized repository access; authenticated binary candidates are available, but public release tags and downloads are unavailable.
+Support is best-effort only, with no response-time guarantee. Check these
 constraints before installing, upgrading or interpreting a browser indicator.
 
 ## Versions and platforms
 
 | Component | Tested configuration |
 | --- | --- |
-| Production agent and Caddy plugin | Immutable sources pinned in the two quickstarts; Go 1.27.1 with `GOEXPERIMENT=nojsonv2`, xcaddy 0.4.5, Caddy 2.10.2, CertMagic 0.24.0 |
+| Production agent and Caddy plugin | Exact-source packaged candidates and custom source builds; Go 1.27.1 with `GOEXPERIMENT=nojsonv2`, xcaddy 0.4.5, Caddy 2.10.2, CertMagic 0.24.0 |
 | Agent runtime | Linux amd64 (Ubuntu 24.04, Nginx 1.24.0; also Nginx 1.28.0), macOS arm64 (Nginx 1.30.5); Certbot 5.8.0 |
 | Native browser demonstrations | macOS arm64, stock Chrome 154 with genuine PKIMetadata 1798, Firefox 157.0.1 and geckodriver 0.37.1 |
 | Synthetic ACME demonstration | Pebble 2.8.0; bundled bootstrap supports macOS arm64 only |
 
 Linux arm64 agent builds are cross-compiled only. Windows, macOS notarization,
-Caddy's hosted builder and service-manager units are untested. Newer tools and
+Caddy's hosted builder is untested. Automated setup targets Ubuntu 24.04 amd64 only;
+manual service/platform arrangements require independent evaluation. Newer tools and
 browsers need independent evaluation; these versions are compatibility facts,
 not automatic recommendations to remain on old security releases.
 

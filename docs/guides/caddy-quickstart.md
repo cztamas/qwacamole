@@ -1,73 +1,48 @@
 # Caddy quickstart
 
-Bind supplied organization credentials to Caddy's browser-facing TLS. This
-quickstart uses the current immutable plugin source, with strict bindings.
+Deploy supplied organization credentials with packaged Caddy on **Ubuntu 24.04
+amd64**. Have one literal DNS hostname pointing directly to this host, a reachable
+HTTP application and ports 80/443 available for public ACME. No upstream CDN may
+terminate TLS on a different certificate.
 
-## 1. Check prerequisites
+Supply a valid RSA 2-QWAC leaf-first chain, matching private key and an
+**explicitly selected authority PEM**. [Prepare and inspect inputs](byo-credentials.md)
+first; qwacamole does not enroll with an issuer. Replace the hostname, email,
+upstream and `/path/to/*` inputs below.
 
-You need authorized access to this private repository, Go **1.27.1**, a
-reachable application on `127.0.0.1:8080`, and a real DNS hostname pointing
-directly to this host. Public ACME needs reachable challenge ports. No upstream
-CDN may terminate TLS on a different certificate.
+## 1. Install
 
-Obtain a valid RSA 2-QWAC certificate/leaf-first chain and matching unencrypted
-key. Select one authority PEM separately through your issuer verification
-process. If starting with a new key, follow [key/CSR preparation](byo-credentials.md);
-qwacamole does not enroll with an issuer.
+[Download, verify and install packaged Caddy](binary-installation.md) at
+`/opt/qwacamole-caddy`. It already includes the qwacamole plugin; Go and xcaddy
+are unnecessary. The installation uses a new directory and preserves existing
+Caddy binaries/services. Setup also needs systemd on the supported Ubuntu host.
+[Custom builds with xcaddy](source-installation.md#caddy-with-xcaddy) are an alternative.
 
-The reserved `qwac.example.com` and `admin@example.com` below are placeholders.
-Replace the hostname consistently with the single SAN you will bind, the email
-with your ACME contact, and input paths with your supplied files. Synthetic
-credentials are for [isolated demonstrations](demonstration.md) only.
-
-## 2. Build and verify the plugin
-
-Use your existing authorized Git credential helper or SSH setup. Preserve other
-GOPRIVATE entries if present.
+## 2. Configure
 
 ```sh
-export GOPRIVATE=github.com/cztamas/qwacamole
-export GOWORK=off GOEXPERIMENT=nojsonv2
-go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
-xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@9322bd566e825a2c2c645e464a630e09d7aa68d6
-./caddy list-modules
-go version -m ./caddy
+sudo /opt/qwacamole-caddy/bin/caddy-qwac qwac-setup \
+  --hostname qwac.example.com --upstream http://127.0.0.1:8080 \
+  --chain /path/to/issued-chain.pem --key /path/to/signing-key.pem \
+  --authority /path/to/selected-authority.pem --email admin@example.com \
+  --dry-run
 ```
 
-Ensure your Go bin directory is on PATH. Expect `tls.issuance.qwac` and
-`http.handlers.qwac`, with no devtools modules or replacements. This is an
-authenticated install; future `v0.1.0-alpha.1` installs are not available yet.
+Review the plan, then repeat without `--dry-run`. The tool checks credentials,
+listeners and configuration, copies private inputs and creates a dedicated root
+service with owned writable state. It never stops or replaces an existing service.
+An identical repeat preserves files/state; edits require explicit maintenance.
 
-## 3. Prepare owned paths and configuration
-
-On Linux, from an administrator shell, copy the built binary and supplied inputs
-to their deployment paths. This foreground example runs Caddy as root to bind
-ports 80/443; choose an appropriately restricted service identity and port
-capabilities for a managed deployment. Never make the key web-readable.
-
-```sh
-sudo install -m 0755 ./caddy /usr/local/bin/caddy-qwac
-sudo install -d -m 0700 /etc/caddy/qwac /var/lib/caddy/qwac
-sudo install -m 0600 /path/to/issued-chain.pem /etc/caddy/qwac/chain.pem
-sudo install -m 0600 /path/to/signing-key.pem /etc/caddy/qwac/key.pem
-sudo install -m 0600 /path/to/selected-authority.pem /etc/caddy/qwac/authority.pem
-```
-
-Save this as `/etc/caddy/Caddyfile.qwac`, root-owned and writable only by trusted
-operators. The state directory must be exclusively writable by Caddy's owner.
-Do not add a fallback issuer, manual TLS leaf, wildcard or a second hostname.
+The generated `/etc/caddy-qwac/Caddyfile` is one complete configuration:
 
 ```caddyfile
 qwac.example.com {
     qwac {
         hostname qwac.example.com
-        directory /var/lib/caddy/qwac
-        chain_files /etc/caddy/qwac/chain.pem
-        key_file /etc/caddy/qwac/key.pem
-        trust_files /etc/caddy/qwac/authority.pem
-        lifetime 1h
+        chain_files /etc/caddy-qwac/chain.pem
+        key_file /etc/caddy-qwac/key.pem
+        trust_files /etc/caddy-qwac/authority.pem
         acme {
-            dir https://acme-v02.api.letsencrypt.org/directory
             email admin@example.com
         }
     }
@@ -75,49 +50,35 @@ qwac.example.com {
 }
 ```
 
-The sole `qwac` directive configures both issuer and middleware. Full
-[reverse proxy](../../config/Caddyfile.reverse-proxy),
-[file server](../../config/Caddyfile.file-server) and
-[JSON](../../config/plugin.json.example) examples remain available.
+The sole `qwac` directive configures the paired gated issuer and middleware.
+Binding lifetime and state location use tested defaults; the service sets
+`XDG_DATA_HOME=/var/lib/caddy-qwac`. Use the same single hostname in the site address and `qwac` block.
+Do not add a fallback issuer, manual TLS leaf, wildcard or additional hostname.
 
-## 4. Validate, start and verify
-
-Stop any other owner of this state and any conflicting listener first. A
-separate validation process cannot acquire a running owner's state lock.
+## 3. Start
 
 ```sh
-sudo /usr/local/bin/caddy-qwac adapt --config /etc/caddy/Caddyfile.qwac --adapter caddyfile --pretty
-sudo /usr/local/bin/caddy-qwac validate --config /etc/caddy/Caddyfile.qwac --adapter caddyfile
-sudo /usr/local/bin/caddy-qwac run --config /etc/caddy/Caddyfile.qwac --adapter caddyfile
+sudo systemctl daemon-reload
+sudo systemctl enable --now qwacamole-caddy.service
 ```
 
-Leave the server running. In another terminal, using your real hostname:
+Caddy obtains ordinary TLS through its gated ACME issuer. State and private inputs
+belong to the dedicated root service; credentials are not web-readable.
+
+## 4. Verify
 
 ```sh
-curl --fail --show-error --include https://qwac.example.com/
-curl --fail --show-error --include https://qwac.example.com/bindings/current.jose
+sudo /opt/qwacamole-caddy/bin/caddy-qwac qwac-check \
+  --hostname qwac.example.com --authority /etc/caddy-qwac/authority.pem
 ```
 
-The protected response must advertise the stable binding Link. The binding
-endpoint must return `application/jose`, `Cache-Control: no-store`, and no
-recursive discovery Link. Use ordinary TLS verification; do not add `-k`.
-Check activation logs and match the binding's signer with your inspected
-credential. HTTP success is operational evidence, not native browser trust.
+Expected output reports `PASS HTTPS`, `PASS discovery`, `PASS authority` and
+`PASS TLS binding`, followed by `Ready`. **Setup is complete when verification
+succeeds.** A failure names the check and next action; add `--json` for automation.
+Server verification is separate from native browser acceptance and legal qualification.
 
-## 5. Maintain the credential and binding
-
-[Prepare and inspect replacement inputs](byo-credentials.md#replacement-and-rejected-update-recovery)
-before selecting them. An unchanged Caddyfile needs a forced reload:
-
-```sh
-sudo /usr/local/bin/caddy-qwac reload --config /etc/caddy/Caddyfile.qwac --adapter caddyfile --force
-```
-
-Confirm protected requests and the activated signer after reload. Credential
-replacement stays under the same authority; failed validation/publication must
-not justify deleting coverage. See [recovery and offline retirement](operations.md)
-and the [Caddy reference](caddy-plugin.md#troubleshooting).
-
-Strict bindings remain the default. Firefox compatibility is an explicit
-configuration variant, described in [browser limitations](site-support.md#browser-profiles).
-Neither mode installs browser trust or proves legal qualification.
+Use [the Caddy reference](caddy-plugin.md) for JSON/custom arrangements and
+[operations](operations.md) for renewal, reload, replacement and recovery.
+Strict bindings remain default; [Firefox compatibility](site-support.md#browser-profiles)
+is an explicit choice. Synthetic credentials belong in the separate
+[isolated demonstration](demonstration.md).

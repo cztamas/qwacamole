@@ -9,52 +9,41 @@ it, and only then lets the ACME issuer return a replacement TLS certificate.
 It does not enroll QWACs, establish browser trust, check EU Trusted List status,
 fetch authority material, or claim full production readiness/legal qualification.
 
-## Installation from the private GitHub repository
+## Installation
 
-Authorized repository access is required. Set scoped private-module discovery:
+Use [packaged installation](binary-installation.md) for Linux amd64 without Go or
+xcaddy. The [quickstart](caddy-quickstart.md) includes supported Ubuntu setup.
+Use [source installation](source-installation.md#caddy-with-xcaddy) for custom builds.
 
-```sh
-export GOPRIVATE=github.com/cztamas/qwacamole
-export GOEXPERIMENT=nojsonv2
-# Preserve other existing GOPRIVATE entries if you already have them.
-go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
-xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@9322bd566e825a2c2c645e464a630e09d7aa68d6
-```
+The packaged `qwac-version --json` command reports distribution version, source,
+Caddy/core identities, platform and toolchain. `list-modules` and
+`go version -m` remain useful advanced build diagnostics. Expect
+`tls.issuance.qwac` and `http.handlers.qwac`, no `qwac_demo` and no development
+module replacements. Public release downloads/tags remain unavailable;
+authenticated candidates are not public releases.
 
-The pinned plugin resolves to `v0.0.0-20261009072701-9322bd566e82`.
-After an authenticated clone, use `git checkout main` for configuration examples.
-The immutable installation command above does not require a checkout.
-Use Go **1.27.1** (other toolchains require separate validation), xcaddy **0.4.5**,
-Caddy **2.10.2**. The `nojsonv2` workaround preserves the reflected identity of
-`encoding/json.RawMessage` expected by Caddy 2.10.2. No downstream `go.work` or
-`replace` is needed. This is an authenticated private installation, not anonymous
-public distribution. Normal Git authentication must work noninteractively: an
-HTTPS credential helper or an SSH agent/key authorized for this repository.
-For an existing SSH setup, a temporary per-process rewrite is sufficient:
+### State and verification
 
-```sh
-export GIT_CONFIG_COUNT=1
-export GIT_CONFIG_KEY_0=url.ssh://git@github.com/.insteadOf
-export GIT_CONFIG_VALUE_0=https://github.com/
-```
+`directory` may be omitted: the conventional state is
+`<Caddy application data>/qwacamole/<explicit hostname>`. Ubuntu setup sets
+`XDG_DATA_HOME=/var/lib/caddy-qwac`; an explicit `directory` override is retained.
+Choose one literal hostname and one exclusive state owner. Ambiguous/fallback
+TLS policies are rejected by the existing policy validator.
 
-Do not overwrite an existing `GIT_CONFIG_*` environment; append/select your usual
-Git authentication instead. No key/token belongs in a Caddyfile or repository.
-The [Go private-module reference](https://go.dev/ref/mod#private-modules) explains
-GOPRIVATE and credential handling. [xcaddy](https://github.com/caddyserver/xcaddy)
-accepts commit/pseudo-version plugin refs. Version verification:
+`qwac-check --hostname HOST --authority AUTHORITY.pem` verifies normal HTTPS,
+stable discovery, signer authority and current TLS coverage. Add `--json` for
+machine diagnostics; add `--firefox-compatibility` only for a deployment explicitly
+configured with the bare `firefox_compatibility` switch. It does not establish
+native browser acceptance or legal qualification.
 
-```sh
-./caddy list-modules | grep qwac
-go version -m ./caddy
-```
-
-Expect `tls.issuance.qwac` and `http.handlers.qwac`, no `qwac_demo` modules and no
-`qwacamole/devtools` dependency. The core dependency is the remotely resolved
-`v0.0.0-20261008203612-8e62f4b8c340` (commit
-`8e62f4b8c340e572584f6d71355a8f89a7d0be42`). There are no published alpha tags or prebuilt custom Caddy packages.
-Use the immutable installation command above; hosted-builder distribution is
-unsupported.
+`qwac-setup` supports Ubuntu 24.04 amd64, takes the meaningful inputs shown in the
+quickstart and optionally `--acme-server https://.../directory`. It validates the
+actual Caddy configuration in isolated temporary state before installing files.
+It never starts/stops existing services or overwrites changed configuration.
+Use an identical repeat for a read-only check; use explicit maintenance for
+credential replacement or edited files. The generated service runs as root,
+with private input/state ownership and a restrictive umask. Other platform or
+service arrangements remain manual and require independent evaluation.
 
 For an update, build a separate binary at the selected immutable/module version,
 inspect `list-modules`/`go version -m`, and validate config before replacement.

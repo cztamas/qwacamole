@@ -34,38 +34,40 @@ access to that socket or the agent state directory.
 
 ## Installation and configuration
 
-Go 1.27.1 and authenticated access are required while the repository is private.
-The pinned production source is
-`bb911a8f69a8743faab70967232ff166c828c4b7`. Install at that exact ref without local module replacements:
+For Ubuntu 24.04 amd64, use the [packaged quickstart](nginx-quickstart.md).
+It requires no Go toolchain or repository clone. Other deployment arrangements
+can use the complete JSON/manual configuration below;
+[source installation](source-installation.md#production-agent) remains available.
 
-```sh
-agent_install_dir=$(mktemp -d)
-cd "$agent_install_dir"
-GOWORK=off GOEXPERIMENT=nojsonv2 GOPRIVATE=github.com/cztamas/qwacamole \
-  GOMODCACHE="$agent_install_dir/modules" GOBIN="$agent_install_dir/bin" \
-  go install github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@bb911a8f69a8743faab70967232ff166c828c4b7
-go version -m "$agent_install_dir/bin/qwacamole-agent"
-"$agent_install_dir/bin/qwacamole-agent" version -json
-sudo install -m 0755 "$agent_install_dir/bin/qwacamole-agent" /usr/local/bin/qwacamole-agent
-```
+### Packaged agent and setup
 
-Use your authorized HTTPS credential helper or SSH URL rewrite. Source installation currently requires authorized repository access.
+[Authenticated candidates](binary-installation.md) contain the executable,
+installation instructions, a JSON template and notices. Public release tags and
+downloads remain unavailable. Nginx and Certbot are separate prerequisites.
+`version -json` reports the exact packaged source, core version and platform.
+Source Go installs report `module:VERSION` when Go supplies module metadata
+instead of a VCS revision; retain the module origin when a full SHA is required.
 
-`version -json` reports a full commit for packaged/VCS checkout builds. For
-ordinary Go installs, Go embeds the module version instead of a VCS commit, so
-`source_commit` uses `module:VERSION`; retain the resolved module origin/build
-metadata above when a full source SHA is needed. It performs no network lookup.
+`setup` supports one dedicated Ubuntu 24.04 amd64 Nginx master/hostname. Supply
+`--hostname`, `--upstream`, `--chain`, `--key`, `--authority` and `--email`;
+`--acme-server` optionally selects an ordinary HTTPS ACME directory. It derives
+paths, listeners and Certbot lineage, validates inputs/capabilities/ownership,
+rejects existing masters/listeners, generates configuration/services and installs
+the existing `certbot-hook`. It never enrolls QWACs or infers their authority.
+`--dry-run` preflights and lists intended changes without installing deployment files.
 
-Install the built binary under `/usr/local/bin` before following the service
-commands. Create the supplied inputs and config below before rendering Nginx.
+Setup is for fresh installation. An identical repeat preserves state/files; changed
+credentials or operator edits are refused. Incomplete setup requires explicit
+inspection/recovery. Do not delete binding state to retry. The generated root
+services own private inputs/state; Nginx workers own their upload directory.
+Systemd recreates the private runtime directory at boot. The dedicated renewal
+timer targets only this lineage and reuses the installed saved hook.
 
-### Packaged agent
-
-Public download archives and release tags are unavailable. Install from the
-immutable source above. Nginx and Certbot are separate prerequisites.
-Protect credential/configuration inputs with mode 0600 and state/runtime
-directories with mode 0700. The service-manager definitions below are untested
-examples; check them against your distribution and service identity.
+`verify -config FILE` checks private deployment readiness and normal HTTPS,
+discovery, signer authority and current TLS coverage. `-json` retains a detailed
+machine report and failures return nonzero. Existing `status`, `check` and
+`reconcile` commands remain available for automation/recovery. Verification is
+separate from native browser acceptance and legal qualification.
 
 ### Updates and rollback
 

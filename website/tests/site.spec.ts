@@ -92,7 +92,7 @@ test('maintainer routes and release/setup material stay outside product navigati
     }));
   });
   expect(indexed.map(result => result.route).sort()).toEqual([
-    '/overview/', '/caddy/quickstart/', '/nginx/quickstart/', '/caddy/reference/', '/nginx/reference/',
+    '/overview/', '/installation/', '/installation/source/', '/caddy/quickstart/', '/nginx/quickstart/', '/caddy/reference/', '/nginx/reference/',
     '/credentials/', '/operations/', '/nginx/migration/', '/support/', '/demonstration/', '/project/licensing/', '/project/security/',
   ].sort());
   expect(indexed.some(result => /WEBSITE_DEPLOY_ENABLED|owner publication approval|this task is complete/i.test(result.content))).toBe(false);

@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"encoding/json"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -71,5 +73,37 @@ func TestServingSettingsAreTypedAndBounded(t *testing.T) {
 	c.Serving.HTTPSPort = 8443
 	if c.PublicAuthority() != "example.test:8443" {
 		t.Fatal(c.PublicAuthority())
+	}
+}
+
+func TestPublicFirefoxJSONRemainsAnExplicitBoolean(t *testing.T) {
+	for _, value := range []string{"true", "false", `"true"`} {
+		c := validConfig()
+		c.FirefoxCompatibility = false
+		encoded, e := json.Marshal(c)
+		if e != nil {
+			t.Fatal(e)
+		}
+		var fields map[string]json.RawMessage
+		if e = json.Unmarshal(encoded, &fields); e != nil {
+			t.Fatal(e)
+		}
+		fields["firefox_compatibility"] = json.RawMessage(value)
+		encoded, e = json.Marshal(fields)
+		if e != nil {
+			t.Fatal(e)
+		}
+		path := filepath.Join(t.TempDir(), "agent.json")
+		if e = os.WriteFile(path, encoded, 0600); e != nil {
+			t.Fatal(e)
+		}
+		actual, e := LoadConfig(path)
+		if value == `"true"` {
+			if e == nil {
+				t.Fatal("string instead of JSON boolean accepted")
+			}
+		} else if e != nil || actual.FirefoxCompatibility != (value == "true") {
+			t.Fatal(actual, e)
+		}
 	}
 }

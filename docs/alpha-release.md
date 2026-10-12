@@ -9,12 +9,12 @@ publication timing. No proposed tag exists merely because it is described here.
 | Component | Go consumer version | Git tag | Distribution |
 | --- | --- | --- | --- |
 | Core | `github.com/cztamas/qwacamole@v0.1.0-alpha.1` | `v0.1.0-alpha.1` | stdlib-only Go module |
-| Caddy | `github.com/cztamas/qwacamole/caddy@v0.1.0-alpha.1` | `caddy/v0.1.0-alpha.1` | xcaddy module, no prebuilt custom Caddy |
+| Caddy | `github.com/cztamas/qwacamole/caddy@v0.1.0-alpha.1` | `caddy/v0.1.0-alpha.1` | xcaddy module plus Linux amd64 Caddy distribution |
 | Agent | `github.com/cztamas/qwacamole/agent@v0.1.0-alpha.1` | `agent/v0.1.0-alpha.1` | Go module and executable archives |
 | Devtools | no supported product version | no alpha tag | source-only synthetic demonstrations |
 
 The directory prefix is in the Git tag, never in the Go requested version.
-All three proposed versioned commands become valid only after those tags exist.
+All three proposed versioned module commands become valid only after those tags exist.
 Current executable immutable-ref installs are in the README and integration guides.
 
 This experimental alpha covers supplied RSA/RS256 credentials, explicit trust,
@@ -38,8 +38,7 @@ Archives target Linux amd64, Linux arm64 and macOS arm64. macOS arm64 is runtime
 tested locally, including extracted packages and both integrations. Candidate CI
 runs the extracted Linux amd64 and macOS arm64 `version` command; the portable
 integration workflow tests Linux amd64. Linux arm64 is **cross-compiled only**.
-No Windows support. Unsigned macOS binaries have no notarization claim. Nginx,
-Certbot and Caddy are externally installed dependencies.
+No Windows support. Unsigned macOS binaries have no notarization claim. Nginx and Certbot remain external dependencies; Caddy is included in its separate distribution.
 
 Alpha releases may make breaking changes, but each must document config/state
 migration and rollback, retain synthetic failure/negative tests and carry a new
@@ -61,13 +60,12 @@ python3 scripts/release-agent.py build --source FULL_SOURCE_SHA \
 python3 scripts/release-agent.py verify .local/new-candidate --smoke --require-native
 ```
 
-The output contains three deterministic archives, `manifest.json` and
-`SHA256SUMS`. Each archive contains only the agent, install instructions, project
-legal documents and Go runtime/standard-library notices. Candidates carry the
+The output contains four deterministic archives, `manifest.json` and
+`SHA256SUMS`. Agent archives contain the executable, installation script/information, JSON template, project legal documents and Go notices. The Caddy archive adds the plugin-included executable, minimal Caddyfile, build inventory and notices for its actual dependency graph. Candidates carry the
 selected MIT LICENSE and project/Go notices; this does not approve release
 publication. Build metadata
-records actual source, core module version, target, exact Go runtime version,
-toolchain and experiment, with no build timestamp. Files are 0755 for the binary,
+records actual source, core module version/source, Caddy version/plugin source/dependencies, target, exact Go runtime version,
+toolchain and experiment, with no build timestamp. Files are 0755 for executables/installers,
 0644 for documents; tar ownership/time and gzip time are normalized. Build twice
 at the same source/toolchain and compare SHA256SUMS. The verifier checks the exact
 member allowlist, modes, hashes and extracted native binary identity. It refuses
@@ -78,6 +76,30 @@ dispatch, retains `agent-candidate-SOURCE_SHA` for 30 days, and verifies extract
 Linux amd64/macOS arm64 binaries. It creates no release or tags. Review artifact
 contents and record the manifest SHA256 independently. Candidate checks complement
 all-module/real-integration checks; they do not replace them.
+
+## Operator setup and publication prerequisites
+
+Candidate manifest schema 2 requires all three agent targets and Linux amd64
+Caddy. Publication still checks the exact approved source, environment, tags,
+reviewed manifest, successful manual main workflows and reproducible rebuild.
+The schema-1 historical verifier is retained for evidence, but schema 1 cannot
+pass the current publication gate. Candidate binaries/templates are installable
+without Go or a clone; the authenticated operator procedure is in
+[the installation guide](guides/binary-installation.md).
+
+Before publishing, review both component inventories/notices and manifest/core
+source identities, run the documented live preflight without `--publish`, and
+perform anonymous downloads/checksum/extracted installation as well as the
+existing anonymous module/xcaddy checks after separately authorized publication.
+No private artifact result establishes public availability. Retained GitHub
+candidate artifacts expire; refresh a reviewed run rather than inventing URLs.
+
+Ubuntu 24.04 amd64 setup is a fresh-deployment command, not an update engine.
+Both generated service identities are root, with private owned state/inputs.
+The Nginx deployment keeps its dedicated master, existing validators and
+binding-first Certbot hook. Repeat setup never overwrites operator edits or
+credentials. Manual service examples for other arrangements remain untested;
+new runtime/platform evidence belongs in the dated operator report.
 
 ## Engineering gates before PR completion
 

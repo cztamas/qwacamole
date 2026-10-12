@@ -1,6 +1,8 @@
 // This allowlist is the entire publication boundary. Never copy docs/ recursively.
 export const documents = {
   'docs/guides/site-overview.md': 'overview',
+  'docs/guides/binary-installation.md': 'installation',
+  'docs/guides/source-installation.md': 'installation/source',
   'docs/guides/caddy-quickstart.md': 'caddy/quickstart',
   'docs/guides/nginx-quickstart.md': 'nginx/quickstart',
   'docs/guides/caddy-plugin.md': 'caddy/reference',
@@ -17,6 +19,7 @@ export const assets = [
   'docs/images/qualified-status.png',
   'docs/images/qwac-certificate-viewer.png',
   'docs/images/firefox-qualified-status.png',
+  'config/Caddyfile.minimal',
   'config/Caddyfile.reverse-proxy',
   'config/Caddyfile.file-server',
   'config/Caddyfile.pebble',
