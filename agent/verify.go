@@ -31,7 +31,12 @@ func Verify(ctx context.Context, c Config) (verification.Report, error) {
 		e = r.Fail("HTTPS", e, "check the configured ordinary TLS roots")
 		return r, e
 	}
-	r, e = verification.Verify(ctx, verification.Options{Hostname: c.Host, Authority: c.TrustFile, Address: c.ProbeAddress, HTTPSAuthority: c.PublicAuthority(), TLSRoots: roots, StateDirectory: c.StateDir, FirefoxCompatibility: c.FirefoxCompatibility})
+	state, e := c.StoreConfig()
+	if e != nil {
+		e = r.Fail("configuration", e, "check the agent binding configuration")
+		return r, e
+	}
+	r, e = verification.Verify(ctx, verification.Options{Hostname: c.Host, Authority: c.TrustFile, Address: c.ProbeAddress, HTTPSAuthority: c.PublicAuthority(), TLSRoots: roots, StateDirectory: state.Dir, FirefoxCompatibility: c.FirefoxCompatibility})
 	if e == nil {
 		r.Pass("Nginx deployment", "dedicated deployment is ready")
 	}
