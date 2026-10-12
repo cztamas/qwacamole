@@ -77,7 +77,7 @@ does not install trust or enroll credentials.
 | Agent setup `--dry-run`, apply and repeat | Pass; validates complete supplied chain/key/authority, writes owned configuration/hook/services, preserves live state on identical repeat |
 | Caddy `qwac-setup --dry-run`, apply and repeat | Pass; actual minimal Caddyfile validation, conventional state, private inputs and dedicated root service |
 | Real Certbot issuance and renewal | Pass with Certbot 5.8.0 and Ubuntu's packaged 2.9.0, Nginx 1.24.0; saved installed deploy hook publishes binding before activation; renewed TLS fingerprint changes |
-| Caddy ACME issuance | Pass through packaged gated issuer against real Pebble HTTP-01 |
+| Caddy ACME issuance | Pass through packaged gated issuer against real Pebble challenge validation; the selected challenge type was not retained |
 | Human and JSON verification | HTTPS, discovery, selected authority/signature, current binding and served TLS coverage pass; agent also reports ready Nginx deployment |
 | Service restarts | Agent, dedicated Nginx and packaged Caddy restart and return to verified readiness |
 | Agent host reboot | Private `/run/qwacamole` recreation, removed volatile marker, new boot ID, verified retained deployment; upload directory remains 0700/www-data |
@@ -192,19 +192,24 @@ fixture; it now selects the long setup command, retaining the scrolling assertio
 Six production-preview screenshots cover quickstarts/install at 1440 and 390px;
 visual review, no page overflow and zero axe violations pass.
 [Layout evidence](evidence/operator-setup-20261012/website-review.json).
+An exploratory dev preview left running during builds reported generated-cache
+temporary-file errors; final review used the completed production preview and
+the production browser suite above. Both owned preview servers were stopped.
 
-Hosted checks at `c13676e`:
-[candidate packages/macOS execution](https://github.com/cztamas/qwacamole/actions/runs/38254907098)
-and [documentation checks](https://github.com/cztamas/qwacamole/actions/runs/38254907361)
-pass; website deployment is skipped. The
-[portable integration workflow](https://github.com/cztamas/qwacamole/actions/runs/38254907300)
-was still running when this report was prepared. Its equivalent local independent
-races/boundaries/installed integrations passed. The earlier complete hosted
-[portable workflow at 2fe4a2f](https://github.com/cztamas/qwacamole/actions/runs/38241583013)
-passed default/custom Nginx policy, migration, Caddy and four-module checks.
-Intermediate documentation failure at `1825f77` was the code-block fixture above,
-fixed and proven locally/hosted at `c13676e`. Final documentation-only commits
-receive their own PR checks; this report does not claim those future results.
+Hosted checks passed at final review head
+`25d62d17d687739e723d4cd8b91646785793d6c4`:
+[candidate packages/macOS execution](https://github.com/cztamas/qwacamole/actions/runs/38256579106),
+[documentation checks](https://github.com/cztamas/qwacamole/actions/runs/38256579135)
+and [portable integration](https://github.com/cztamas/qwacamole/actions/runs/38256579101).
+The portable job passed all module/independent races, boundaries, default/custom
+Nginx policy, offline migration and real Caddy lifecycle checks. Website deployment
+was skipped. Candidate/documentation checks also passed at the installed production
+source `c13676e` (runs 38254907098 and 38254907361). Intermediate documentation
+failure at `1825f77` was the code-block fixture above, fixed and proven
+locally/hosted at `c13676e`. This final evidence-only update records the completed
+run and clarifies the unrecorded Caddy challenge type; it changes no product code,
+public guides or publication map. Subsequent documentation-only commits receive
+their own PR checks; this report does not claim those future results.
 
 Remaining limits: public releases/downloads and anonymous install are unavailable;
 Linux arm64 runtime, Windows, macOS service setup/notarization and other service
