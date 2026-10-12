@@ -69,3 +69,18 @@ func TestFirefoxPublicCaddyfileSwitch(t *testing.T) {
 		})
 	}
 }
+
+func TestConventionalStateDirectory(t *testing.T) {
+	b, e := (BindingConfig{ChainFiles: []string{"/chain.pem"}, KeyFile: "/key.pem", TrustFiles: []string{"/authority.pem"}}).normalized()
+	if e == nil {
+		t.Fatal("missing hostname accepted", b)
+	}
+	b.Host = "example.test"
+	b, e = b.normalized()
+	if e != nil || b.Dir == "" {
+		t.Fatal(b, e)
+	}
+	if b.Lifetime != time.Hour || b.FirefoxCompatibility {
+		t.Fatal("defaults changed", b)
+	}
+}

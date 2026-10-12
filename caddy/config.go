@@ -61,8 +61,8 @@ func (b *BindingConfig) UnmarshalJSON(d []byte) error {
 }
 
 func (b BindingConfig) normalized() (BindingConfig, error) {
-	if b.Dir == "" || b.Host == "" || len(b.ChainFiles) == 0 || b.KeyFile == "" || len(b.TrustFiles) == 0 {
-		return b, fmt.Errorf("directory, hostname, chain_files, key_file and explicit trust_files are required")
+	if b.Host == "" || len(b.ChainFiles) == 0 || b.KeyFile == "" || len(b.TrustFiles) == 0 {
+		return b, fmt.Errorf("hostname, chain_files, key_file and explicit trust_files are required")
 	}
 	if b.Host != strings.ToLower(b.Host) || strings.ContainsAny(b.Host, "*/:{} \\?#") || net.ParseIP(b.Host) != nil || !strings.Contains(b.Host, ".") || len(b.Host) > 253 {
 		return b, fmt.Errorf("one lower-case literal DNS hostname required (no wildcard, IP, port or placeholder)")
@@ -76,6 +76,9 @@ func (b BindingConfig) normalized() (BindingConfig, error) {
 				return b, fmt.Errorf("invalid DNS hostname")
 			}
 		}
+	}
+	if b.Dir == "" {
+		b.Dir = filepath.Join(caddy.AppDataDir(), "qwacamole", b.Host)
 	}
 	var e error
 	b.Config, e = b.Config.WithDefaults()

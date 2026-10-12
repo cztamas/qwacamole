@@ -38,6 +38,37 @@ class Packages(unittest.TestCase):
         self.assertEqual(r.archive_bytes("p", files), r.archive_bytes("p", dict(reversed(list(files.items())))))
         self.assertEqual(r.archive_bytes("p", files)[4:8], b"\0" * 4)
 
+    def schema2(self):
+        self.manifest.update(schema=2, caddy_version="v2.10.2", plugin_source_commit=self.manifest["source_commit"], core_source_commit="b"*40,
+                             caddy_dependencies=[{"path":"github.com/caddyserver/caddy/v2", "version":"v2.10.2", "sum":"test"}])
+        for archive in self.manifest["archives"]:
+            archive["component"]="agent"
+            self.repack(archive, {"qwacamole-agent":(b"test binary",0o755), **{n:(n.encode(),0o644) for n in ("LICENSE","NOTICE","GO-NOTICES.txt","INSTALL.txt","agent.json.example")}, "install.sh":(b"installer",0o755)})
+        archive={"component":"caddy","goos":"linux","goarch":"amd64","name":"qwacamole-caddy-0.1.0-alpha.1-linux-amd64.tar.gz"}
+        self.repack(archive,{"caddy-qwac":(b"test caddy",0o755), **{n:(n.encode(),0o644) for n in ("LICENSE","NOTICE","GO-NOTICES.txt","INSTALL.txt","BUILD.txt","DEPENDENCY-NOTICES.txt","Caddyfile.example")}, "install.sh":(b"installer",0o755)})
+        self.manifest["archives"].append(archive)
+        self.seal()
+
+    def repack(self, archive, files):
+        data=r.archive_bytes(archive["name"][:-7],files)
+        (self.directory/archive["name"]).write_bytes(data)
+        archive.update(sha256=r.digest(data),size=len(data),files={n:{"sha256":r.digest(d),"mode":oct(m)} for n,(d,m) in files.items()})
+
+    def test_complete_distribution_has_four_archives_and_templates(self):
+        self.schema2()
+        self.assertEqual(len(r.verify(self.directory)["archives"]),4)
+
+    def test_caddy_source_mismatch_is_rejected(self):
+        self.schema2();self.manifest["plugin_source_commit"]="c"*40;self.seal()
+        with self.assertRaisesRegex(ValueError,"Caddy distribution identity"):
+            r.verify(self.directory)
+
+    def test_caddy_or_template_omission_is_rejected(self):
+        self.schema2();archive=self.manifest["archives"][-1]
+        archive["files"].pop("DEPENDENCY-NOTICES.txt");self.seal()
+        with self.assertRaisesRegex(ValueError,"unexpected manifest contents"):
+            r.verify(self.directory)
+
     def test_invalid_version_and_source(self):
         for version, source in [("v0.1.0-alpha.1", "a" * 40), ("0.1.0", "a" * 40), ("0.1.0-alpha.1", "main"), ("0.1.0-alpha.0", "a" * 40)]:
             with self.subTest(version=version, source=source), self.assertRaises(ValueError):
