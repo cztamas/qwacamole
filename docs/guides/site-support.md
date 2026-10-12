@@ -1,7 +1,8 @@
 # Supported versions, browser compatibility and troubleshooting
 
 Qwacamole is an experimental, unpublished alpha. Source installation requires
-authorized repository access; authenticated binary candidates are available, but public release tags and downloads are unavailable.
+authorized repository access; authenticated binary candidates are available, but
+public release tags and downloads are unavailable.
 Support is best-effort only, with no response-time guarantee. Check these
 constraints before installing, upgrading or interpreting a browser indicator.
 
@@ -14,8 +15,8 @@ constraints before installing, upgrading or interpreting a browser indicator.
 | Native browser demonstrations | macOS arm64, stock Chrome 154 with genuine PKIMetadata 1798, Firefox 157.0.1 and geckodriver 0.37.1 |
 | Synthetic ACME demonstration | Pebble 2.8.0; bundled bootstrap supports macOS arm64 only |
 
-Linux arm64 agent builds are cross-compiled only. Windows, macOS notarization,
-Caddy's hosted builder is untested. Automated setup targets Ubuntu 24.04 amd64 only;
+Linux arm64 agent builds are cross-compiled only. Windows, macOS notarization
+and Caddy's hosted builder are untested. Automated setup targets Ubuntu 24.04 amd64 only;
 manual service/platform arrangements require independent evaluation. Newer tools and
 browsers need independent evaluation; these versions are compatibility facts,
 not automatic recommendations to remain on old security releases.

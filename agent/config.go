@@ -44,6 +44,7 @@ type Config struct {
 	NginxBinary          string        `json:"nginx_binary"`
 	NginxPrefix          string        `json:"nginx_prefix"`
 	NginxConfig          string        `json:"nginx_config"`
+	NginxWorkerUser      string        `json:"nginx_worker_user,omitempty"`
 	Lifetime             string        `json:"binding_lifetime,omitempty"`
 	RefreshBefore        string        `json:"refresh_before,omitempty"`
 	DocumentGrace        string        `json:"document_grace,omitempty"`
@@ -82,6 +83,9 @@ func validHost(host string) bool {
 	return net.ParseIP(host) == nil
 }
 func (c Config) Validate() error {
+	if c.NginxWorkerUser != "" && (!regexp.MustCompile(`^[a-z_][a-z0-9_-]*$`).MatchString(c.NginxWorkerUser) || c.NginxWorkerUser == "root") {
+		return fmt.Errorf("a non-root literal Nginx worker user is required")
+	}
 	if c.Version != 0 && c.Version != 1 {
 		return fmt.Errorf("unsupported config_version %d; use a compatible agent", c.Version)
 	}

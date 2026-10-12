@@ -43,7 +43,7 @@ type SetupPlan struct {
 }
 
 func setupConfig(o SetupOptions) Config {
-	return Config{Version: 1, Host: o.Hostname, Application: o.Application,
+	return Config{Version: 1, NginxWorkerUser: "www-data", Serving: ServingConfig{RedirectHTTPS: true}, Host: o.Hostname, Application: o.Application,
 		StateDir: "/var/lib/qwacamole/" + o.Hostname, RuntimeDir: "/run/qwacamole",
 		ChainFiles: []string{"/etc/qwacamole/chain.pem"}, KeyFile: "/etc/qwacamole/key.pem", TrustFile: "/etc/qwacamole/authority.pem",
 		CertbotLineage: "/etc/letsencrypt/live/" + o.Hostname, PublicListen: "127.0.0.1:18081", HTTPListen: "0.0.0.0:80", HTTPSListen: "0.0.0.0:443", ProbeAddress: "127.0.0.1:443",

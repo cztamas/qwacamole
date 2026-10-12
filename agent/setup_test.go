@@ -112,3 +112,26 @@ func TestSetupRejectsOperatorInputBeforeGeneratingFiles(t *testing.T) {
 		t.Fatal("symlink input accepted")
 	}
 }
+
+func TestSetupSelectsWorkerIdentityAndDoesNotChangeLegacyRendering(t *testing.T) {
+	o := setupFixture(t)
+	p, e := buildSetupPlan(o, "/usr/local/bin/qwacamole-agent")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if p.Config.NginxWorkerUser != "www-data" || !strings.Contains(RenderNginx(p.Config), "user www-data;\n") {
+		t.Fatal("setup worker identity does not match directory ownership")
+	}
+	if strings.Contains(RenderNginx(validConfig()), "user www-data;") {
+		t.Fatal("legacy manual configuration changed")
+	}
+	c := validConfig()
+	c.NginxWorkerUser = "root"
+	if e = c.Validate(); e == nil {
+		t.Fatal("root worker accepted")
+	}
+	c.NginxWorkerUser = "user; include malicious"
+	if e = c.Validate(); e == nil {
+		t.Fatal("worker user injection accepted")
+	}
+}
