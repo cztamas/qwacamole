@@ -1,0 +1,17 @@
+{
+  "agent": {
+    "repeat_exit": 1,
+    "error": "existing directory /var/lib/nginx/qwacamole has incompatible permissions; repair explicitly\n"
+  },
+  "caddy": {
+    "repeat_exit": 1,
+    "error": "Error: existing file or credentials changed: /etc/systemd/system/qwacamole-caddy.service; use explicit maintenance/recovery, never setup overwrite\n"
+  },
+  "modes": {
+    "/var/lib/qwacamole-acme": "0o700",
+    "/var/lib/nginx/qwacamole": "0o700",
+    "/etc/systemd/system/qwacamole-agent.service": "0o600",
+    "/etc/systemd/system/qwacamole-caddy.service": "0o600"
+  },
+  "worker_challenge_status": 403
+}

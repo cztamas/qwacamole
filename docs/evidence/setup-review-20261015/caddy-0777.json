@@ -1,0 +1,18 @@
+{
+  "integration": "caddy",
+  "umask": "0o777",
+  "fresh_modes": "pass",
+  "repeat_preserves_files_and_state": "pass",
+  "operator_edits_preserved": "pass",
+  "operator_modes_preserved": "pass",
+  "worker_challenge_access": null,
+  "required_modes": {
+    "/var/lib/caddy-qwac": "0o700",
+    "/etc/caddy-qwac": "0o700",
+    "/etc/caddy-qwac/Caddyfile": "0o600",
+    "/etc/systemd/system/qwacamole-caddy.service": "0o644",
+    "/etc/caddy-qwac/chain.pem": "0o600",
+    "/etc/caddy-qwac/authority.pem": "0o600",
+    "/etc/caddy-qwac/key.pem": "0o600"
+  }
+}
