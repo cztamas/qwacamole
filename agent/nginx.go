@@ -90,8 +90,12 @@ func quote(s string) string { return `"` + s + `"` }
 func RenderNginx(c Config) string {
 	v, _ := c.Serving.values()
 	_, httpPort, _ := net.SplitHostPort(c.HTTPListen)
+	workerUser := ""
+	if c.NginxWorkerUser != "" {
+		workerUser = "user " + c.NginxWorkerUser + ";\n"
+	}
 	return fmt.Sprintf(`# qwacamole nginx-format: 1
-worker_processes 1;
+%sworker_processes 1;
 pid %s;
 error_log %s info;
 events { worker_connections 1024; }
@@ -123,7 +127,7 @@ http {
   }
   include %s;
 }
-`, quote(filepath.Join(c.NginxPrefix, "nginx.pid")), quote(filepath.Join(c.NginxPrefix, "error.log")), quote(filepath.Join(c.NginxPrefix, "access.log")), quote(filepath.Join(c.NginxPrefix, "client_body_temp")), v.body, v.client, v.send, v.read, v.buffering, c.HTTPListen, c.Host, strings.ReplaceAll(c.Host, ".", `\.`), httpPort, quote(c.Webroot), c.PublicListen, c.Host, quote(filepath.Join(c.StateDir, "enabled", "*.conf")))
+`, workerUser, quote(filepath.Join(c.NginxPrefix, "nginx.pid")), quote(filepath.Join(c.NginxPrefix, "error.log")), quote(filepath.Join(c.NginxPrefix, "access.log")), quote(filepath.Join(c.NginxPrefix, "client_body_temp")), v.body, v.client, v.send, v.read, v.buffering, c.HTTPListen, c.Host, strings.ReplaceAll(c.Host, ".", `\.`), httpPort, quote(c.Webroot), c.PublicListen, c.Host, quote(filepath.Join(c.StateDir, "enabled", "*.conf")))
 }
 func (c Config) httpsConfig(generation string) string {
 	authorityPattern := strings.ReplaceAll(c.PublicAuthority(), ".", `\.`)

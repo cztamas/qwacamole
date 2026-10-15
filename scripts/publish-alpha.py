@@ -111,7 +111,7 @@ def gate(args):
     manifest_path = Path(args.directory) / "manifest.json"
     require(hashlib.sha256(manifest_path.read_bytes()).hexdigest() == args.manifest_sha256, "owner-reviewed manifest digest mismatch")
     manifest = packages.verify(args.directory, smoke=True)
-    require(manifest["candidate"] is False and manifest["source_commit"] == args.source and manifest["version"] == args.version and manifest["core_version"] == core_version, "release/source/core metadata mismatch or unapproved candidate")
+    require(manifest.get("schema")==2 and manifest["candidate"] is False and manifest["source_commit"] == args.source and manifest["version"] == args.version and manifest["core_version"] == core_version and manifest.get("core_source_commit")==root_source, "release/source/core metadata mismatch or unapproved candidate")
     # Compare downloaded artifacts with an independent build of the selected
     # approved source. A modified manifest/checksum set cannot authorize a binary.
     import tempfile

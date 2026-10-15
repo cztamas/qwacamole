@@ -53,7 +53,8 @@ test('mobile docs menu, search focus and keyboard code scrolling work', async ({
   await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await page.getByRole('link', { name: 'Certbot / Nginx quickstart', exact: true }).first().click();
   await expect(page).toHaveURL(/\/nginx\/quickstart\//);
-  const block = page.locator('pre').first();
+  const block = page.locator('pre').filter({ hasText: 'qwacamole-agent setup' });
+  await expect(block).toHaveCount(1);
   await block.focus();
   expect(await block.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('solid');
   await page.keyboard.press('ArrowRight');
@@ -92,7 +93,7 @@ test('maintainer routes and release/setup material stay outside product navigati
     }));
   });
   expect(indexed.map(result => result.route).sort()).toEqual([
-    '/overview/', '/caddy/quickstart/', '/nginx/quickstart/', '/caddy/reference/', '/nginx/reference/',
+    '/overview/', '/installation/', '/installation/source/', '/caddy/quickstart/', '/nginx/quickstart/', '/caddy/reference/', '/nginx/reference/',
     '/credentials/', '/operations/', '/nginx/migration/', '/support/', '/demonstration/', '/project/licensing/', '/project/security/',
   ].sort());
   expect(indexed.some(result => /WEBSITE_DEPLOY_ENABLED|owner publication approval|this task is complete/i.test(result.content))).toBe(false);

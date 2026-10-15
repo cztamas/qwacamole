@@ -19,7 +19,7 @@ The stable discovery endpoint is uncached; immutable documents support recovery.
 
 ## Choose your integration
 
-- [Caddy quickstart](caddy-quickstart.md): build the plugin with xcaddy. One
+- [Caddy quickstart](caddy-quickstart.md): install Caddy with the plugin already included. One
   site-level directive configures the gated ACME issuer and HTTP middleware.
 - [Certbot/Nginx quickstart](nginx-quickstart.md): install the production agent.
   It owns one dedicated Nginx master and deploys Certbot lineages through a
@@ -34,7 +34,7 @@ same-authority credential replacement preserves the prior valid binding.
 ## Experimental status and trust boundaries
 
 This is an unpublished experimental alpha. The repository is currently private;
-source access and current immutable installs require authorized Git credentials.
+source access requires authorized Git credentials; packaged candidates require authenticated repository access.
 No proposed alpha tag or public package download exists yet. Original code is
 [MIT licensed](licensing.md); third-party notices remain separate.
 

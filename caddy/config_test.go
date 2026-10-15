@@ -45,3 +45,42 @@ func TestOperationalJSONDurationsAndCaddyfileSettings(t *testing.T) {
 		t.Fatal("Caddyfile policy not preserved", h.Binding)
 	}
 }
+
+func TestFirefoxPublicCaddyfileSwitch(t *testing.T) {
+	for _, tc := range []struct {
+		option        string
+		valid, compat bool
+	}{{"", true, false}, {"firefox_compatibility", true, true}, {"firefox_compatibility true", false, false}, {"firefox_compatibility false", false, false}} {
+		t.Run(tc.option, func(t *testing.T) {
+			i := new(Issuer)
+			e := i.UnmarshalCaddyfile(caddyfile.NewTestDispenser(`qwac {
+ hostname example.test
+ directory /tmp/public-example
+ chain_files /tmp/chain.pem
+ key_file /tmp/key.pem
+ trust_files /tmp/authority.pem
+ ` + tc.option + "\n}"))
+			if (e == nil) != tc.valid {
+				t.Fatal(e)
+			}
+			if e == nil && i.Binding.FirefoxCompatibility != tc.compat {
+				t.Fatal("compatibility default changed")
+			}
+		})
+	}
+}
+
+func TestConventionalStateDirectory(t *testing.T) {
+	b, e := (BindingConfig{ChainFiles: []string{"/chain.pem"}, KeyFile: "/key.pem", TrustFiles: []string{"/authority.pem"}}).normalized()
+	if e == nil {
+		t.Fatal("missing hostname accepted", b)
+	}
+	b.Host = "example.test"
+	b, e = b.normalized()
+	if e != nil || b.Dir == "" {
+		t.Fatal(b, e)
+	}
+	if b.Lifetime != time.Hour || b.FirefoxCompatibility {
+		t.Fatal("defaults changed", b)
+	}
+}

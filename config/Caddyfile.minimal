@@ -1,0 +1,13 @@
+# Replace the single hostname, ACME contact and explicit credential paths.
+qwac.example.com {
+    qwac {
+        hostname qwac.example.com
+        chain_files /etc/caddy-qwac/chain.pem
+        key_file /etc/caddy-qwac/key.pem
+        trust_files /etc/caddy-qwac/authority.pem
+        acme {
+            email admin@example.com
+        }
+    }
+    reverse_proxy 127.0.0.1:8080
+}

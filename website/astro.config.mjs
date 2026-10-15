@@ -48,7 +48,7 @@ export default defineConfig({
     social: [{ icon: 'github', label: 'Source (private repository)', href: 'https://github.com/cztamas/qwacamole' }],
     editLink: { baseUrl: 'https://github.com/cztamas/qwacamole/edit/main/' },
     sidebar: [
-      { label: 'Start here', items: [{ label: 'Overview', slug: 'overview' }, { label: 'Caddy quickstart', slug: 'caddy/quickstart' }, { label: 'Certbot / Nginx quickstart', slug: 'nginx/quickstart' }] },
+      { label: 'Start here', items: [{ label: 'Overview', slug: 'overview' }, { label: 'Binary installation', slug: 'installation' }, { label: 'Caddy quickstart', slug: 'caddy/quickstart' }, { label: 'Certbot / Nginx quickstart', slug: 'nginx/quickstart' }] },
       { label: 'Configure', items: [{ label: 'Caddy reference', slug: 'caddy/reference' }, { label: 'Agent reference', slug: 'nginx/reference' }, { label: 'Keys, CSRs & credentials', slug: 'credentials' }] },
       { label: 'Operate', items: [{ label: 'Discovery & maintenance', slug: 'operations' }, { label: 'Agent migration & rollback', slug: 'nginx/migration' }, { label: 'Support & troubleshooting', slug: 'support' }] },
       { label: 'Evaluate & support', items: [{ label: 'Isolated demonstration', slug: 'demonstration' }, { label: 'License & attribution', slug: 'project/licensing' }, { label: 'Security reporting', slug: 'project/security' }] },

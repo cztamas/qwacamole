@@ -1,0 +1,25 @@
+{
+  "no_go": true,
+  "executable_mode": "0755",
+  "checks": [
+    {
+      "check": "existing installation prefix preserved",
+      "exit": 1,
+      "output": "",
+      "error": "Prefix already exists; select a new directory. Existing installations are never overwritten.\n"
+    },
+    {
+      "check": "wrong platform refused",
+      "exit": 1,
+      "output": "",
+      "error": "Package does not match this platform\n"
+    },
+    {
+      "check": "corrupt archive checksum rejected before extraction/install",
+      "exit": 1,
+      "output": "manifest.json: OK\nqwacamole-agent-0.1.0-alpha.1-darwin-arm64.tar.gz: OK\nqwacamole-agent-0.1.0-alpha.1-linux-amd64.tar.gz: FAILED\nqwacamole-agent-0.1.0-alpha.1-linux-arm64.tar.gz: OK\nqwacamole-caddy-0.1.0-alpha.1-linux-amd64.tar.gz: OK\n",
+      "error": "sha256sum: WARNING: 1 computed checksum did NOT match\n"
+    }
+  ],
+  "source_commit": "1825f77b0cfe49b6a4778eedde33f83e01a11d6b"
+}

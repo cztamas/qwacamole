@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -24,9 +25,12 @@ func main() {
 }
 func run() error {
 	if len(os.Args) < 2 {
-		return fmt.Errorf("usage: qwacamole-agent version [-json], keygen|csr|inspect-qwac|import-qwac [credential flags], or validate|render-nginx|serve|deploy|certbot-hook|replace-qwac|reconcile|status|check|migrate -config FILE")
+		return fmt.Errorf("usage: qwacamole-agent version [-json], keygen|csr|inspect-qwac|import-qwac [credential flags], or setup [operator flags], or verify|validate|render-nginx|serve|deploy|certbot-hook|replace-qwac|reconcile|status|check|migrate -config FILE")
 	}
 	cmd := os.Args[1]
+	if cmd == "setup" {
+		return setupCommand(os.Args[2:])
+	}
 	switch cmd {
 	case "version":
 		return versionCommand(os.Args[2:], os.Stdout)
@@ -35,6 +39,7 @@ func run() error {
 	}
 	f := flag.NewFlagSet(cmd, flag.ContinueOnError)
 	fullStop := f.Bool("full-stop-confirmed", false, "operator confirms Nginx master and every worker/connection, agent and renewal automation fully stopped")
+	jsonOutput := f.Bool("json", false, "machine-readable verification report")
 	path := f.String("config", "", "absolute deployment config file")
 	if e := f.Parse(os.Args[2:]); e != nil {
 		return e
@@ -86,6 +91,16 @@ func run() error {
 			return fmt.Errorf("Certbot renewal environment does not match configured single-host lineage")
 		}
 		cmd = "deploy"
+	case "verify":
+		report, err := agent.Verify(ctx, c)
+		if *jsonOutput {
+			if e := json.NewEncoder(os.Stdout).Encode(report); e != nil {
+				return e
+			}
+		} else {
+			report.Write(os.Stdout)
+		}
+		return err
 	case "check":
 		return agent.Check(ctx, c)
 	case "deploy", "replace-qwac", "reconcile", "status":

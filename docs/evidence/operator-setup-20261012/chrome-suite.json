@@ -1,0 +1,47 @@
+{
+  "ct-required": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "passed": true
+  },
+  "expired-binding": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "error": "BROWSER INCOMPATIBILITY: native verifier accepted expired exp header",
+    "passed": false
+  },
+  "no-qwac-trust": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "passed": true
+  },
+  "no-tls-trust": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "passed": true
+  },
+  "positive": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "passed": true
+  },
+  "qwac-hostname": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "passed": true
+  },
+  "qwac-profile": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "passed": true
+  },
+  "signature": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "passed": true
+  },
+  "tls-expiry": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "passed": true
+  },
+  "tls-hostname": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "passed": true
+  },
+  "wrong-tls": {
+    "browser_version": "Google Chrome 154.0.8037.99 \n",
+    "passed": true
+  }
+}
