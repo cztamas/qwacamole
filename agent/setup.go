@@ -371,6 +371,37 @@ func validateSetupUnits(ctx context.Context, p SetupPlan) error {
 	return e
 }
 
+// Create parents explicitly so umask cannot hide a newly created ancestor from
+// Nginx workers. Only a successful exclusive Mkdir permits changing its mode.
+func createSetupDirectory(path string, mode os.FileMode, created *[]string) error {
+	if info, err := os.Lstat(path); err == nil {
+		if !info.IsDir() {
+			return fmt.Errorf("setup directory is not a directory: %s", path)
+		}
+		return nil
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	if err := createSetupDirectory(filepath.Dir(path), mode, created); err != nil {
+		return err
+	}
+	if err := os.Mkdir(path, mode); err != nil {
+		return err
+	}
+	*created = append(*created, path)
+	if err := os.Chmod(path, mode); err != nil {
+		return err
+	}
+	info, err := os.Lstat(path)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() || info.Mode().Perm() != mode {
+		return fmt.Errorf("new setup directory %s does not have mode %04o", path, mode)
+	}
+	return nil
+}
+
 // Setup preflights the whole deployment before changes. It never starts/stops
 // processes, enrolls credentials or replaces existing files. A write failure is
 // rolled back; binding state is never removed or altered.
@@ -444,11 +475,8 @@ func Setup(ctx context.Context, o SetupOptions) (SetupPlan, error) {
 	}
 	sort.Slice(dirs, func(i, j int) bool { return len(dirs[i]) < len(dirs[j]) })
 	for _, path := range dirs {
-		if _, e = os.Lstat(path); os.IsNotExist(e) {
-			if e = os.MkdirAll(path, p.Directories[path]); e != nil {
-				return p, e
-			}
-			createdDirs = append(createdDirs, path)
+		if e = createSetupDirectory(path, p.Directories[path], &createdDirs); e != nil {
+			return p, e
 		}
 	}
 	for _, file := range p.Files {
@@ -458,6 +486,9 @@ func Setup(ctx context.Context, o SetupOptions) (SetupPlan, error) {
 		}
 		createdFiles = append(createdFiles, file.Path)
 		_, e = f.Write(file.Data)
+		if e == nil {
+			e = f.Chmod(file.Mode)
+		}
 		if e == nil {
 			e = f.Sync()
 		}
@@ -479,6 +510,10 @@ func Setup(ctx context.Context, o SetupOptions) (SetupPlan, error) {
 	uid, _ := strconv.Atoi(worker.Uid)
 	gid, _ := strconv.Atoi(worker.Gid)
 	if e = os.Chown(filepath.Join(p.Config.NginxPrefix, "client_body_temp"), uid, gid); e != nil {
+		return p, e
+	}
+	verified := p
+	if e = checkSetupFiles(&verified); e != nil {
 		return p, e
 	}
 	committed = true

@@ -2,7 +2,10 @@
 
 Deploy supplied organization credentials on **Ubuntu 24.04 amd64**, with one
 hostname and one dedicated Nginx master. Have a reachable HTTP application,
-DNS pointing directly to this host, and ports 80/443 available to public ACME.
+an A record pointing directly to this host's public IPv4 address, and ports 80/443
+reachable over IPv4 by clients and public ACME. The generated listeners are
+IPv4-only: the hostname must have **no AAAA record**. IPv6 requires a separately
+configured and tested deployment.
 A shared Nginx master or a CDN terminating TLS elsewhere is unsupported.
 
 You need a valid RSA 2-QWAC leaf-first chain, matching private key and an

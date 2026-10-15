@@ -267,6 +267,9 @@ WantedBy=multi-user.target
 				return e
 			}
 			createdDirs = append(createdDirs, path)
+			if e = os.Chmod(path, 0700); e != nil {
+				return e
+			}
 		}
 	}
 	for path, data := range files {
@@ -281,6 +284,9 @@ WantedBy=multi-user.target
 		createdFiles = append(createdFiles, path)
 		_, e = file.Write(data)
 		if e == nil {
+			e = file.Chmod(mode)
+		}
+		if e == nil {
 			e = file.Sync()
 		}
 		closeErr := file.Close()
@@ -289,6 +295,28 @@ WantedBy=multi-user.target
 		}
 		if closeErr != nil {
 			return closeErr
+		}
+	}
+	for _, path := range dirs {
+		info, err := os.Lstat(path)
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() || info.Mode().Perm() != 0700 {
+			return fmt.Errorf("setup directory %s does not have mode 0700", path)
+		}
+	}
+	for path := range files {
+		mode := os.FileMode(0600)
+		if strings.HasSuffix(path, ".service") {
+			mode = 0644
+		}
+		info, err := os.Lstat(path)
+		if err != nil {
+			return err
+		}
+		if !info.Mode().IsRegular() || info.Mode().Perm() != mode {
+			return fmt.Errorf("setup file %s does not have mode %04o", path, mode)
 		}
 	}
 	complete = true

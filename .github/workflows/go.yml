@@ -64,6 +64,14 @@ jobs:
       - name: Production agent binary
         run: |
           (cd agent && go build -o ../bin/qwacamole-agent ./cmd/qwacamole-agent)
+      - name: Ubuntu setup permissions and worker challenge access under restrictive umasks
+        run: |
+          bin/qwacamole pki -state .local/ci-setup-fixture
+          cat .local/ci-setup-fixture/pki/qwac-leaf.pem .local/ci-setup-fixture/pki/qwac-intermediate.pem > .local/ci-setup-fixture/pki/qwac-chain.pem
+          docker build --platform linux/amd64 -t qwacamole-setup-acceptance -f devtools/operator-acceptance/Dockerfile .
+          python3 devtools/operator-acceptance/run_setup_umask.py \
+            --image qwacamole-setup-acceptance --agent bin/qwacamole-agent --caddy bin/caddy-plugin \
+            --fixtures .local/ci-setup-fixture/pki --output .local/ci-setup-umask
       - name: Real Nginx WebSocket, slow upload, Certbot lifecycle and fail-closed gate
         run: bin/qwacamole nginx-smoke -state .local/ci-nginx -nginx /usr/sbin/nginx
       - name: Nondefault Nginx body, buffering, inactivity timeout, redirect and HSTS policy
@@ -82,6 +90,7 @@ jobs:
         with:
           name: plugin-smoke-evidence
           path: |
+            .local/ci-setup-umask/
             .local/ci/**/evidence/
             .local/ci-nginx/**/evidence/
             .local/ci-nginx-custom/**/evidence/
