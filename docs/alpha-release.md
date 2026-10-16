@@ -134,7 +134,7 @@ the environment/reporting API reads returned 404, so those settings are **unveri
 | Approve a confidential reporting route | Use the existing `mailto:tamas.czank@gmail.com`, a documented HTTPS channel, or enable GitHub private vulnerability reporting; put the chosen approved destination in policy and SECURITY.md | Confirm the channel is usable; for GitHub run `gh api repos/cztamas/qwacamole/private-vulnerability-reporting`; the full preflight must accept it |
 | Protect publication | Settings → Environments → `public-alpha-release`: maintainer reviewers and only the `main` branch | Read the environment and `/deployment-branch-policies` APIs; `validate_environment` and live preflight pass |
 | Decide visibility | Resolve audit findings and review public contents first; owner changes repository visibility to public | Logged-out source access succeeds; the repository API reports `private: false` |
-| Merge and establish immutable module identities | After review/approval, execute the C/D/E sequence below; never reuse or move a tag | Anonymous Go origin lookups resolve core C and nested E; independent installs and full checks pass |
+| Preserve preparation history, then establish immutable module identities | Merge preparation PR #10 with **Create a merge commit**, preserving its pinned prerequisite commits; verify the ancestry commands below before the C/D/E sequence. Never squash/rebase this chain or move a tag | All three retained sources are ancestors of main; anonymous Go origin lookups later resolve core C and nested E; independent installs and full checks pass |
 | Select and review the approved candidate | Run `gh workflow run go.yml --ref main` and `gh workflow run agent-candidate.yml --ref main` at E; review security/routing artifacts, exact-source runs and manifest digest | Both manual main runs succeed at E, extracted packages verify, and the independent rebuild matches |
 | Run live preflight and authorize the one publication | Use the command below **without `--publish`** first, then the separately approved manual main publication action | All checks pass and rendered source/run/digest notes are reviewed; one prerelease appears without overwrite/retry |
 | Verify public distribution | After publication, use `curl --fail --location` on the actual published asset URLs, run `release-agent.py verify --smoke --require-native`, install into new prefixes and repeat `check-public-install.py` module/xcaddy checks | Asset identities/installations and HTTPS/binding checks pass; record release URL and actual reporting route |
@@ -145,6 +145,31 @@ The gate does not verify inbox monitoring; support remains best-effort without a
 response guarantee. A contact listing does not itself approve publication.
 
 ## Exact future source/tag sequence (owner executes after approval and merge)
+
+**Preserve this preparation PR's history.** Its private pseudo-versions and source
+installation examples require the actual `9b966…`, `e6198…` and `6b966…` commits.
+Use **Create a merge commit** for PR #10; squash/rebase would omit those identities
+from main. The repository permits merge commits and automatically deletes merged
+branches, so branch retention or GitHub's PR-object retention must not be the
+durability plan. After approving the exact final head, the owner can use
+`gh pr merge 10 --repo cztamas/qwacamole --merge --match-head-commit "$REVIEWED_HEAD"`.
+This document does not authorize that merge. Afterward verify:
+
+```sh
+git fetch origin main
+for retained_source in \
+  9b96642914dc07ebf93e9c4c9e4afb3037caa5a6 \
+  e6198e8552b85b7bae72429cb4ee3fc2e6fada07 \
+  6b966e265f5535167da8413f2c7b7b2964a5e873
+do
+  git merge-base --is-ancestor "$retained_source" origin/main || exit 1
+done
+```
+
+If branch policy prevents a merge commit, stop and have the owner select a durable
+repinning sequence before removing the preparation branch. Do not bypass branch
+protection, assume private pseudo-versions stay fetchable after history removal,
+or reuse the private source-install examples until their origins are preserved.
 
 The root must become a real retrievable release before nested requirements name
 it. Record all full SHAs in the final release notes and manifest review record.

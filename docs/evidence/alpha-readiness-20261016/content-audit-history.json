@@ -1,10 +1,10 @@
 {
   "scope": "all reachable local --all refs plus staged index; excludes unreachable objects and remote-only refs; limited to full private-key PEM and recognized GitHub/OpenAI token formats and raw/profile filename patterns",
-  "history_baseline_commit": "6b966e265f5535167da8413f2c7b7b2964a5e873",
+  "history_baseline_commit": "e665de42992db318b61535fff38887e7b41aca6a",
   "staged_changes_included": true,
-  "reachable_file_blobs": 853,
-  "unique_history_and_index_blobs_scanned": 887,
-  "working_tracked_files": 393,
+  "reachable_file_blobs": 887,
+  "unique_history_and_index_blobs_scanned": 891,
+  "working_tracked_files": 394,
   "private_key_or_token_findings": [],
   "raw_profile_artifact_candidates": [],
   "allowed_mozilla_public_key": {

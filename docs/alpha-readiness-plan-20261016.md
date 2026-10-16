@@ -59,7 +59,7 @@ The dated report and linked sanitized evidence record newly executed acceptance.
 | Repository/lifecycle | Four workspace and independent-module race suites, boundaries, actual installed-binary Caddy and Nginx smokes; every new failure investigated without weakened assertions | Complete: workspace/independent/consumer/remote smokes pass |
 | Native browsers | Sequential fresh Caddy Chrome/Firefox then Nginx Chrome/Firefox; trust/identity/cache/renewal/replacement/held connections; preserved Chromium expired-binding negative assertion with current behavior investigated | Complete: all lifecycle runs pass; preserved Chrome expired-exp incompatibility |
 | Website | Check/build/internal links/search/publication boundary, revised installation pages reviewed desktop/mobile | Complete: check/build/link/search/boundary and 16 browser checks; screenshots reviewed |
-| Delivery | Final diff review, dated report with exact sources/tools/candidates/results/limits, direct experimental-alpha readiness verdict, focused PR against main with precise pending launch actions | Complete: final report and diff review; delivered through the associated focused PR |
+| Delivery | Final diff review, dated report with exact sources/tools/candidates/results/limits, direct experimental-alpha readiness verdict, focused PR against main with precise pending launch actions | Complete: PR #10; all implementation-head workflows pass; merge-history requirement documented |
 
 Use ignored `.local/alpha-readiness/` for raw evidence and generated fixtures.
 Keep historical reports unchanged. The final report must distinguish newly run

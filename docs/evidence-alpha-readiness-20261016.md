@@ -293,6 +293,27 @@ coverage. Hidden/inaccessible remote refs, reflogs, unreachable Git objects,
 external forks and unknown secret encodings are outside this bounded audit; it
 is not a universal proof of absence. Generated raw evidence remains ignored.
 
+## Final review and source retention
+
+All final-head workflows at **e665de42992db318b61535fff38887e7b41aca6a** passed:
+[candidate 38972958330](https://github.com/cztamas/qwacamole/actions/runs/38972958330),
+[portable 38972958240](https://github.com/cztamas/qwacamole/actions/runs/38972958240)
+and [website 38972958192](https://github.com/cztamas/qwacamole/actions/runs/38972958192).
+Website deployment was skipped. The subsequent change is maintainer documentation
+only, responding to the automatic review
+[history-retention finding](https://github.com/cztamas/qwacamole/pull/10#discussion_r4299767637).
+
+The pinned 9b966/e6198/6b966 commits are ancestors of the actual reviewed branch
+head and GitHub's real two-parent merge ref
+`ad2f66279f9dd28765a2259b85eb2a5766dc013c`. They would not be ancestors of a
+flattened squash/rebase result. Read-only repository settings confirm merge
+commits are allowed and merged branches are automatically deleted. The single
+launch checklist therefore requires **Create a merge commit** for PR #10 and
+provides exact post-merge ancestry checks for all three sources. If protected
+branch policy disallows that method, the owner must choose durable repinning
+before deleting the branch; PR retention or cached private module fetches are
+not accepted as permanence. No merge, tag or settings change was performed.
+
 ## Publication gate and remaining launch actions
 
 `release/publication.json` remains **`approved: false`**, with no manufactured
