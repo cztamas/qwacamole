@@ -13,8 +13,14 @@ Working branch: `codex/alpha-readiness`. The
 objective and engineering review. No merge, tags, visibility/security/protection
 changes, website deployment, DNS/account changes or third-party messages occur.
 
-Final implementation/core/production-module/devtools pins, selected candidate
-source, manifest digest, CI identities and final documentation revision: pending.
+Preparation core: `9b96642914dc07ebf93e9c4c9e4afb3037caa5a6`, resolved as
+`v0.0.0-20261016203648-9b96642914dc`. Agent and Caddy production modules:
+`e6198e8552b85b7bae72429cb4ee3fc2e6fada07`, each resolved as
+`v0.0.0-20261016204019-e6198e8552b8`. Devtools now selects those real versions.
+Core Go source is unchanged from its prior b3fb517 pin; its toolchain minimum
+and legal/maintenance material are updated. No production Go file changes are
+introduced by the devtools pin commit. Selected candidate source, manifest
+digest, CI identities and final documentation revision: pending.
 Existing October 9/12/15 reports remain historical; their packages and lifecycle
 results are not substituted for the upgraded candidate's acceptance.
 
@@ -26,6 +32,13 @@ fixes and replaces 1.27.1. The coherent graph also upgrades `golang.org/x/net` t
 0.60.0 for the October HTTP/2 fixes; MVS selects the required x/text 0.42.0.
 govulncheck is pinned at **v1.9.0**. The history audit uses the official gitleaks
 Go module **v8.30.1**, identified through Go build metadata.
+
+The 2.11 major-release notes were reviewed at 2.11.1 (the first published stable
+2.11 release; the 2.11.0 release API is absent). The HTTPS-upstream Host rewrite
+is documented for custom configurations. The 2.11.7 notes fix 2.11.6 HTTP/2 body-
+deadline crashes and idle-stream resets; real streaming/shutdown acceptance is
+required below. CertMagic 0.25.6 also updates ZeroSSL authentication; the standard
+gated ACME path and existing configured authority selection remain in scope.
 
 Primary evidence:
 
@@ -82,6 +95,8 @@ packaged-Caddy denial regression for both escaped-path case variants.
   refusal, security-result parsing and dependency-baseline rejection.
 - Independent source/command security scans: no reachable findings, only the
   specific OpenPGP module-only disposition above.
+- Development xcaddy/Pebble tools were rebuilt at their pinned versions using
+  Go 1.27.2; bootstrap checks both module and compiler metadata.
 - Redacted gitleaks history/current-tree scans found the exact public Mozilla
   fixture key and four uses of RFC 6455's public example WebSocket nonce. Each
   finding was checked against its source blob/line; no unknown finding remains

@@ -124,8 +124,8 @@ def build(args):
                        "Install only the matching target executable into your managed PATH; run\n"
                        "qwacamole-agent version -json before configuring credentials or deployment.\n"
                        "Nginx and Certbot are separately installed external dependencies. Caddy is\n"
-                       "also packaged separately. See the included templates and INSTALL.txt.\n"
-                       "source commit for permissions, setup, deploy hooks and update/rollback.\n"
+                       "also packaged separately. Canonical setup, deploy hooks and update/rollback:\n"
+                       f"https://github.com/cztamas/qwacamole/blob/{args.source}/docs/guides/nginx-quickstart.md\n"
                        "Stop and preserve complete state before an incompatible migration.\n")
             files = {name: (data, 0o644) for name, data in legal.items()}
             files.update({"qwacamole-agent": (binary.read_bytes(), 0o755),
@@ -178,7 +178,8 @@ def build(args):
                       "INSTALL.txt": ((f"qwacamole Caddy {args.version}\nCaddy v2.11.7; plugin source {args.source}\n"
                                        "Review candidate manifest and SHA256SUMS before installation.\n"
                                        "Run ./install.sh --prefix /chosen/empty/directory. Never overwrite an existing Caddy.\n"
-                                       "Then use the included Caddyfile.example and product quickstart.\n").encode(), 0o644),
+                                       "Then use the included Caddyfile.example and canonical product quickstart:\n"
+                                       f"https://github.com/cztamas/qwacamole/blob/{args.source}/docs/guides/caddy-quickstart.md\n").encode(), 0o644),
                       "install.sh": ((source / "release/install.sh").read_bytes(), 0o755)})
         data = archive_bytes(prefix, files)
         name = prefix + ".tar.gz"

@@ -20,8 +20,14 @@ export GOPATH="$PWD/.tools/gopath" GOCACHE="$PWD/.tools/gocache" GOBIN="$PWD/.to
 # Current upstream Google API dependencies require jsontext; Caddy 2.11.7 uses
 # reflected type identity and fixes the old JSON alias incompatibility.
 export GOEXPERIMENT=jsonv2
-[ -x .tools/bin/xcaddy ] || go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
-[ -x .tools/bin/pebble ] || go install github.com/letsencrypt/pebble/v2/cmd/pebble@v2.8.0
-if [ ! -x .tools/bin/govulncheck ] || ! .tools/bin/govulncheck -version | grep -qx 'Scanner: govulncheck@v1.9.0'; then
+current_tool() {
+  [ -x "$1" ] || return 1
+  tool_metadata=$(go version -m "$1")
+  printf '%s\n' "$tool_metadata" | head -n 1 | grep -q ': go1.27.2$' || return 1
+  printf '%s\n' "$tool_metadata" | grep -Fq "$(printf '\tmod\t%s\t%s\t' "$2" "$3")"
+}
+current_tool .tools/bin/xcaddy github.com/caddyserver/xcaddy v0.4.5 || go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
+current_tool .tools/bin/pebble github.com/letsencrypt/pebble/v2 v2.8.0 || go install github.com/letsencrypt/pebble/v2/cmd/pebble@v2.8.0
+if ! current_tool .tools/bin/govulncheck golang.org/x/vuln v1.9.0; then
   go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
 fi

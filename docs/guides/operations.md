@@ -4,6 +4,13 @@ Use these procedures to monitor binding freshness, maintain coverage for held
 connections, and recover without bypassing the activation gate. Start with the
 [Caddy](caddy-quickstart.md) or [Certbot/Nginx](nginx-quickstart.md) quickstart.
 
+For custom Caddy configurations upgraded from 2.10, review HTTPS upstream Host
+handling: Caddy 2.11 sets that header to the upstream address automatically.
+Configure an explicit `header_up Host` policy if your application requires the
+original host, while retaining ordinary upstream TLS verification. See the
+[upstream release notes](https://github.com/caddyserver/caddy/releases/tag/v2.11.1).
+The standard quickstarts use HTTP applications.
+
 ## Discovery, caching and migration
 
 Application responses preserve their own cache policy and Link fields and add

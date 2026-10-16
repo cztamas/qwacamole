@@ -12,7 +12,7 @@ Replace `FULL_IMPLEMENTED_CADDY_SOURCE_SHA` with the exact reviewed source you
 intend to install. Ensure your Go bin directory is on PATH:
 
 ```sh
-export GOPRIVATE=github.com/cztamas/qwacamole
+export GOPRIVATE=github.com/cztamas/qwacamole${GOPRIVATE:+,$GOPRIVATE}
 export GOWORK=off GOEXPERIMENT=jsonv2
 go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
 xcaddy build v2.11.7 \
@@ -35,7 +35,7 @@ not use a workspace or local module replacements:
 (
   agent_install_dir=$(mktemp -d)
   cd "$agent_install_dir"
-  GOWORK=off GOEXPERIMENT=jsonv2 GOPRIVATE=github.com/cztamas/qwacamole \
+  GOWORK=off GOEXPERIMENT=jsonv2 GOPRIVATE=github.com/cztamas/qwacamole${GOPRIVATE:+,$GOPRIVATE} \
     GOMODCACHE="$agent_install_dir/modules" GOBIN="$agent_install_dir/bin" \
     go install github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@FULL_IMPLEMENTED_AGENT_SOURCE_SHA
   "$agent_install_dir/bin/qwacamole-agent" version -json
