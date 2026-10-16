@@ -13,7 +13,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      GOEXPERIMENT: nojsonv2
+      GOEXPERIMENT: jsonv2
       GOPRIVATE: github.com/cztamas/qwacamole
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
         run: git config --global http.https://github.com/cztamas/qwacamole.extraheader "$(git config --get http.https://github.com/.extraheader)"
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.27.1'
+          go-version: '1.27.2'
           cache-dependency-path: |
             agent/go.sum
             caddy/go.sum
@@ -38,13 +38,17 @@ jobs:
         run: GO=go scripts/check-independent-modules.sh
       - name: Dependency boundaries
         run: GO=go scripts/check-boundaries.sh
+      - name: Independent dependency security and production command call paths
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
+          python3 scripts/check-vulnerabilities.py --go go --scanner "$(go env GOPATH)/bin/govulncheck" --output .local/ci-vulnerabilities
       - name: Pinned portable tools and plugin-only binary
         run: |
           go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
           go install github.com/letsencrypt/pebble/v2/cmd/pebble@v2.8.0
           mkdir -p bin .tools/bin
           cp "$(go env GOPATH)/bin/pebble" .tools/bin/pebble
-          GOWORK=off xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@v0.0.0="$PWD/caddy" --replace github.com/cztamas/qwacamole="$PWD" --output bin/caddy-plugin
+          GOWORK=off xcaddy build v2.11.7 --with github.com/cztamas/qwacamole/caddy@v0.0.0="$PWD/caddy" --replace github.com/cztamas/qwacamole="$PWD" --output bin/caddy-plugin
           (cd devtools && go build -o ../bin/qwacamole ./cmd/qwacamole)
       - name: Nginx package
         timeout-minutes: 5
@@ -91,6 +95,7 @@ jobs:
           name: plugin-smoke-evidence
           path: |
             .local/ci-setup-umask/
+            .local/ci-vulnerabilities/
             .local/ci/**/evidence/
             .local/ci-nginx/**/evidence/
             .local/ci-nginx-custom/**/evidence/

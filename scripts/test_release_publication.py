@@ -23,6 +23,21 @@ public = load("check_public_install", "check-public-install.py")
 
 
 class Publication(unittest.TestCase):
+    def test_explicit_reporting_channel_is_one_documented_destination(self):
+        good = "mailto:tamas.czank@gmail.com"
+        publish.validate_reporting_channel(good, f"[Security contact]({good}).")
+        publish.validate_reporting_channel("https://example.test/security", "<https://example.test/security>")
+        for value in ("mailto:", "mailto:a@example.test,b@example.test", "mailto:a@example.test?subject=secret",
+                      "mailto:a@example.test#fragment", "mailto:a%0d%0a@example.test", "mailto:a@localhost",
+                      "mailto:Name <a@example.test>", "mailto:.a@example.test", "mailto:a..b@example.test",
+                      "mailto:a@example..test", "mailto:a@-example.test", "mailto:a@example.test\n",
+                      "mailto://a@example.test", "http://example.test", "https://user:password@example.test"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                publish.validate_reporting_channel(value, f"<{value}>")
+        for text in ("No address", good + ".evil.test", "[Wrong](" + good + ".evil.test)"):
+            with self.subTest(text=text), self.assertRaisesRegex(ValueError, "missing from SECURITY"):
+                publish.validate_reporting_channel(good, text)
+
     def test_pr_merge_checks_cannot_authorize_selected_source_publication(self):
         source = "a" * 40
         good = {"path": ".github/workflows/go.yml", "event": "workflow_dispatch",
@@ -120,10 +135,10 @@ class ApprovedPublication(unittest.TestCase):
         (self.root / "docs").mkdir()
         self.notes = "# Approved synthetic test release\n"
         (self.root / "docs/release-notes-alpha.md").write_text(self.notes)
-        self.manifest = {"schema": 2, "core_source_commit": self.core, "caddy_version":"v2.10.2", "plugin_source_commit":self.source, "caddy_dependencies":[{"path":"github.com/caddyserver/caddy/v2","version":"v2.10.2","sum":"synthetic"}], "version": self.version,
+        self.manifest = {"schema": 2, "core_source_commit": self.core, "caddy_version":"v2.11.7", "plugin_source_commit":self.source, "caddy_dependencies":[{"path":"github.com/caddyserver/caddy/v2","version":"v2.11.7","sum":"synthetic"},{"path":"github.com/caddyserver/certmagic","version":"v0.25.6","sum":"synthetic"}], "version": self.version,
             "source_commit": self.source, "core_version": "v" + self.version,
-            "go_toolchain": "go1.27.1", "go_version": "go1.27.1-X:nojsonv2",
-            "go_experiment": "nojsonv2", "cgo_enabled": False,
+            "go_toolchain": "go1.27.2", "go_version": "go1.27.2",
+            "go_experiment": "jsonv2", "cgo_enabled": False,
             "candidate": False, "archives": []}
         for goos, arch in publish.packages.TARGETS:
             prefix = f"qwacamole-agent-{self.version}-{goos}-{arch}"
@@ -239,6 +254,24 @@ class ApprovedPublication(unittest.TestCase):
         self.assertEqual(manifest, self.manifest)
         self.assertEqual(core, self.core)
         self.assertTrue(any(c.args[0][0] == "python3" for c in self.commands.call_args_list))
+        self.assertEqual(self.release_writes, [])
+
+    def test_approved_mailto_runs_complete_gate_without_claiming_github_reporting(self):
+        policy_path = self.root / "release/publication.json"
+        policy = json.loads(policy_path.read_text())
+        channel = "mailto:tamas.czank@gmail.com"
+        policy["confidential_reporting_url"] = channel
+        policy_path.write_text(json.dumps(policy))
+        (self.root / "SECURITY.md").write_text(f"Primary contact: [email]({channel}). Support is best-effort only.")
+        self.failed_endpoint, self.api_failure_status = "private-vulnerability-reporting", 404
+        self.invoke(gate_only=True)
+        self.assertFalse(any(call.args[-1].endswith("/private-vulnerability-reporting")
+                             for call in self.reads.call_args_list))
+        self.assertEqual(self.release_writes, [])
+        policy["confidential_reporting_url"] += "?cc=other@example.test"
+        policy_path.write_text(json.dumps(policy))
+        with self.assertRaisesRegex(ValueError, "without headers"):
+            self.invoke(publish_release=True)
         self.assertEqual(self.release_writes, [])
 
     def test_preflight_mode_renders_identity_without_publication(self):

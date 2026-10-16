@@ -10,7 +10,7 @@ constraints before installing, upgrading or interpreting a browser indicator.
 
 | Component | Tested configuration |
 | --- | --- |
-| Production agent and Caddy plugin | Exact-source packaged candidates and custom source builds; Go 1.27.1 with `GOEXPERIMENT=nojsonv2`, xcaddy 0.4.5, Caddy 2.10.2, CertMagic 0.24.0 |
+| Production agent and Caddy plugin | Exact-source packaged candidates and custom source builds; Go 1.27.2 with `GOEXPERIMENT=jsonv2`, xcaddy 0.4.5, Caddy 2.11.7, CertMagic 0.25.6 |
 | Agent runtime | Linux amd64 (Ubuntu 24.04, Nginx 1.24.0 and Certbot 2.9.0/5.8.0; also Nginx 1.28.0 with Certbot 5.8.0), macOS arm64 (Nginx 1.30.5, Certbot 5.8.0) |
 | Native browser demonstrations | macOS arm64, stock Chrome 154 with genuine PKIMetadata 1798, Firefox 157.0.1 and geckodriver 0.37.1 |
 | Synthetic ACME demonstration | Pebble 2.8.0; bundled bootstrap supports macOS arm64 only |
@@ -51,7 +51,7 @@ and negative test matrices are retained in repository engineering documentation.
 | Symptom | Next step |
 | --- | --- |
 | Private Go module fetch fails | Use authorized Git access and scoped GOPRIVATE; public tags/downloads are unavailable. |
-| Caddy JSON module decoding fails | Use the pinned toolchain with GOEXPERIMENT=nojsonv2. |
+| Caddy JSON module decoding fails | Use the pinned toolchain with GOEXPERIMENT=jsonv2. |
 | Credential validation fails | Check key match, profile, hostname SANs, validity, leaf-first chain and independently selected authority. |
 | Protected request returns 503 | Inspect expiry, signing/publication errors, state ownership, disk space and deployment readiness. Repair the cause rather than bypassing the gate. |
 | TLS works but native identity is absent | Check browser QWAC authority trust and binding profile separately from ordinary TLS. |

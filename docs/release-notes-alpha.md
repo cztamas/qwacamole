@@ -23,7 +23,7 @@ upstream work while completing a clean bodyless 503 over HTTP/1.1 and HTTP/2.
 
 Agent packages target Linux amd64, Linux arm64 and macOS arm64, with templates,
 installation information, a non-overwriting installer and notices. A separate
-Linux amd64 package includes Caddy 2.10.2 and the plugin. The manifest records
+Linux amd64 package includes Caddy 2.11.7 and the plugin. The manifest records
 exact source/core/plugin/dependency/toolchain identities and checksums. Linux
 arm64 is cross-compiled only; runtime and native-browser evidence is recorded
 separately. No Windows, notarization or hosted Caddy builder claim.
@@ -52,9 +52,19 @@ TLS history and recovery generations. Do not rebuild journals or drop coverage.
 See [agent operations](guides/agent-nginx.md), [migration](guides/agent-migration.md),
 [Caddy operations](guides/operations.md) and [credential handling](guides/byo-credentials.md).
 
-Current executable installation refs are core 8e62f4b8c340, Caddy 9322bd566e82 and
-agent bb911a8f69a8. They are authenticated private installations and are not
-proposed release tags. Final published source identities will be core C and nested
-agent/Caddy E, with nested requirements pointing to the real root tagged version.
-The package manifest must agree with E and that dependency. Anonymous availability
-is a post-publication gate; no private installation result substitutes for it.
+Current installation uses authenticated, exact-source candidates through the
+[packaged installation guide](guides/binary-installation.md); custom builds use
+[the advanced source guide](guides/source-installation.md). Public release tags
+and assets do not exist yet. Final published source identities will be core C
+and nested agent/Caddy E, with nested requirements pointing to the real root
+tagged version. The package manifest must agree with E and that dependency.
+Anonymous availability is a post-publication gate; private installation does not
+substitute for it.
+
+The reviewed dependency baseline is Caddy 2.11.7, CertMagic 0.25.6 and Go 1.27.2
+with explicit `GOEXPERIMENT=jsonv2`. It replaces the vulnerable escaped-path
+matcher and HTTP/3 QPACK baseline; patched transitive dependencies and the Go
+security release are checked independently. The packaged-binary routing
+regression denies both encoded-path case variants without configuring a QWAC
+gate. Certificate events remain subscribed for the handshake gate despite the
+new upstream event filtering. No binding/storage/journal migration is introduced.

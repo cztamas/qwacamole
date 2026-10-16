@@ -29,6 +29,30 @@ def require(value, message):
         raise ValueError(message)
 
 
+def validate_reporting_channel(value, security_text):
+    """Only called for a channel in the separately owner-approved policy."""
+    require(isinstance(value, str) and value == value.strip() and value.isascii()
+            and not any(character.isspace() for character in value), "invalid confidential channel")
+    channel = urlparse(value)
+    if value.startswith("mailto:"):
+        address = value[len("mailto:"):]
+        require(not channel.netloc and not channel.query and not channel.fragment and
+                len(address) <= 254 and address.count("@") == 1,
+                "mailto channel requires one literal mailbox without headers")
+        local, domain = address.split("@")
+        require(bool(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._+-]{0,63}", local)) and
+                not local.endswith(".") and ".." not in local and
+                bool(re.fullmatch(r"(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+"
+                                  r"[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?", domain)),
+                "mailto channel requires one ordinary mailbox")
+    else:
+        require(channel.scheme == "https" and bool(channel.hostname) and
+                not channel.username and not channel.password,
+                "confidential channel must be HTTPS or a literal mailto mailbox")
+    require(re.search(r"(?:^|[\s(<])" + re.escape(value) + r"(?=$|[\s)>])", security_text),
+            "approved confidential channel missing from SECURITY.md")
+
+
 def validate_tag_map(version, source, root_source, refs):
     packages.validate_identity(version, source)
     require(packages.SHA.fullmatch(root_source), "root source must be a full SHA")
@@ -86,9 +110,9 @@ def gate(args):
     require(info.get("private") is False and info.get("default_branch") == "main", "public main repository required")
     validate_environment(api("environments/public-alpha-release"),
                          api("environments/public-alpha-release/deployment-branch-policies"))
-    channel = urlparse(policy.get("confidential_reporting_url") or "")
-    if channel.scheme == "https" and channel.netloc:
-        require(channel.geturl() in (ROOT / "SECURITY.md").read_text(), "approved confidential channel missing from SECURITY.md")
+    channel = policy.get("confidential_reporting_url")
+    if channel is not None:
+        validate_reporting_channel(channel, (ROOT / "SECURITY.md").read_text())
     else:
         require(api("private-vulnerability-reporting").get("enabled") is True, "verified private vulnerability reporting or approved confidential channel required")
     refs = {}

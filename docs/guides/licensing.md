@@ -11,7 +11,7 @@ copies. Third-party material retains its own licences.
 | Material | Licence and distribution scope |
 | --- | --- |
 | Go runtime and standard library | BSD-style Go LICENSE and PATENTS, plus applicable vendored notices. Retain the notices supplied with the toolchain or linked distribution. |
-| Caddy / CertMagic and their dependencies | Apache-2.0 for those projects; retain their own and transitive notices when distributing a custom xcaddy build. No prebuilt custom Caddy package is currently distributed. |
+| Caddy / CertMagic and their dependencies | Apache-2.0 for those projects; the separate plugin-included Caddy candidate package bundles their linked code and retains actual dependency licences/notices in `DEPENDENCY-NOTICES.txt`, plus Go notices. Public releases/downloads are not yet available. |
 | Nginx / Certbot / Pebble / browser tools | Separately installed prerequisites with their own licences; not bundled in the production agent. |
 | Mozilla public test authority and test key | MPL-2.0 covered devtools fixture. Test use only; never use it for production identity. |
 

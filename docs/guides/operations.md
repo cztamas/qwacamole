@@ -116,7 +116,7 @@ authority migration needs a separate browser-trust transition.
 
 Document GC and certificate retirement are different operations. Retain expired
 TLS leaves because authenticated HTTP/2/WebSocket connections can outlive leaf
-NotAfter. Caddy 2.10.2 exposes `RegisterConnState`, `RegisterConnContext`, and
+NotAfter. Caddy 2.11.7 exposes `RegisterConnState`, `RegisterConnContext`, and
 shutdown callbacks for `http.Server`; its HTTP/3 server is separate. A server-side
 `tls.ConnectionState` does not expose the selected local certificate. These hooks
 alone cannot prove zero surviving connections for each retained leaf across

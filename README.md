@@ -21,7 +21,7 @@ Start with the [Caddy quickstart](docs/guides/caddy-quickstart.md) or
 | Component | Distribution and entry point |
 | --- | --- |
 | Shared core | Root Go module; stdlib-only credentials, profiles, bindings, storage and lifecycle |
-| Caddy integration | Separate `caddy` module, installed with xcaddy; [installation/configuration](docs/guides/caddy-plugin.md) |
+| Caddy integration | Plugin-included Caddy package and separate Go module; [installation/configuration](docs/guides/caddy-plugin.md) |
 | Certbot/Nginx agent | Separate `agent` module and production executable; [installation/operation](docs/guides/agent-nginx.md) |
 | Credential workflow | [Local RSA key and CSR, inspection, import and replacement](docs/guides/byo-credentials.md), usable for both integrations |
 | Development demos | Separate `devtools` module and `qwacamole` executable; [Chrome/Firefox setup and checks](docs/demos.md), [Firefox details](docs/firefox.md) |
@@ -33,40 +33,30 @@ owns one complete Nginx configuration and master. Existing shared multi-site
 Nginx instances, automatic QWAC enrollment, authority migration, distributed
 state, HSMs and arbitrary upstream CDN TLS termination are unsupported.
 
-## Install the current implemented sources
+## Install and configure
 
-Use Go **1.27.1**, `GOEXPERIMENT=nojsonv2`, xcaddy **0.4.5**, Caddy **2.10.2**
-and CertMagic **0.24.0**. Normal authorized Git authentication is required while
-the repository is private. These immutable commands work now; no workspace or
-local replacement is needed:
+Start with [packaged installation](docs/guides/binary-installation.md), then follow
+one canonical quickstart:
 
-```sh
-export GOPRIVATE=github.com/cztamas/qwacamole
-export GOWORK=off GOEXPERIMENT=nojsonv2
-go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
-xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@9322bd566e825a2c2c645e464a630e09d7aa68d6
-./caddy list-modules
-go version -m ./caddy
+- [Caddy: install → configure → start → verify](docs/guides/caddy-quickstart.md).
+  Its separate package already includes Caddy and the qwacamole plugin.
+- [Certbot/Nginx: install → configure → start → verify](docs/guides/nginx-quickstart.md).
+  Install Nginx and Certbot separately; the package provides the production agent.
 
-go install github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@bb911a8f69a8743faab70967232ff166c828c4b7
-qwacamole-agent version -json
-```
+Packages require neither Go nor a repository clone. Automated setup supports
+**Ubuntu 24.04 amd64** with a dedicated integration host and supplied credentials.
+The Nginx quickstart requires public IPv4/A-record reachability and no AAAA record.
+See [supported targets and tested versions](docs/guides/site-support.md) for
+runtime-tested platforms and cross-compiled targets.
 
-Add your Go binary directory to PATH or invoke the installed absolute path. Keep
-other existing GOPRIVATE entries if needed. Caddy should list `tls.issuance.qwac`
-and `http.handlers.qwac`, with no devtools or replacements. Agent installation
-resolves `v0.0.0-20261009145422-bb911a8f69a8`; Caddy resolves
-`v0.0.0-20261009072701-9322bd566e82`; both use core
-`v0.0.0-20261008203612-8e62f4b8c340`. See each guide for fresh-cache installation,
-file ownership, service startup, status, updates and rollback.
+**Public releases and downloads are not available yet.** The installation guide
+provides the authenticated GitHub Actions candidate path, identity/checksum
+verification and the future public procedure. A candidate is a private review
+artifact; its existence does not approve publication.
 
-The release plan provides Linux amd64, Linux arm64 and macOS arm64 agent archives.
-Candidate packages are private review artifacts carrying the selected MIT license
-and third-party notices; publication approval remains pending.
-Future package verification belongs to the [release checklist](docs/alpha-release.md).
-Current installation uses the immutable source commands above. Nginx and
-Certbot remain external dependencies. Caddy distribution uses the module and
-xcaddy; no custom prebuilt Caddy or hosted-builder support is claimed.
+For custom builds, use the linked [advanced source/xcaddy installation](docs/guides/source-installation.md).
+Keep installation commands in those canonical guides so source revisions,
+prerequisites and package identities stay consistent.
 
 ## Browser behavior and lifecycle
 

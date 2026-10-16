@@ -118,6 +118,15 @@ func (i *Issuer) SetConfig(cfg *certmagic.Config) {
 		cfg.Issuers = []certmagic.Issuer{i}
 	}
 	i.ACMEIssuer.SetConfig(cfg)
+	previousShouldEmit := cfg.ShouldEmitFunc
+	cfg.ShouldEmitFunc = func(event string) bool {
+		// Caddy filters hot-path events when its own event app has no
+		// subscribers. Our abortable handshake gate is also a subscriber.
+		if event == "tls_get_certificate" || event == "cached_managed_cert" {
+			return true
+		}
+		return previousShouldEmit == nil || previousShouldEmit(event)
+	}
 	previousEvent := cfg.OnEvent
 	cfg.OnEvent = func(ctx context.Context, event string, data map[string]any) error {
 		if previousEvent != nil {

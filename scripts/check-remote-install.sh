@@ -9,7 +9,7 @@ case "$go" in /*) ;; *) go=$(command -v "$go");; esac
 case "$xcaddy" in /*) ;; *) xcaddy=$(command -v "$xcaddy");; esac
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/qwacamole-remote.XXXXXX")
 chmod 700 "$scratch"
-export GOWORK=off GOEXPERIMENT=nojsonv2
+export GOWORK=off GOEXPERIMENT=jsonv2
 export GOPRIVATE="github.com/cztamas/qwacamole${GOPRIVATE:+,$GOPRIVATE}"
 export GOPATH="$scratch/gopath" GOMODCACHE="$scratch/modules"
 export GOCACHE="${GOCACHE:-$scratch/build-cache}"
@@ -20,7 +20,7 @@ cd "$scratch"
 "$go" version > toolchain.txt
 "$xcaddy" version >> toolchain.txt
 "$go" list -m -json "github.com/cztamas/qwacamole/caddy@$ref" > plugin-resolved.json
-"$xcaddy" build v2.10.2 --with "github.com/cztamas/qwacamole/caddy@$ref" --output "$scratch/caddy" > build.log 2>&1
+"$xcaddy" build v2.11.7 --with "github.com/cztamas/qwacamole/caddy@$ref" --output "$scratch/caddy" > build.log 2>&1
 ./caddy list-modules > modules.txt
 "$go" version -m ./caddy > build-modules.txt
 for id in tls.issuance.qwac http.handlers.qwac; do

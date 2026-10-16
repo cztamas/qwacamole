@@ -10,7 +10,7 @@ jobs:
   packages:
     runs-on: ubuntu-latest
     env:
-      GOEXPERIMENT: nojsonv2
+      GOEXPERIMENT: jsonv2
       GOPRIVATE: github.com/cztamas/qwacamole
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.27.1'
+          go-version: '1.27.2'
           cache: false
       - uses: actions/setup-python@v5
         with:
@@ -35,6 +35,21 @@ jobs:
           version=$(python3 -c 'import json; print(json.load(open("release/publication.json"))["version"])')
           python3 scripts/release-agent.py build --source "$(git rev-parse HEAD)" --version "$version" --output candidate --go go "${approved[@]}"
           python3 scripts/release-agent.py verify candidate --smoke --require-native
+      - name: Security scan independent modules and every extracted production binary
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
+          python3 scripts/check-vulnerabilities.py --go go --scanner "$(go env GOPATH)/bin/govulncheck" --output .local/candidate-vulnerabilities --candidate candidate
+      - name: Packaged Caddy escaped-path denial regression
+        run: python3 scripts/check-caddy-routing.py --directory candidate --output .local/candidate-routing.json
+      - name: Retain security evidence including retrieval timestamps
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-security-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            .local/candidate-vulnerabilities/
+            .local/candidate-routing.json
+          if-no-files-found: warn
       - name: Retain candidates for review (no publishing permission)
         uses: actions/upload-artifact@v4
         with:

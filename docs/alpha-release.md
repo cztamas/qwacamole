@@ -15,7 +15,8 @@ publication timing. No proposed tag exists merely because it is described here.
 
 The directory prefix is in the Git tag, never in the Go requested version.
 All three proposed versioned module commands become valid only after those tags exist.
-Current executable immutable-ref installs are in the README and integration guides.
+Current authenticated candidates are in the canonical packaged-installation guide;
+custom immutable-ref builds are in the advanced source guide.
 
 This experimental alpha covers supplied RSA/RS256 credentials, explicit trust,
 one literal hostname per state, same-authority replacement, exclusive local
@@ -26,8 +27,8 @@ service, HSM, distributed state, authority migration, shared multi-site Nginx or
 arbitrary CDN termination is claimed. Strict bindings remain default; Firefox
 compatibility is explicit. Preserve Chromium's expired-exp failing assertion.
 
-Tested tool pair: Go 1.27.1 with `GOEXPERIMENT=nojsonv2`, xcaddy 0.4.5, Caddy
-2.10.2, CertMagic 0.24.0, Pebble 2.8.0; Nginx 1.30.5/Certbot 5.8.0 on macOS
+Tested tool pair: Go 1.27.2 with `GOEXPERIMENT=jsonv2`, xcaddy 0.4.5, Caddy
+2.11.7, CertMagic 0.25.6, Pebble 2.8.0; Nginx 1.30.5/Certbot 5.8.0 on macOS
 arm64. Fresh native runs use Chrome 154.0.8037.99 / genuine PKIMetadata 1798,
 Firefox 157.0.1 / geckodriver 0.37.1. Fresh Ubuntu 24.04 amd64 integration CI
 uses Nginx 1.24.0-2ubuntu7.18 and Certbot 5.8.0. See
@@ -119,27 +120,28 @@ commands from inherited reports:
   checksums/version identity and meaningful negative publication/package tests.
 - Tracked content/history review, updated operator guides and final diff review.
 
-## Owner prerequisites before public launch
+## Remaining owner actions before public launch
 
-- [ ] Approve version/support scope and publication timing.
-- [x] Select MIT and install matching LICENSE/NOTICE files at root and in nested
-  modules. See [licensing inventory](guides/licensing.md).
-- [ ] Review ownership/third-party notices for the final release and verify the
-  legal-file copies and recorded hashes still match.
-- [ ] Review [tracked-content/history audit](evidence-release-preparation-20261009.md).
-  Resolve concrete findings before changing visibility; no history rewrite is
-  performed by this task.
-- [ ] Enable and verify GitHub private vulnerability reporting, or publish a real
-  monitored confidential channel in SECURITY.md. Approve a realistic policy;
-  no address/SLA is invented.
-- [ ] Record the owner decision URL, approved version and exact LICENSE/NOTICE
-  SHA256s in `release/publication.json`; `approved` stays false until that review.
-  For an alternative channel, set its real HTTPS URL and include it in SECURITY.md.
-- [ ] Configure `public-alpha-release` as a protected GitHub environment with
-  maintainer reviewers and main-only deployment branches; verify those settings.
-  Merely naming the environment in YAML does not establish protection.
-- [ ] Decide and perform repository visibility change, then verify public source
-  access. This preparation PR does not change visibility.
+This is the canonical launch checklist. The [current readiness report](evidence-alpha-readiness-20261016.md)
+records which technical checks ran. `approved` remains false until the owner
+separately approves publication. Current repository visibility is verified private;
+the environment/reporting API reads returned 404, so those settings are **unverified**.
+
+| External action | Prerequisite and command or setting | Verify success |
+| --- | --- | --- |
+| Approve scope, source, legal inventory and timing | Review the final candidate, MIT/NOTICE copies, actual bundled notices and fresh content/history audit; record a real decision URL and matching hashes in `release/publication.json` | Review exact C/E source ledger and manifest digest; legal hashes/copies and reproducible rebuild agree |
+| Approve a confidential reporting route | Use the existing `mailto:tamas.czank@gmail.com`, a documented HTTPS channel, or enable GitHub private vulnerability reporting; put the chosen approved destination in policy and SECURITY.md | Confirm the channel is usable; for GitHub run `gh api repos/cztamas/qwacamole/private-vulnerability-reporting`; the full preflight must accept it |
+| Protect publication | Settings → Environments → `public-alpha-release`: maintainer reviewers and only the `main` branch | Read the environment and `/deployment-branch-policies` APIs; `validate_environment` and live preflight pass |
+| Decide visibility | Resolve audit findings and review public contents first; owner changes repository visibility to public | Logged-out source access succeeds; the repository API reports `private: false` |
+| Merge and establish immutable module identities | After review/approval, execute the C/D/E sequence below; never reuse or move a tag | Anonymous Go origin lookups resolve core C and nested E; independent installs and full checks pass |
+| Select and review the approved candidate | Run `gh workflow run go.yml --ref main` and `gh workflow run agent-candidate.yml --ref main` at E; review security/routing artifacts, exact-source runs and manifest digest | Both manual main runs succeed at E, extracted packages verify, and the independent rebuild matches |
+| Run live preflight and authorize the one publication | Use the command below **without `--publish`** first, then the separately approved manual main publication action | All checks pass and rendered source/run/digest notes are reviewed; one prerelease appears without overwrite/retry |
+| Verify public distribution | After publication, anonymously download the actual release assets, verify independently reviewed manifest/checksums, extract/install into new prefixes and repeat module/xcaddy checks | Asset identities/installations and HTTPS/binding checks pass; record release URL and actual reporting route |
+
+A mailto policy accepts one ordinary literal mailbox, without recipient lists,
+encoded characters or query/header fields. Its exact URL must appear in SECURITY.md.
+The gate does not verify inbox monitoring; support remains best-effort without a
+response guarantee. A contact listing does not itself approve publication.
 
 ## Exact future source/tag sequence (owner executes after approval and merge)
 
@@ -171,7 +173,8 @@ The two distributed production source identities are **C** (core) and **E**
    candidate workflows. Require both successful at exact source E. Candidate CI
    automatically uses approved LICENSE/NOTICE only when policy approves this
    version and their hashes match. Review retained archives and manifest digest.
-6. Run the anonymous post-publication check from a clean environment:
+6. After visibility and immutable module tags exist, run the anonymous module/xcaddy
+   check from a clean environment (release assets are checked separately after publication):
 
    ```sh
    python3 scripts/check-public-install.py v0.1.0-alpha.1 \
@@ -206,12 +209,19 @@ The two distributed production source identities are **C** (core) and **E**
 8. Verify the published assets, SHA256SUMS, manifest/source, package versions,
    public install/runtime evidence and reporting route. Record the release URL.
 
-For a local maintainer preflight, use `scripts/publish-alpha.py` with the same
-arguments and **without `--publish`**. It still verifies all prerequisites and
+For a local maintainer preflight, select a clean checkout of E and run:
+
+```sh
+python3 scripts/publish-alpha.py --source FULL_E_SHA --version 0.1.0-alpha.1 \
+  --candidate-run SUCCESSFUL_MANUAL_MAIN_RUN --manifest-sha256 REVIEWED_MANIFEST_SHA256 \
+  --directory /path/to/approved-candidate --go /absolute/path/to/go
+```
+
+This command deliberately omits `--publish`. It still verifies all prerequisites and
 rebuilds the approved source. Public publication is available only through the
 explicit manual action; ordinary pushes and PRs cannot publish.
 
 Caddy package registration and hosted-builder testing are separate future owner
-work. The supported installation path here is xcaddy. Website deployment uses the
+work. Packaged installation is the primary path; xcaddy remains the custom-build alternative. Website deployment uses the
 separate [Cloudflare Pages setup](website-deployment.md); it does not publish
 software. Devtools has no independently supported alpha tag.
