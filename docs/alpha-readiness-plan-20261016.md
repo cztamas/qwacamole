@@ -13,7 +13,7 @@ implementation owners. Keep core stdlib-only; installed binaries must exclude
 devtools. Reuse current package verifier, publication gate, Docker permission
 acceptance, real integration harnesses and native browser suites.
 
-Current source pins Caddy 2.10.2, CertMagic 0.24.0, quic-go 0.54.0 and Go 1.27.1.
+The assessed base source pinned Caddy 2.10.2, CertMagic 0.24.0, quic-go 0.54.0 and Go 1.27.1.
 Official upstream checks on 16 October identify Caddy 2.11.7, CertMagic 0.25.6
 and Go 1.27.2 as current stable/security baselines. Confirm the resolved graph
 and scanner results before accepting those versions. Pin govulncheck v1.9.0,
@@ -44,22 +44,22 @@ Upgrade risks requiring source inspection and runtime evidence:
 
 ## Execution and acceptance ledger
 
-All items begin unproven. Update this ledger from newly executed evidence.
+The dated report and linked sanitized evidence record newly executed acceptance. Historical results are not substituted for the selected candidate.
 
 | Area | Work and authoritative completion evidence | State |
 | --- | --- | --- |
-| Upstream/dependencies | Official advisories/release notes, Go security release, coherent Caddy/CertMagic/transitive graph, API/event review, exact compiler/scanner pins across builds/CI/manifests | In progress |
-| Security scans | Independent source scans of all four modules and production commands, module-level inventory/dispositions, binary scans of every extracted agent target and packaged Caddy, database retrieval timestamps, enforcing CI | Pending |
-| Routing regression | Run the configured escaped-path denial against packaged Caddy; both `/admin%2Fpanel` and `/ADMIN%2Fpanel` return 403; separate from binding-gate assertions | Pending |
-| Operator documentation | README leads to packages and canonical quickstarts; source installation linked; targets/prerequisites, IPv4/no-AAAA, strict/Firefox, trust/legal/revocation limits, notices/support/release notes/checklist agree | Pending |
-| Publication policy | Narrow reporting-channel validation and meaningful gate tests; approval false; exact legal hashes/copies/notices; read-only live settings/preflight evidence; concise external-action checklist | Pending |
-| Content/history audit | Refresh reachable refs/history/current tracked/artifact audit without disclosing secrets; exact Mozilla fixture identity/attribution exception only; scope/limitations recorded | Pending |
-| Candidate provenance | Real pushed core/agent/Caddy/devtools pins; independent remote installation; two deterministic exact-source builds; all archive/checksum/mode/inventory/notice/installer checks; no existing installation overwrite | Pending |
-| Supported Ubuntu | Clean Ubuntu 24.04 amd64 extracted packages through both quickstarts, real HTTPS and binding verification, umasks 077/0777/repeat/preservation, credential/prerequisite/conflict rejection, ACME/hook renewal, restart/runtime recreation/boot, failures/expiry/recovery/retained coverage | Pending |
-| Repository/lifecycle | Four workspace and independent-module race suites, boundaries, actual installed-binary Caddy and Nginx smokes; every new failure investigated without weakened assertions | Pending |
-| Native browsers | Sequential fresh Caddy Chrome/Firefox then Nginx Chrome/Firefox; trust/identity/cache/renewal/replacement/held connections; preserved Chromium expired-binding negative assertion with current behavior investigated | Pending |
-| Website | Check/build/internal links/search/publication boundary, revised installation pages reviewed desktop/mobile | Pending |
-| Delivery | Final diff review, dated report with exact sources/tools/candidates/results/limits, direct experimental-alpha readiness verdict, focused PR against main with precise pending launch actions | Pending |
+| Upstream/dependencies | Official advisories/release notes, Go security release, coherent Caddy/CertMagic/transitive graph, API/event review, exact compiler/scanner pins across builds/CI/manifests | Complete: reviewed baseline and actual hook regression |
+| Security scans | Independent source scans of all four modules and production commands, module-level inventory/dispositions, binary scans of every extracted agent target and packaged Caddy, database retrieval timestamps, enforcing CI | Complete: ten scans; exact OpenPGP disposition; CI enforced |
+| Routing regression | Run the configured escaped-path denial against packaged Caddy; both `/admin%2Fpanel` and `/ADMIN%2Fpanel` return 403; separate from binding-gate assertions | Complete: actual old control fails, new package passes |
+| Operator documentation | README leads to packages and canonical quickstarts; source installation linked; targets/prerequisites, IPv4/no-AAAA, strict/Firefox, trust/legal/revocation limits, notices/support/release notes/checklist agree | Complete: canonical guides and reviewed private candidate identities |
+| Publication policy | Narrow reporting-channel validation and meaningful gate tests; approval false; exact legal hashes/copies/notices; read-only live settings/preflight evidence; concise external-action checklist | Complete: 35 regressions, negative live preflight; owner launch remains separate |
+| Content/history audit | Refresh reachable refs/history/current tracked/artifact audit without disclosing secrets; exact Mozilla fixture identity/attribution exception only; scope/limitations recorded | Complete: reachable refs/history, final proposed tree and actual archives |
+| Candidate provenance | Real pushed core/agent/Caddy/devtools pins; independent remote installation; two deterministic exact-source builds; all archive/checksum/mode/inventory/notice/installer checks; no existing installation overwrite | Complete: repeated/local/hosted identical; independent installs and extracted runtimes |
+| Supported Ubuntu | Clean Ubuntu 24.04 amd64 extracted packages through both quickstarts, real HTTPS and binding verification, umasks 077/0777/repeat/preservation, credential/prerequisite/conflict rejection, ACME/hook renewal, restart/runtime recreation/boot, failures/expiry/recovery/retained coverage | Complete: actual installed packages, both full reboots and both complete lifecycle smokes |
+| Repository/lifecycle | Four workspace and independent-module race suites, boundaries, actual installed-binary Caddy and Nginx smokes; every new failure investigated without weakened assertions | Complete: workspace/independent/consumer/remote smokes pass |
+| Native browsers | Sequential fresh Caddy Chrome/Firefox then Nginx Chrome/Firefox; trust/identity/cache/renewal/replacement/held connections; preserved Chromium expired-binding negative assertion with current behavior investigated | Complete: all lifecycle runs pass; preserved Chrome expired-exp incompatibility |
+| Website | Check/build/internal links/search/publication boundary, revised installation pages reviewed desktop/mobile | Complete: check/build/link/search/boundary and 16 browser checks; screenshots reviewed |
+| Delivery | Final diff review, dated report with exact sources/tools/candidates/results/limits, direct experimental-alpha readiness verdict, focused PR against main with precise pending launch actions | Complete: final report and diff review; delivered through the associated focused PR |
 
 Use ignored `.local/alpha-readiness/` for raw evidence and generated fixtures.
 Keep historical reports unchanged. The final report must distinguish newly run

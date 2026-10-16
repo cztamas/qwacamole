@@ -1,0 +1,121 @@
+{
+  "source": "6b966e265f5535167da8413f2c7b7b2964a5e873",
+  "agent_negative_and_preservation_checks": {
+    "platform": "Linux x86_64",
+    "checks": [
+      {
+        "check": "identical repeat preserves files and binding state",
+        "exit": 0,
+        "output": "Setup already matches; files, credentials and binding state preserved.\nStart, issue ordinary TLS, then verify:\nsudo systemctl daemon-reload\nsudo systemctl enable --now qwacamole-agent.service qwacamole-renew.timer\nsudo certbot certonly --config /etc/qwacamole/certbot.ini --agree-tos --webroot -w /var/lib/qwacamole-acme -d qwac.example.com --cert-name qwac.example.com --deploy-hook /etc/qwacamole/deploy-hook --no-directory-hooks\nsudo /opt/qwacamole-agent/bin/qwacamole-agent verify -config /etc/qwacamole/agent.json\n",
+        "error": ""
+      },
+      {
+        "check": "valid changed credential input refused",
+        "exit": 1,
+        "output": "",
+        "error": "existing file or credentials changed: /etc/qwacamole/chain.pem; use replacement, maintenance or recovery; setup never overwrites\n"
+      },
+      {
+        "check": "wrong hostname",
+        "exit": 1,
+        "output": "",
+        "error": "credential preflight: QWAC credential for wrong.example.test: x509: certificate is valid for qwac.example.com, not wrong.example.test\n"
+      },
+      {
+        "check": "mismatched key",
+        "exit": 1,
+        "output": "",
+        "error": "credential preflight: QWAC credential for qwac.example.com: signing key does not match RSA QWAC leaf\n"
+      },
+      {
+        "check": "incomplete chain",
+        "exit": 1,
+        "output": "",
+        "error": "credential preflight: QWAC credential for qwac.example.com: QWAC chain is not leaf-first: crypto/rsa: verification error\n"
+      },
+      {
+        "check": "wrong authority",
+        "exit": 1,
+        "output": "",
+        "error": "credential preflight: QWAC credential for qwac.example.com: QWAC chain is not leaf-first: crypto/rsa: verification error\n"
+      },
+      {
+        "check": "operator edit refused",
+        "exit": 1,
+        "output": "",
+        "error": "existing file or credentials changed: /etc/qwacamole/agent.json; use replacement, maintenance or recovery; setup never overwrites\n"
+      },
+      {
+        "check": "public private-key permissions refused",
+        "exit": 1,
+        "output": "",
+        "error": "existing file /etc/qwacamole/key.pem has incompatible type or permissions\n"
+      },
+      {
+        "check": "unsafe ownership refused",
+        "exit": 1,
+        "output": "",
+        "error": "unsafe ownership, permissions or symlink at /etc/qwacamole/key.pem\n"
+      },
+      {
+        "check": "missing Certbot refused",
+        "exit": 1,
+        "output": "",
+        "error": "/usr/bin/certbot prerequisite: fork/exec /usr/bin/certbot: no such file or directory: \n"
+      },
+      {
+        "check": "occupied port rejected before writes",
+        "exit": 1,
+        "error": "listener 0.0.0.0:80 is unavailable: listen tcp 0.0.0.0:80: bind: address already in use\n"
+      },
+      {
+        "check": "existing unrelated master refused and left running",
+        "exit": 1,
+        "error": "existing Nginx master detected; dedicate this host before setup; no service was stopped\n"
+      },
+      {
+        "check": "missing Nginx capability rejected before writes",
+        "exit": 1,
+        "error": "Nginx needs --with-http_ssl_module\n"
+      }
+    ]
+  },
+  "fresh_and_active_repeat_setup": "Both installed integrations passed",
+  "real_acme_and_signed_https": "Both installed integrations passed",
+  "agent_saved_hook_forced_renewal": "Changed actual TLS fingerprint; verified signed binding",
+  "service_restart": "Both passed",
+  "full_host_reboots": {
+    "agent": {
+      "boot_id_changed": true,
+      "volatile_marker_removed": true,
+      "runtime_directory_recreated": true,
+      "worker_ownership_and_modes": true,
+      "verified_https_and_current_binding": true
+    },
+    "caddy": {
+      "boot_id_changed": true,
+      "volatile_marker_removed": true,
+      "automatic_enabled_service_start": true,
+      "private_persisted_state_preserved": true,
+      "verified_https_and_current_binding": true,
+      "selected_replacement_signer_preserved": true
+    }
+  },
+  "validated_replacements": [
+    "PASS packaged Caddy same-key replacement under unchanged authority",
+    "PASS packaged Caddy new-key replacement under unchanged authority",
+    "PASS packaged agent same-key replacement under unchanged authority",
+    "PASS packaged agent new-key replacement under unchanged authority"
+  ],
+  "ordinary_tls_test_fixture_note": "Pebble regenerated its issuing CA after reboot. Explicitly installing that new ordinary-TLS test root restored verified HTTPS. Selected QWAC trust remained unchanged.",
+  "intermediate_controller_probes": "Premature probes retained and corrected by waiting for actual readiness/boot completion; no assertion weakened.",
+  "raw_log_sha256": {
+    "vm-agent-setup.log": "75450f6c8784315eb5901b86803b44f8a243e335d4894dab2a53ccd096323a9a",
+    "vm-agent-renew-reboot.log": "bb09a3fcfb7c4c3fa74b90fab89161addefdd5be5a8c44d35440a269496c65a0",
+    "vm-agent-after-boot-verified.log": "efc76fca25fabfbdf9e30da556778f0d977ff6203fad8d9a18369e884f6064c2",
+    "vm-caddy-setup.log": "41fa9bb67e330714ff762742422416ecb1a9b5fffa750bdbcaeec2dc175edfcf",
+    "vm-replacement-reboot.log": "fc3dc86fafbc91c5250b432f5589e3ba02a6da9ccd8d1daadb7e5b45fe74f667",
+    "vm-caddy-after-boot-verified.log": "17270a8ba86562309d4cdaf707e497bb01df12c9120d47771da6c0f8d585beda",
+    "vm-packaged-smokes.log": "6e8f7114f641970754be3e8ecb46d8016f4e1b4a47485291f75096c5fdc1d8d6"
+  }
+}

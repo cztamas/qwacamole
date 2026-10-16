@@ -1,0 +1,8 @@
+{
+  "source": "6b966e265f5535167da8413f2c7b7b2964a5e873",
+  "manifest_sha256": "923eb8ad0b56959284f4ab1fba9debaea5f7e2850d812daa881ad3b4f18d388d",
+  "archive_members_scanned": 30,
+  "private_key_or_token_findings": [],
+  "raw_profile_candidates": [],
+  "scope": "All decompressed members including executable bytes; complete PEM and recognized GitHub/OpenAI token patterns plus raw/profile filenames. Complements strict archive allowlists and actual dependency boundaries; not a proof against unknown encodings or every possible secret format."
+}

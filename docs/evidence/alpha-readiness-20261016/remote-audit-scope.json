@@ -1,0 +1,54 @@
+{
+  "all_advertised_refs_in_reachable_audit": true,
+  "refs": [
+    {
+      "ref": "HEAD",
+      "commit": "11ac519f76b1ce063b62d0a46433bb15c68ac67c"
+    },
+    {
+      "ref": "refs/heads/codex/alpha-readiness",
+      "commit": "6b966e265f5535167da8413f2c7b7b2964a5e873"
+    },
+    {
+      "ref": "refs/heads/main",
+      "commit": "11ac519f76b1ce063b62d0a46433bb15c68ac67c"
+    },
+    {
+      "ref": "refs/pull/1/head",
+      "commit": "8dd1dd7ee2e3cb96fa005938e98db6355a675c00"
+    },
+    {
+      "ref": "refs/pull/2/head",
+      "commit": "10660e562bf6d07ef19a5cad7f55ae11258f6d5d"
+    },
+    {
+      "ref": "refs/pull/3/head",
+      "commit": "879ebcfa3c37cce58ed73a5cd7f9a2a4706ec3d4"
+    },
+    {
+      "ref": "refs/pull/4/head",
+      "commit": "8026b3ef4a79164a2dbd0d44077cdc636970dea7"
+    },
+    {
+      "ref": "refs/pull/5/head",
+      "commit": "2e9155e7077c0ac7178a5487fb75ee0b95f54a8c"
+    },
+    {
+      "ref": "refs/pull/6/head",
+      "commit": "04082499fc51f9a3c0015b20e75f507f1cd86b6d"
+    },
+    {
+      "ref": "refs/pull/7/head",
+      "commit": "49c48d2195bde9765c30397476fac727de98bf48"
+    },
+    {
+      "ref": "refs/pull/8/head",
+      "commit": "b483cb814d5f2eb39d94f6f263e2cd258fabca8b"
+    },
+    {
+      "ref": "refs/pull/9/head",
+      "commit": "34543240db3638f1961f23fe6faeef7b3e3bba9a"
+    }
+  ],
+  "limitations": "Only advertised remote refs and reachable local history; inaccessible hidden refs, reflogs, unreachable objects and external forks are not covered."
+}

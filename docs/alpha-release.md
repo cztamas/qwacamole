@@ -27,13 +27,13 @@ service, HSM, distributed state, authority migration, shared multi-site Nginx or
 arbitrary CDN termination is claimed. Strict bindings remain default; Firefox
 compatibility is explicit. Preserve Chromium's expired-exp failing assertion.
 
-Tested tool pair: Go 1.27.2 with `GOEXPERIMENT=jsonv2`, xcaddy 0.4.5, Caddy
-2.11.7, CertMagic 0.25.6, Pebble 2.8.0; Nginx 1.30.5/Certbot 5.8.0 on macOS
-arm64. Fresh native runs use Chrome 154.0.8037.99 / genuine PKIMetadata 1798,
-Firefox 157.0.1 / geckodriver 0.37.1. Fresh Ubuntu 24.04 amd64 integration CI
-uses Nginx 1.24.0-2ubuntu7.18 and Certbot 5.8.0. See
-[the dated release report](evidence-release-preparation-20261009.md)
-for completed checks rather than assuming a newer toolchain/browser is compatible.
+The reviewed candidate uses Go 1.27.2 with `GOEXPERIMENT=jsonv2`, xcaddy 0.4.5,
+Caddy 2.11.7, CertMagic 0.25.6 and Pebble 2.8.0. New native runs use Chrome
+155.0.8059.82 / genuine PKIMetadata 1803 and Firefox 158.0 / geckodriver 0.37.1.
+The clean Ubuntu 24.04.5 amd64 guest uses distro Nginx 1.24.0 and Certbot 2.9.0;
+macOS arm64 uses Nginx 1.30.5 and Certbot 5.8.0. See the
+[current readiness report](evidence-alpha-readiness-20261016.md) for exact-source
+results and limitations. Earlier reports retain their own historical tool pairs.
 
 Archives target Linux amd64, Linux arm64 and macOS arm64. macOS arm64 is runtime
 tested locally, including extracted packages and both integrations. Candidate CI
@@ -83,8 +83,9 @@ all-module/real-integration checks; they do not replace them.
 Candidate manifest schema 2 requires all three agent targets and Linux amd64
 Caddy. Publication still checks the exact approved source, environment, tags,
 reviewed manifest, successful manual main workflows and reproducible rebuild.
-The schema-1 historical verifier is retained for evidence, but schema 1 cannot
-pass the current publication gate. Candidate binaries/templates are installable
+Schema-1 format handling remains for tests; verify historical candidates with
+their corresponding committed tooling/toolchain. Only schema 2 can pass the
+current publication gate. Candidate binaries/templates are installable
 without Go or a clone; the authenticated operator procedure is in
 [the installation guide](guides/binary-installation.md).
 
@@ -136,7 +137,7 @@ the environment/reporting API reads returned 404, so those settings are **unveri
 | Merge and establish immutable module identities | After review/approval, execute the C/D/E sequence below; never reuse or move a tag | Anonymous Go origin lookups resolve core C and nested E; independent installs and full checks pass |
 | Select and review the approved candidate | Run `gh workflow run go.yml --ref main` and `gh workflow run agent-candidate.yml --ref main` at E; review security/routing artifacts, exact-source runs and manifest digest | Both manual main runs succeed at E, extracted packages verify, and the independent rebuild matches |
 | Run live preflight and authorize the one publication | Use the command below **without `--publish`** first, then the separately approved manual main publication action | All checks pass and rendered source/run/digest notes are reviewed; one prerelease appears without overwrite/retry |
-| Verify public distribution | After publication, anonymously download the actual release assets, verify independently reviewed manifest/checksums, extract/install into new prefixes and repeat module/xcaddy checks | Asset identities/installations and HTTPS/binding checks pass; record release URL and actual reporting route |
+| Verify public distribution | After publication, use `curl --fail --location` on the actual published asset URLs, run `release-agent.py verify --smoke --require-native`, install into new prefixes and repeat `check-public-install.py` module/xcaddy checks | Asset identities/installations and HTTPS/binding checks pass; record release URL and actual reporting route |
 
 A mailto policy accepts one ordinary literal mailbox, without recipient lists,
 encoded characters or query/header fields. Its exact URL must appear in SECURITY.md.

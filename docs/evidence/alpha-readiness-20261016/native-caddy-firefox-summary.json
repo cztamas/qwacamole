@@ -1,0 +1,7 @@
+{
+  "source": "6b966e265f5535167da8413f2c7b7b2964a5e873",
+  "browser": "Firefox 158.0 (signed staged stock app)",
+  "exit": 0,
+  "fixture_pass": 11,
+  "lifecycle_cached_identity_renewal_replacement_restart_failure_and_expiry_passed": true
+}

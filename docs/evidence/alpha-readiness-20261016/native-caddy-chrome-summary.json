@@ -1,0 +1,10 @@
+{
+  "source": "6b966e265f5535167da8413f2c7b7b2964a5e873",
+  "browser": "Google Chrome 155.0.8059.82",
+  "exit": 1,
+  "fixture_pass": 10,
+  "fixture_known_failure": [
+    "FAIL expired-binding BROWSER INCOMPATIBILITY: native verifier accepted expired exp header"
+  ],
+  "required_lifecycle_checks_passed": true
+}

@@ -1,0 +1,22 @@
+{
+  "command": [
+    "python3",
+    "scripts/publish-alpha.py",
+    "--source",
+    "6b966e265f5535167da8413f2c7b7b2964a5e873",
+    "--version",
+    "0.1.0-alpha.1",
+    "--candidate-run",
+    "38965179833",
+    "--manifest-sha256",
+    "923eb8ad0b56959284f4ab1fba9debaea5f7e2850d812daa881ad3b4f18d388d",
+    "--directory",
+    ".local/alpha-readiness/hosted-candidate",
+    "--go",
+    ".tools/go/bin/go"
+  ],
+  "exit": 1,
+  "observed_barrier": "selected preparation source is not merged into origin/main",
+  "publication_attempted": false,
+  "approved_policy": false
+}

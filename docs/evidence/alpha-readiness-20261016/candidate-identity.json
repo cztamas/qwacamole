@@ -1,0 +1,23 @@
+{
+  "source": "6b966e265f5535167da8413f2c7b7b2964a5e873",
+  "manifest_sha256": "923eb8ad0b56959284f4ab1fba9debaea5f7e2850d812daa881ad3b4f18d388d",
+  "candidate_run": 38965179833,
+  "local_repeated_builds_identical": true,
+  "hosted_candidate_identical": true,
+  "artifacts": [
+    {
+      "id": 12074583060,
+      "name": "agent-candidate-6b966e265f5535167da8413f2c7b7b2964a5e873",
+      "expired": false,
+      "expires_at": "2026-11-15T20:55:33Z",
+      "size_in_bytes": 57655626
+    },
+    {
+      "id": 12074508197,
+      "name": "candidate-security-6b966e265f5535167da8413f2c7b7b2964a5e873",
+      "expired": false,
+      "expires_at": "2027-01-14T20:50:54Z",
+      "size_in_bytes": 857587
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "rule": "generic-api-key",
+    "path": "devtools/cmd/qwacamole/plugin_expiry.go",
+    "commit": "",
+    "blob_sha256": "96adce06dd2caa07fde3c272193b6919ec25299b6f040b7f42fbd457615230de",
+    "line_sha256": "3fb85ff557a10c922efe55063ddbb859b7e3636e09a5270c7acb1d919094af1d",
+    "disposition": "RFC 6455 section 1.3 public example WebSocket nonce, not a credential"
+  },
+  {
+    "rule": "generic-api-key",
+    "path": "devtools/cmd/qwacamole/nginx_proxy_check.go",
+    "commit": "",
+    "blob_sha256": "965139da7bc5031971153d85b0510d7a08774e465a0936035a2b6acdcff7c99f",
+    "line_sha256": "1e764150229e6277289a475ec3628f2e4f3cefa71d874888850c1829cd2d5d70",
+    "disposition": "RFC 6455 section 1.3 public example WebSocket nonce, not a credential"
+  },
+  {
+    "rule": "private-key",
+    "path": "devtools/internal/pki/firefox-fixtures/public-test-ca-key.pem",
+    "commit": "",
+    "blob_sha256": "0560d06fc2d28c8c66b873f823542dea3abd99b212b2ced76e9d5f331a1afccd",
+    "line_sha256": "8bcac7908eb950419537b91e19adc83ce2c9cbfdacf4f81157fdadfec11f7017",
+    "disposition": "Exact intentionally public Mozilla fixture key; MPL attribution retained"
+  },
+  {
+    "rule": "generic-api-key",
+    "path": "devtools/cmd/qwacamole/nginx_failures.go",
+    "commit": "",
+    "blob_sha256": "ecce8d2889dbb07f7469237bf44c37d9330922b4e52c25e7c3b72138b77f3ebf",
+    "line_sha256": "b01236c0c65d37db866b5e570541fa33164aeea4add411eb176490a5885ab5f9",
+    "disposition": "RFC 6455 section 1.3 public example WebSocket nonce, not a credential"
+  },
+  {
+    "rule": "generic-api-key",
+    "path": "devtools/cmd/qwacamole/plugin_smoke.go",
+    "commit": "",
+    "blob_sha256": "4b6167eb11700fb9d8731f73401aac4e25e3d6269c960d48cc3ef60c83d72bca",
+    "line_sha256": "1460a5bf405e6e94d80fe60c5ffb0ed60f7b32f7490e283249bc96972e367f71",
+    "disposition": "RFC 6455 section 1.3 public example WebSocket nonce, not a credential"
+  }
+]

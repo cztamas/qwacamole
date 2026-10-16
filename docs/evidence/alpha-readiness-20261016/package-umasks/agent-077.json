@@ -1,0 +1,31 @@
+{
+  "integration": "agent",
+  "umask": "0o77",
+  "fresh_modes": "pass",
+  "repeat_preserves_files_and_state": "pass",
+  "operator_edits_preserved": "pass",
+  "operator_modes_preserved": "pass",
+  "worker_challenge_access": "HTTP 200 through generated Nginx with www-data workers",
+  "required_modes": {
+    "/etc/qwacamole/nginx.conf": "0o600",
+    "/etc/qwacamole/certbot.ini": "0o600",
+    "/etc/qwacamole/authority.pem": "0o600",
+    "/etc/qwacamole/chain.pem": "0o600",
+    "/run/qwacamole": "0o700",
+    "/etc/systemd/system/qwacamole-agent.service": "0o644",
+    "/etc/systemd/system/qwacamole-nginx.service": "0o644",
+    "/var/lib/qwacamole": "0o700",
+    "/etc/qwacamole/agent.json": "0o600",
+    "/etc/qwacamole": "0o700",
+    "/etc/systemd/system/qwacamole-renew.timer": "0o644",
+    "/var/lib/qwacamole/qwac.example.com": "0o700",
+    "/etc/qwacamole/deploy-hook": "0o700",
+    "/var/lib/qwacamole-acme": "0o755",
+    "/var/lib/nginx/qwacamole/client_body_temp": "0o700",
+    "/var/lib/nginx": "0o755",
+    "/etc/qwacamole/key.pem": "0o600",
+    "/var/lib/nginx/qwacamole": "0o755",
+    "/etc/qwacamole/setup-manifest.json": "0o600",
+    "/etc/systemd/system/qwacamole-renew.service": "0o644"
+  }
+}

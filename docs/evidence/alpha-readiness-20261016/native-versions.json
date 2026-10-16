@@ -1,0 +1,22 @@
+[
+  {
+    "integration": "native-caddy-chrome",
+    "evidence": ".local/alpha-readiness/native-caddy-chrome/integration-20261016-230504/evidence/initial-result.json",
+    "version": "Google Chrome 155.0.8059.82 \n"
+  },
+  {
+    "integration": "native-caddy-firefox",
+    "evidence": ".local/alpha-readiness/native-caddy-firefox/firefox-integration-2567719679/evidence/firefox-cached-replacement/firefox-result.json",
+    "version": "158.0"
+  },
+  {
+    "integration": "native-nginx-chrome",
+    "evidence": ".local/alpha-readiness/native-nginx-chrome/nginx-smoke-1474155437/evidence/native-chrome-initial/chrome-result.json",
+    "version": "Google Chrome 155.0.8059.82 \n"
+  },
+  {
+    "integration": "native-nginx-firefox",
+    "evidence": ".local/alpha-readiness/native-nginx-firefox/nginx-smoke-3490106400/evidence/native-firefox-initial/firefox-result.json",
+    "version": "158.0"
+  }
+]

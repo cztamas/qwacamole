@@ -11,8 +11,8 @@ constraints before installing, upgrading or interpreting a browser indicator.
 | Component | Tested configuration |
 | --- | --- |
 | Production agent and Caddy plugin | Exact-source packaged candidates and custom source builds; Go 1.27.2 with `GOEXPERIMENT=jsonv2`, xcaddy 0.4.5, Caddy 2.11.7, CertMagic 0.25.6 |
-| Agent runtime | Linux amd64 (Ubuntu 24.04, Nginx 1.24.0 and Certbot 2.9.0/5.8.0; also Nginx 1.28.0 with Certbot 5.8.0), macOS arm64 (Nginx 1.30.5, Certbot 5.8.0) |
-| Native browser demonstrations | macOS arm64, stock Chrome 154 with genuine PKIMetadata 1798, Firefox 157.0.1 and geckodriver 0.37.1 |
+| Agent runtime | Linux amd64 (Ubuntu 24.04.5, distro Nginx 1.24.0 and Certbot 2.9.0; portable CI also covers Certbot 5.8.0), macOS arm64 (Nginx 1.30.5, Certbot 5.8.0) |
+| Native browser demonstrations | macOS arm64, stock Chrome 155.0.8059.82 with genuine PKIMetadata 1803, Firefox 158.0 and geckodriver 0.37.1 |
 | Synthetic ACME demonstration | Pebble 2.8.0; bundled bootstrap supports macOS arm64 only |
 
 Linux arm64 agent builds are cross-compiled only. Windows, macOS notarization
@@ -37,8 +37,8 @@ legal qualification and native browser acceptance are separate checks.
 
 | Browser/profile | What works and what fails | Explicit settings |
 | --- | --- | --- |
-| Chrome 154, strict bindings | Qualified identity is displayed when both ordinary TLS and QWAC trust succeed. **The tested verifier accepts an expired binding `exp`**, so it cannot be relied on to enforce binding expiry. Server-side expiry still rejects new protected responses. | Strict JAdES critical-header declaration is the default. No User-Agent selection or production trust override. |
-| Firefox 157 | Native qualified identity, chain/signature/hostname/TLS hashes and expiry checks work in the compatibility profile. Its verifier rejects the strict `crit` declaration. | Set `"firefox_compatibility": true` in agent JSON or the bare `firefox_compatibility` switch in the Caddy qwac block. This omits the declaration and does **not** establish strict JAdES conformance. |
+| Chrome 155, strict bindings | Qualified identity is displayed when both ordinary TLS and QWAC trust succeed. **The tested verifier accepts an expired binding `exp`**, so it cannot be relied on to enforce binding expiry. Server-side expiry still rejects new protected responses. | Strict JAdES critical-header declaration is the default. No User-Agent selection or production trust override. |
+| Firefox 158 | Native qualified identity, chain/signature/hostname/TLS hashes and expiry checks work in the compatibility profile. Its verifier rejects the strict `crit` declaration. | Set `"firefox_compatibility": true` in agent JSON or the bare `firefox_compatibility` switch in the Caddy qwac block. This omits the declaration and does **not** establish strict JAdES conformance. |
 
 Browser QWAC authority lists and feature availability are independent of server
 configuration. Neither profile installs browser trust. The [isolated demo](demonstration.md)

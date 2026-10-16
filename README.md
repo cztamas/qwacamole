@@ -116,6 +116,10 @@ publication sequence. [Draft release notes](docs/release-notes-alpha.md) describ
 the proposed first alpha. [Licensing and attribution inventory](docs/guides/licensing.md)
 describes MIT and the retained third-party notices. [SECURITY.md](SECURITY.md) describes current reporting limits.
 
+The [current alpha-readiness report](docs/evidence-alpha-readiness-20261016.md)
+records the dependency/security update, selected candidate and newly executed
+checks. Earlier reports retain their original source/tool identities.
+
 The [9 October release-preparation report](docs/evidence-release-preparation-20261009.md)
 records newly executed checks separately from inherited evidence. Previous dated
 reports remain intact: [stream rejection](docs/evidence-caddy-stream-rejection-20261009.md),
