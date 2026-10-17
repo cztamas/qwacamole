@@ -5,8 +5,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deploymentSetup } from './deployment-setup.mjs';
 import { deploymentFreshness } from './deployment-freshness.mjs';
+import { verifyDeployment } from './verify-deployment.mjs';
 
-export async function deploy({ env = process.env, directory = 'dist', execute = execFileSync, request = fetch } = {}) {
+export async function deploy({ env = process.env, directory = 'dist', execute = execFileSync, request = fetch, wait } = {}) {
   if (!deploymentSetup(env)) throw new Error('Deployment is disabled');
   const sha = env.GITHUB_SHA;
   const identity = JSON.parse(readFileSync(path.join(directory, 'build-info.json'), 'utf8'));
@@ -23,23 +24,7 @@ export async function deploy({ env = process.env, directory = 'dist', execute = 
       const body = await projectResponse.json();
       if (Array.isArray(body.errors)) codes = body.errors.map(error => error?.code).filter(Number.isSafeInteger);
     } catch { /* Non-JSON errors still retain their HTTP status. */ }
-    // Verification is read-only and requires no token-management permission.
-    // Support both account-owned and user-owned tokens without logging IDs,
-    // provider messages, headers or credential-derived values.
-    const verification = [];
-    for (const kind of ['account', 'user']) {
-      try {
-        const endpoint = kind === 'account' ? `accounts/${env.CLOUDFLARE_ACCOUNT_ID}/tokens/verify` : 'user/tokens/verify';
-        const response = await request('https://api.cloudflare.com/client/v4/' + endpoint, {
-          headers: { Authorization: 'Bearer ' + env.CLOUDFLARE_API_TOKEN }, signal: AbortSignal.timeout(10000),
-        });
-        const body = await response.json();
-        const status = body.success === true && ['active', 'disabled', 'expired'].includes(body.result?.status) ? body.result.status : 'unverified';
-        verification.push(`${kind} token: HTTP ${response.status}, ${status}`);
-        if (response.ok && status === 'active') break;
-      } catch { verification.push(`${kind} token: verification unavailable`); }
-    }
-    throw new Error(`Pages project preflight failed (HTTP ${projectResponse.status}; Cloudflare codes: ${codes.join(', ') || 'unavailable'}; ${verification.join('; ')}); no upload attempted`);
+    throw new Error(`Pages project preflight failed (HTTP ${projectResponse.status}; Cloudflare codes: ${codes.join(', ') || 'unavailable'}); no upload attempted`);
   }
   const project = await projectResponse.json();
   if (!project.success || project.result?.name !== env.CLOUDFLARE_PAGES_PROJECT || project.result.production_branch !== 'main')
@@ -77,9 +62,7 @@ export async function deploy({ env = process.env, directory = 'dist', execute = 
         !record.deployment_id || url.protocol !== 'https:' || url.pathname !== '/' || url.search || url.hash ||
         !url.hostname.endsWith('.' + env.CLOUDFLARE_PAGES_PROJECT + '.pages.dev'))
       throw new Error('Upload source/project/production identity mismatch; inspect Pages before retrying');
-    const response = await request(url.href + 'build-info.json', { signal: AbortSignal.timeout(30000), cache: 'no-store' });
-    if (!response.ok || (await response.json()).commit !== sha)
-      throw new Error('Uploaded deployment identity could not be verified; inspect Pages before retrying');
+    await verifyDeployment({ url: url.href, sha, request, wait });
     return { sha, url: url.origin, deploymentId: record.deployment_id };
   } finally {
     rmSync(scratch, { recursive: true, force: true });

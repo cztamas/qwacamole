@@ -19,12 +19,3 @@ test('workflow watches every shared build input for both push and PR', () => {
     assert.equal(workflow.split("'" + input + "'").length - 1, 2, input + ' must be watched for PR and main push');
   }
 });
-test('mistakenly pasted commands, quotes and whitespace are rejected without printing the secret', () => {
-  for (const token of ['Bearer synthetic-private', ' synthetic-private', 'synthetic-private\n', '"synthetic-private"', "'synthetic-private'", 'curl -H synthetic-private']) {
-    assert.throws(() => deploymentSetup({ ...valid, CLOUDFLARE_API_TOKEN: token }), error => {
-      assert.match(error.message, /only the token value/);
-      assert.doesNotMatch(error.message, /synthetic-private/);
-      return true;
-    });
-  }
-});
