@@ -4,6 +4,13 @@ Use these procedures to monitor binding freshness, maintain coverage for held
 connections, and recover without bypassing the activation gate. Start with the
 [Caddy](caddy-quickstart.md) or [Certbot/Nginx](nginx-quickstart.md) quickstart.
 
+For custom Caddy configurations upgraded from 2.10, review HTTPS upstream Host
+handling: Caddy 2.11 sets that header to the upstream address automatically.
+Configure an explicit `header_up Host` policy if your application requires the
+original host, while retaining ordinary upstream TLS verification. See the
+[upstream release notes](https://github.com/caddyserver/caddy/releases/tag/v2.11.1).
+The standard quickstarts use HTTP applications.
+
 ## Discovery, caching and migration
 
 Application responses preserve their own cache policy and Link fields and add
@@ -116,7 +123,7 @@ authority migration needs a separate browser-trust transition.
 
 Document GC and certificate retirement are different operations. Retain expired
 TLS leaves because authenticated HTTP/2/WebSocket connections can outlive leaf
-NotAfter. Caddy 2.10.2 exposes `RegisterConnState`, `RegisterConnContext`, and
+NotAfter. Caddy 2.11.7 exposes `RegisterConnState`, `RegisterConnContext`, and
 shutdown callbacks for `http.Server`; its HTTP/3 server is separate. A server-side
 `tls.ConnectionState` does not expose the selected local certificate. These hooks
 alone cannot prove zero surviving connections for each retained leaf across

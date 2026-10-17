@@ -3,8 +3,8 @@
 Public releases and downloads are not available yet. Authorized repository users
 can install a retained, successful candidate from GitHub Actions. You need the
 GitHub CLI (`gh`), repository access, `tar` and SHA-256 tools; **Go and a repository
-clone are not needed**. Obtain the successful run ID, full source commit and
-reviewed manifest SHA-256 from the person providing the candidate.
+clone are not needed**. The reviewed candidate identities below are pinned; stop if the artifact has
+expired or any identity differs, and obtain a newly reviewed candidate.
 
 Agent archives: Linux amd64, Linux arm64 and macOS arm64. Linux arm64 is
 cross-compiled only. The packaged Caddy binary targets Linux amd64. Automated
@@ -13,14 +13,15 @@ Other deployment arrangements use the integration references.
 
 ## Download and check the candidate
 
-Replace the three identity placeholders below. Keep `VERSION` pinned to the
-candidate's version. Download into a new directory:
+This reviewed private candidate was built from the security-updated source and
+retained until **15 November 2026**. It is not a public release. Download into a
+new directory:
 
 ```sh
 VERSION=0.1.0-alpha.1
-SOURCE=FULL_SOURCE_COMMIT
-RUN_ID=SUCCESSFUL_CANDIDATE_RUN_ID
-MANIFEST_SHA256=REVIEWED_MANIFEST_SHA256
+SOURCE=6b966e265f5535167da8413f2c7b7b2964a5e873
+RUN_ID=38965179833
+MANIFEST_SHA256=923eb8ad0b56959284f4ab1fba9debaea5f7e2850d812daa881ad3b4f18d388d
 mkdir qwacamole-candidate
 cd qwacamole-candidate
 gh run view "$RUN_ID" --repo cztamas/qwacamole --json conclusion,headSha

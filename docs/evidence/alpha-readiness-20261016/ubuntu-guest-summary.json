@@ -1,0 +1,119 @@
+{
+  "source": "6b966e265f5535167da8413f2c7b7b2964a5e873",
+  "os": "Ubuntu 24.04.5 LTS",
+  "architecture": "x86_64",
+  "nginx": "nginx version: nginx/1.24.0 (Ubuntu)",
+  "certbot": "certbot 2.9.0",
+  "go_and_repository_clone_required": false,
+  "installed_binaries": {
+    "agent": {
+      "sha256": "024d9380dd63a32d5931da1efb339d681618a587d6d2e9165c0ea667c53de7d7",
+      "mode": "0o755"
+    },
+    "caddy": {
+      "sha256": "a568e4435d88ad66b853bbef91b0838e4eabc9254aaa918c8526f0c02815d842",
+      "mode": "0o755"
+    }
+  },
+  "lifecycle_smokes": [
+    {
+      "integration": "caddy",
+      "passed": true,
+      "checks": [
+        "plugin-only inventory",
+        "all three Caddyfile examples adapt and validate",
+        "invalid syntax, missing trust, inconsistent pairing and bypass policies reject",
+        "first matching wildcard policy cannot bypass issuer gate; unrelated policies remain valid",
+        "legacy numeric JSON duration migration",
+        "real reverse_proxy status/body/streaming and header preservation",
+        "binding GET/HEAD, methods, path validation and no-store isolation",
+        "conditional cache headers and redirect status/location preserved",
+        "real WebSocket upgrade advertises binding and preserves bidirectional traffic",
+        "two real automatic renewals freshly verified while original connection remains bound",
+        "real automatic Pebble renewal and durable binding coverage",
+        "real caching intermediary outlives binding expiry and discovers renewed TLS coverage",
+        "automatic document collection preserves current binding and retained TLS coverage",
+        "three unchanged forced Caddy reloads",
+        "conflicting process rejected by exclusive state lock",
+        "same-key QWAC replacement with stable cached discovery and retained TLS",
+        "same-path QWAC leaf/key replacement under same authority",
+        "unchanged cached Link discovers same-authority QWAC replacement",
+        "invalid credentials and inconsistent config reloads reject; old application remains active",
+        "actual QWAC expiry rejects delayed response, WebSocket upgrade and fresh handshake",
+        "restored QWAC inputs recover verified Caddy service without process restart",
+        "real process restart and recovered binding history",
+        "real file_server application and reachable binding endpoints",
+        "two independent protected sites alongside unchanged unprotected site",
+        "Caddy error-handler status/body/application headers with paired binding middleware",
+        "full process stop/offline state archive retains TLS storage and rebuilds current coverage"
+      ]
+    },
+    {
+      "integration": "agent",
+      "passed": true,
+      "checks": [
+        "isolated production agent and HTTP-only Nginx bootstrap",
+        "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=false)",
+        "private runtime/socket permissions and control methods/body validation; public control/file paths reject",
+        "real Certbot HTTP-01 issuance, deploy-hook publication and verified Nginx activation",
+        "fresh verified browser-facing TLS leaf covered by qualified binding",
+        "ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses",
+        "Nginx replaces forged forwarding metadata, preserves external port/encoded URL, origin secure cookies and absolute redirects; unsupported Host rejected",
+        "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=true)",
+        "configured body limit: 2 MiB upload status 413",
+        "real Nginx TLS WebSocket 101, discovery/upstream Link and bidirectional frame traffic",
+        "binding GET/HEAD/no-store/method rejection and nonrecursive discovery",
+        "Nginx internal gate/control and invalid binding paths are inaccessible",
+        "independent signed binding refresh without TLS renewal",
+        "automatic Certbot renewal and fresh verified controlled activation",
+        "original active TLS stream survives Nginx reload with both leaves bound",
+        "second real Certbot renewal freshly verified with original active stream and all TLS retained",
+        "agent-backpressure upload preserves complete body/hash with origin backpressure beyond ten seconds",
+        "nginx-buffered upload preserves complete body/hash with origin backpressure beyond ten seconds",
+        "real cache longer than original signed lifetime discovers renewed binding",
+        "same-key QWAC replacement publishes retained coverage through unchanged discovery",
+        "same-authority QWAC replacement through unchanged cached discovery",
+        "authenticated automatic collection preserves current document and retained leaves",
+        "agent unavailability rejects protected application requests",
+        "agent restart reconciles files and actual verified served TLS",
+        "real Certbot candidate signing failure preserves prior TLS; hook error tracked separately from Certbot exit",
+        "mismatched TLS key and invalid supplied QWAC credentials preserve prior deployment",
+        "sign/document/manifest failures never stage or activate the unbound real candidate",
+        "reload failure and zero-exit nonactivation both restore fresh-verified prior TLS",
+        "invalid Nginx config repairs/reconciles and safe retry activates the already-bound candidate",
+        "protected response delayed across signed expiry rejects at response commitment",
+        "actual signed expiry rejects new Nginx WebSocket upgrade with 403",
+        "actual signed expiry closes Nginx protected-response gate and binding endpoint",
+        "repaired signer safely republishes and reopens Nginx gate",
+        "real ACME over-capacity candidate refuses before staging without pruning old TLS coverage"
+      ]
+    }
+  ],
+  "caddy_setup_negative_checks": [
+    {
+      "check": "credential rejection --key",
+      "exit": 1,
+      "passed": true
+    },
+    {
+      "check": "credential rejection --authority",
+      "exit": 1,
+      "passed": true
+    },
+    {
+      "check": "credential rejection --hostname",
+      "exit": 1,
+      "passed": true
+    },
+    {
+      "check": "occupied dedicated ports refused",
+      "exit": 1,
+      "passed": true
+    },
+    {
+      "check": "missing systemd validator refused",
+      "exit": 1,
+      "passed": true
+    }
+  ]
+}

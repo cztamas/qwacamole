@@ -1,0 +1,23 @@
+{
+  "validated_head": "e665de42992db318b61535fff38887e7b41aca6a",
+  "candidate_workflow": {
+    "run": 38972958330,
+    "conclusion": "success"
+  },
+  "portable_workflow": {
+    "run": 38972958240,
+    "conclusion": "success"
+  },
+  "website_workflow": {
+    "run": 38972958192,
+    "conclusion": "success",
+    "deployment": "skipped"
+  },
+  "review_finding": "Squash/rebase can omit pinned module commits from merged history",
+  "actual_github_merge_ref": "ad2f66279f9dd28765a2259b85eb2a5766dc013c",
+  "all_three_pins_are_ancestors_of_head_and_actual_merge_ref": true,
+  "repository_allows_merge_commit": true,
+  "delete_branch_on_merge": true,
+  "resolution": "Owner must use Create a merge commit and verify exact prerequisite ancestry on main before relying on durable source installs; stop for durable repinning if branch policy prevents this.",
+  "followup_scope": "maintainer documentation and evidence only; production, package build inputs and product pages unchanged"
+}

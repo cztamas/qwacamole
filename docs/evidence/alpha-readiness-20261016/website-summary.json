@@ -1,0 +1,29 @@
+{
+  "node": "24.21.0",
+  "check": {
+    "astro_errors": 0,
+    "node_tests_passed": 14
+  },
+  "build": {
+    "html_pages": 16,
+    "internal_links_anchors_assets": 703,
+    "indexed_product_pages": 14,
+    "complete_search_assets": 29,
+    "publication_boundary": "pass"
+  },
+  "browser": {
+    "passed": 16,
+    "retries": 0,
+    "viewports": [
+      1440,
+      390
+    ],
+    "revised_routes": [
+      "/installation/",
+      "/installation/source/"
+    ],
+    "accessibility": "No WCAG2A/AA/2.1AA violations in checked routes",
+    "screenshots_visually_reviewed": true
+  },
+  "deployment_performed": false
+}

@@ -4,7 +4,7 @@ set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 go=${GO:-$root/.tools/go/bin/go}
 case "$go" in /*) ;; *) go=$(command -v "$go");; esac
-export GOWORK=off GOEXPERIMENT=nojsonv2
+export GOWORK=off GOEXPERIMENT=jsonv2
 export GOPRIVATE="github.com/cztamas/qwacamole${GOPRIVATE:+,$GOPRIVATE}"
 if [ -z "${GO:-}" ]; then export GOPATH="$root/.tools/gopath" GOCACHE="$root/.tools/gocache"; fi
 for module in . caddy agent devtools; do

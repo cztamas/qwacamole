@@ -1,12 +1,2 @@
-github.com/cztamas/qwacamole v0.0.0-20261007193456-3c3fc434d5e4 h1:6+95ZafwUc+Y8uJmfks35yvKqot/vbXypaRHZd5QqzY=
-github.com/cztamas/qwacamole v0.0.0-20261007193456-3c3fc434d5e4/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
-github.com/cztamas/qwacamole v0.0.0-20261008190939-709ce8d17ba5 h1:2sHL8VygxdySJCS+4Xvv5CLDrzV9VnOHs7lLObTVRdI=
-github.com/cztamas/qwacamole v0.0.0-20261008190939-709ce8d17ba5/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
-github.com/cztamas/qwacamole v0.0.0-20261008191916-4b3cd1c4a5f1 h1:V+SSnatqblsCsWBd9uBpePFbJjWKDN0Jzqt6CbmuxWg=
-github.com/cztamas/qwacamole v0.0.0-20261008191916-4b3cd1c4a5f1/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
-github.com/cztamas/qwacamole v0.0.0-20261008203612-8e62f4b8c340 h1:S/2dbYa6hxLZNqL0SwvVxd2bkDvKmTxHbHvHR6gTq3w=
-github.com/cztamas/qwacamole v0.0.0-20261008203612-8e62f4b8c340/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
-github.com/cztamas/qwacamole v0.0.0-20261012102652-3020eb3e808e h1:t8hxpXplWZdh/bnMBOf4jc9eQqhR4ARHaQfknvYaCuc=
-github.com/cztamas/qwacamole v0.0.0-20261012102652-3020eb3e808e/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
-github.com/cztamas/qwacamole v0.0.0-20261012130422-b3fb51784945 h1:lzTt3dQ2vh3xCWpKf849qWDygsKb/2BsB9Qc9IGSJhA=
-github.com/cztamas/qwacamole v0.0.0-20261012130422-b3fb51784945/go.mod h1:AhHgZGnuaSY8TKulAtNVs0jH0k3aasAwK5JYR9WSfQ4=
+github.com/cztamas/qwacamole v0.0.0-20261016203648-9b96642914dc h1:wbgIjGtauZ8YL1AA9J1ybGpWq932SR/YCuR1/qNFl7c=
+github.com/cztamas/qwacamole v0.0.0-20261016203648-9b96642914dc/go.mod h1:0dIQ45E9fea0OdtdVp8Y11lQ8cWTgkaL7lL42UN1F/k=

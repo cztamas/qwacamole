@@ -1,0 +1,44 @@
+{
+  "source": "6b966e265f5535167da8413f2c7b7b2964a5e873",
+  "legal": {
+    "LICENSE": "c6faceffe9385fd92b42c46c311627fb40e5805d4fc22f339dc62517317dcbd4",
+    "NOTICE": "3e8d6a74e3d53f371e4a2c24ece74faca72ca98bbb48ed57342e19d1b8483cae"
+  },
+  "approved": false,
+  "archives": [
+    {
+      "archive": "qwacamole-agent-0.1.0-alpha.1-linux-amd64.tar.gz",
+      "component": "agent",
+      "binary_sha256": "024d9380dd63a32d5931da1efb339d681618a587d6d2e9165c0ea667c53de7d7",
+      "legal_matches": true,
+      "compiler_and_flags_match": true,
+      "boundary_pass": true
+    },
+    {
+      "archive": "qwacamole-agent-0.1.0-alpha.1-linux-arm64.tar.gz",
+      "component": "agent",
+      "binary_sha256": "4b2ddea03ffceab85653720c2fc8a6b8efd142b9ee6397ced50b33f284f8f549",
+      "legal_matches": true,
+      "compiler_and_flags_match": true,
+      "boundary_pass": true
+    },
+    {
+      "archive": "qwacamole-agent-0.1.0-alpha.1-darwin-arm64.tar.gz",
+      "component": "agent",
+      "binary_sha256": "f88d117073cc923f0831a082b59ab51a3f29fc251e325a7e83a58eabcfbbc81c",
+      "legal_matches": true,
+      "compiler_and_flags_match": true,
+      "boundary_pass": true
+    },
+    {
+      "archive": "qwacamole-caddy-0.1.0-alpha.1-linux-amd64.tar.gz",
+      "component": "caddy",
+      "binary_sha256": "a568e4435d88ad66b853bbef91b0838e4eabc9254aaa918c8526f0c02815d842",
+      "legal_matches": true,
+      "compiler_and_flags_match": true,
+      "boundary_pass": true
+    }
+  ],
+  "caddy_dependencies_match_actual_binary": true,
+  "every_linked_dependency_has_notices": true
+}

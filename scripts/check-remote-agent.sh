@@ -7,7 +7,7 @@ go=${GO:-$root/.tools/go/bin/go}
 case "$go" in /*) ;; *) go=$(command -v "$go");; esac
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/qwacamole-agent-remote.XXXXXX")
 chmod 700 "$scratch"
-export GOWORK=off GOEXPERIMENT=nojsonv2
+export GOWORK=off GOEXPERIMENT=jsonv2
 export GOPRIVATE="github.com/cztamas/qwacamole${GOPRIVATE:+,$GOPRIVATE}"
 export GOPATH="$scratch/gopath" GOMODCACHE="$scratch/modules" GOBIN="$scratch/bin"
 export GOCACHE="${GOCACHE:-$scratch/build-cache}"

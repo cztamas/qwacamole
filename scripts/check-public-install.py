@@ -11,7 +11,7 @@ import subprocess
 def anonymous_environment(scratch, go):
     return {"PATH": str(Path(go).parent) + ":/usr/bin:/bin:/usr/sbin:/sbin", "HOME": str(scratch / "home"),
             "TMPDIR": str(scratch / "tmp"), "GOWORK": "off", "GOENV": "off", "GOTOOLCHAIN": "local",
-            "GOEXPERIMENT": "nojsonv2", "GOFLAGS": "", "CGO_ENABLED": "0", "GOPATH": str(scratch / "gopath"), "GOMODCACHE": str(scratch / "modules"),
+            "GOEXPERIMENT": "jsonv2", "GOFLAGS": "", "CGO_ENABLED": "0", "GOPATH": str(scratch / "gopath"), "GOMODCACHE": str(scratch / "modules"),
             "GOCACHE": str(scratch / "cache"), "GOBIN": str(scratch / "bin"),
             "GOPROXY": "https://proxy.golang.org", "GOSUMDB": "sum.golang.org",
             "GOPRIVATE": "", "GONOPROXY": "", "GONOSUMDB": "",
@@ -53,7 +53,7 @@ def main():
     if agent["version"] != args.version or agent["core_version"] != args.version:
         raise SystemExit("anonymous agent identity mismatch")
     command("xcaddy-install", [go, "install", "github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5"])
-    command("caddy-install", [output / "bin/xcaddy", "build", "v2.10.2", "--with", "github.com/cztamas/qwacamole/caddy@" + args.version, "--output", output / "bin/caddy"])
+    command("caddy-install", [output / "bin/xcaddy", "build", "v2.11.7", "--with", "github.com/cztamas/qwacamole/caddy@" + args.version, "--output", output / "bin/caddy"])
     command("caddy-modules", [output / "bin/caddy", "list-modules"])
     for name in ("qwacamole-agent", "caddy"):
         command(name + "-metadata", [go, "version", "-m", output / "bin" / name])

@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 const routes = ['/', '/caddy/quickstart/', '/nginx/quickstart/'];
+const installationRoutes = ['/installation/', '/installation/source/'];
 for (const width of [1440, 390]) {
-  for (const route of routes) {
+  for (const route of [...routes, ...installationRoutes]) {
     test(`main route ${route} at ${width}px has readable layout`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
       const response = await page.goto(route);
@@ -12,7 +13,7 @@ for (const width of [1440, 390]) {
       const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       expect(accessibility.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => ({ target: n.target, summary: n.failureSummary })) }))).toEqual([]);
       if (route !== '/') await expect(page.locator('pre').first()).toBeVisible();
-      const name = route === '/' ? 'landing' : route.includes('caddy') ? 'caddy-quickstart' : 'nginx-quickstart';
+      const name = route === '/' ? 'landing' : route.split('/').filter(Boolean).join('-');
       await page.screenshot({ path: testInfo.outputPath(`${name}-${width}.png`), fullPage: true });
     });
   }

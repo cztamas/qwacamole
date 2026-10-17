@@ -2,7 +2,7 @@ GO ?= $(CURDIR)/.tools/go/bin/go
 export PATH := $(CURDIR)/.tools/go/bin:$(PATH)
 export GOPATH := $(CURDIR)/.tools/gopath
 export GOCACHE := $(CURDIR)/.tools/gocache
-export GOEXPERIMENT := nojsonv2
+export GOEXPERIMENT := jsonv2
 export GOPRIVATE := github.com/cztamas/qwacamole,$(GOPRIVATE)
 export XDG_DATA_HOME := $(CURDIR)/.local/xdg-data
 export XDG_CONFIG_HOME := $(CURDIR)/.local/xdg-config
@@ -14,7 +14,7 @@ bootstrap:
 	./scripts/bootstrap.sh
 build: bootstrap
 	cd devtools && $(GO) build -o ../bin/qwacamole ./cmd/qwacamole
-	GOWORK=off .tools/bin/xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@v0.0.0=$(CURDIR)/caddy --with github.com/cztamas/qwacamole/devtools@v0.0.0=$(CURDIR)/devtools --replace github.com/cztamas/qwacamole=$(CURDIR) --output bin/caddy > .local/evidence/xcaddy-build.log 2>&1
+	GOWORK=off .tools/bin/xcaddy build v2.11.7 --with github.com/cztamas/qwacamole/caddy@v0.0.0=$(CURDIR)/caddy --with github.com/cztamas/qwacamole/devtools@v0.0.0=$(CURDIR)/devtools --replace github.com/cztamas/qwacamole=$(CURDIR) --output bin/caddy > .local/evidence/xcaddy-build.log 2>&1
 demo: build
 	bin/qwacamole demo -state $(STATE)
 browser-demo: build
@@ -53,7 +53,7 @@ clean-all: clean
 
 .PHONY: plugin-build
 plugin-build: bootstrap
-	GOWORK=off .tools/bin/xcaddy build v2.10.2 --with github.com/cztamas/qwacamole/caddy@v0.0.0=$(CURDIR)/caddy --replace github.com/cztamas/qwacamole=$(CURDIR) --output bin/caddy-plugin > .local/evidence/xcaddy-plugin-build.log 2>&1
+	GOWORK=off .tools/bin/xcaddy build v2.11.7 --with github.com/cztamas/qwacamole/caddy@v0.0.0=$(CURDIR)/caddy --replace github.com/cztamas/qwacamole=$(CURDIR) --output bin/caddy-plugin > .local/evidence/xcaddy-plugin-build.log 2>&1
 
 .PHONY: plugin-smoke remote-install-check
 plugin-smoke: plugin-build

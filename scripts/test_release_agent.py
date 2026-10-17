@@ -16,8 +16,8 @@ class Packages(unittest.TestCase):
         self.addCleanup(self.scratch.cleanup)
         self.directory = Path(self.scratch.name)
         self.manifest = {"schema": 1, "version": "0.1.0-alpha.1", "source_commit": "a" * 40,
-                         "core_version": "v0.0.0-20261008203612-8e62f4b8c340", "go_toolchain": "go1.27.1", "go_version": "go1.27.1-X:nojsonv2",
-                         "go_experiment": "nojsonv2", "cgo_enabled": False, "candidate": True, "archives": []}
+                         "core_version": "v0.0.0-20261008203612-8e62f4b8c340", "go_toolchain": "go1.27.2", "go_version": "go1.27.2",
+                         "go_experiment": "jsonv2", "cgo_enabled": False, "candidate": True, "archives": []}
         for goos, arch in r.TARGETS:
             prefix = f"qwacamole-agent-0.1.0-alpha.1-{goos}-{arch}"
             files = {n: (n.encode(), 0o644) for n in ("LICENSE", "NOTICE", "GO-NOTICES.txt", "INSTALL.txt")}
@@ -39,8 +39,9 @@ class Packages(unittest.TestCase):
         self.assertEqual(r.archive_bytes("p", files)[4:8], b"\0" * 4)
 
     def schema2(self):
-        self.manifest.update(schema=2, caddy_version="v2.10.2", plugin_source_commit=self.manifest["source_commit"], core_source_commit="b"*40,
-                             caddy_dependencies=[{"path":"github.com/caddyserver/caddy/v2", "version":"v2.10.2", "sum":"test"}])
+        self.manifest.update(schema=2, caddy_version="v2.11.7", plugin_source_commit=self.manifest["source_commit"], core_source_commit="b"*40,
+                             caddy_dependencies=[{"path":"github.com/caddyserver/caddy/v2", "version":"v2.11.7", "sum":"test"},
+                                                 {"path":"github.com/caddyserver/certmagic", "version":"v0.25.6", "sum":"test"}])
         for archive in self.manifest["archives"]:
             archive["component"]="agent"
             self.repack(archive, {"qwacamole-agent":(b"test binary",0o755), **{n:(n.encode(),0o644) for n in ("LICENSE","NOTICE","GO-NOTICES.txt","INSTALL.txt","agent.json.example")}, "install.sh":(b"installer",0o755)})
@@ -61,6 +62,22 @@ class Packages(unittest.TestCase):
     def test_caddy_source_mismatch_is_rejected(self):
         self.schema2();self.manifest["plugin_source_commit"]="c"*40;self.seal()
         with self.assertRaisesRegex(ValueError,"Caddy distribution identity"):
+            r.verify(self.directory)
+
+    def test_vulnerable_or_missing_server_dependency_cannot_be_relabelled(self):
+        self.schema2()
+        for path, version in (("github.com/caddyserver/caddy/v2", "v2.10.2"),
+                              ("github.com/caddyserver/certmagic", "v0.24.0")):
+            dependency = next(d for d in self.manifest["caddy_dependencies"] if d["path"] == path)
+            original = dependency["version"]
+            dependency["version"] = version
+            self.seal()
+            with self.subTest(path=path), self.assertRaisesRegex(ValueError, "dependency baseline"):
+                r.verify(self.directory)
+            dependency["version"] = original
+        self.manifest["caddy_dependencies"].pop()
+        self.seal()
+        with self.assertRaisesRegex(ValueError, "dependency baseline"):
             r.verify(self.directory)
 
     def test_caddy_or_template_omission_is_rejected(self):

@@ -7,7 +7,7 @@ trap 'rm -rf "$consumer"' EXIT HUP INT TERM
 cat > "$consumer/go.mod" <<EOM
 module example.invalid/qwacamole-consumer
 
-go 1.27.1
+go 1.27.2
 
 require (
  github.com/cztamas/qwacamole v0.0.0
@@ -38,7 +38,7 @@ func main(){
  fmt.Println("PASS consumer outside workspace and production-only registrations")
 }
 EOM
-export GOWORK=off GOEXPERIMENT=nojsonv2 GOPATH="$root/.tools/gopath" GOCACHE="$root/.tools/gocache"
+export GOWORK=off GOEXPERIMENT=jsonv2 GOPATH="$root/.tools/gopath" GOCACHE="$root/.tools/gocache"
 cd "$consumer"
 "$root/.tools/go/bin/go" mod tidy
 "$root/.tools/go/bin/go" build -o consumer .

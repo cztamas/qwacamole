@@ -15,8 +15,8 @@ test orchestration. Never add test enrollment/browser dependencies to the
 installed plugin. Preserve Mozilla fixture attribution and clearly identify the
 already-public test key; never commit generated private keys or browser profiles.
 
-The tested development environment is macOS arm64, Go 1.27.1, xcaddy 0.4.5 and
-Caddy 2.10.2, with `GOEXPERIMENT=nojsonv2`. See the README for bootstrap and the
+The tested development environment is macOS arm64, Go 1.27.2, xcaddy 0.4.5 and
+Caddy 2.11.7, with `GOEXPERIMENT=jsonv2`. See the README for bootstrap and the
 dated reports for exact browser/component pairs. Portable CI uses Linux and an
 installed Go toolchain; root-only `go test ./...` misses nested modules.
 

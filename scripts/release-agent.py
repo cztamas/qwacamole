@@ -16,6 +16,8 @@ import tempfile
 ROOT = Path(__file__).resolve().parent.parent
 TARGETS = (("linux", "amd64"), ("linux", "arm64"), ("darwin", "arm64"))
 CADDY_TARGET = ("linux", "amd64")
+CADDY_VERSION = "v2.11.7"
+CERTMAGIC_VERSION = "v0.25.6"
 VERSION = re.compile(r"0\.1\.0-alpha\.[1-9][0-9]*\Z")
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 
@@ -83,7 +85,7 @@ def build(args):
         if args.approved and json.loads((source / "release/publication.json").read_text()).get("version") != args.version:
             raise ValueError("approved publication version mismatch")
         go = Path(args.go).resolve() if "/" in args.go else args.go
-        env = dict(os.environ, GOWORK="off", CGO_ENABLED="0", GOEXPERIMENT="nojsonv2",
+        env = dict(os.environ, GOWORK="off", CGO_ENABLED="0", GOEXPERIMENT="jsonv2",
                    GOENV="off", GOFLAGS="", GOTOOLCHAIN="local", GOAMD64="v1", GOARM64="v8.0")
         toolchain = run([go, "env", "GOVERSION"], env=env)
         goroot = Path(run([go, "env", "GOROOT"], env=env))
@@ -98,7 +100,7 @@ def build(args):
         if not core_source or not SHA.fullmatch(core_source):
             raise ValueError("core source identity missing")
         manifest = {"schema": 2, "version": args.version, "source_commit": args.source,
-                    "core_version": core, "core_source_commit": core_source, "caddy_version": "v2.10.2", "plugin_source_commit": args.source, "go_toolchain": toolchain, "go_version": None, "go_experiment": "nojsonv2",
+                    "core_version": core, "core_source_commit": core_source, "caddy_version": "v2.11.7", "plugin_source_commit": args.source, "go_toolchain": toolchain, "go_version": None, "go_experiment": "jsonv2",
                     "cgo_enabled": False, "candidate": not args.approved, "archives": []}
         output = Path(args.output).resolve()
         output.mkdir(parents=True, exist_ok=False)
@@ -122,8 +124,8 @@ def build(args):
                        "Install only the matching target executable into your managed PATH; run\n"
                        "qwacamole-agent version -json before configuring credentials or deployment.\n"
                        "Nginx and Certbot are separately installed external dependencies. Caddy is\n"
-                       "also packaged separately. See the included templates and INSTALL.txt.\n"
-                       "source commit for permissions, setup, deploy hooks and update/rollback.\n"
+                       "also packaged separately. Canonical setup, deploy hooks and update/rollback:\n"
+                       f"https://github.com/cztamas/qwacamole/blob/{args.source}/docs/guides/nginx-quickstart.md\n"
                        "Stop and preserve complete state before an incompatible migration.\n")
             files = {name: (data, 0o644) for name, data in legal.items()}
             files.update({"qwacamole-agent": (binary.read_bytes(), 0o755),
@@ -147,7 +149,8 @@ def build(args):
         metadata = metadata.replace(str(binary), "caddy-qwac", 1)
         if "=>" in metadata or any(s in metadata for s in ("qwacamole/agent", "qwacamole/devtools", "chromedp", "k8s.io")):
             raise ValueError("Caddy package dependency boundary violated")
-        if "github.com/caddyserver/caddy/v2\tv2.10.2" not in metadata or core not in metadata:
+        if ("github.com/caddyserver/caddy/v2\t" + CADDY_VERSION not in metadata or
+            "github.com/caddyserver/certmagic\t" + CERTMAGIC_VERSION not in metadata or core not in metadata):
             raise ValueError("Caddy/core dependency identity mismatch")
         # Collect notices from downloaded modules actually present in the binary.
         notices = []
@@ -172,10 +175,11 @@ def build(args):
                       "DEPENDENCY-NOTICES.txt": ("\n\n".join(notices).encode(), 0o644),
                       "BUILD.txt": (metadata.encode()+b"\n", 0o644),
                       "Caddyfile.example": ((source / "config/Caddyfile.minimal").read_bytes(), 0o644),
-                      "INSTALL.txt": ((f"qwacamole Caddy {args.version}\nCaddy v2.10.2; plugin source {args.source}\n"
+                      "INSTALL.txt": ((f"qwacamole Caddy {args.version}\nCaddy v2.11.7; plugin source {args.source}\n"
                                        "Review candidate manifest and SHA256SUMS before installation.\n"
                                        "Run ./install.sh --prefix /chosen/empty/directory. Never overwrite an existing Caddy.\n"
-                                       "Then use the included Caddyfile.example and product quickstart.\n").encode(), 0o644),
+                                       "Then use the included Caddyfile.example and canonical product quickstart:\n"
+                                       f"https://github.com/cztamas/qwacamole/blob/{args.source}/docs/guides/caddy-quickstart.md\n").encode(), 0o644),
                       "install.sh": ((source / "release/install.sh").read_bytes(), 0o755)})
         data = archive_bytes(prefix, files)
         name = prefix + ".tar.gz"
@@ -194,15 +198,19 @@ def verify(output, smoke=False, require_native=False):
     validate_identity(manifest["version"], manifest["source_commit"])
     if manifest["schema"] not in (1, 2) or type(manifest["candidate"]) is not bool:
         raise ValueError("invalid manifest schema or candidate marker")
-    if manifest["go_experiment"] != "nojsonv2" or manifest["cgo_enabled"] is not False or manifest["go_toolchain"] != "go1.27.1" or manifest["go_version"] != "go1.27.1-X:nojsonv2":
+    if manifest["go_experiment"] != "jsonv2" or manifest["cgo_enabled"] is not False or manifest["go_toolchain"] != "go1.27.2" or manifest["go_version"] != "go1.27.2":
         raise ValueError("unexpected build toolchain/settings")
     names = [a["name"] for a in manifest["archives"]]
     schema2 = manifest["schema"] == 2
     safe_names = {f"qwacamole-agent-{manifest['version']}-{osname}-{arch}.tar.gz" for osname,arch in TARGETS}
     if schema2:
         safe_names.add(f"qwacamole-caddy-{manifest['version']}-linux-amd64.tar.gz")
-        if manifest.get("caddy_version") != "v2.10.2" or manifest.get("plugin_source_commit") != manifest["source_commit"] or not manifest.get("caddy_dependencies") or not SHA.fullmatch(manifest.get("core_source_commit", "")):
+        if manifest.get("caddy_version") != "v2.11.7" or manifest.get("plugin_source_commit") != manifest["source_commit"] or not manifest.get("caddy_dependencies") or not SHA.fullmatch(manifest.get("core_source_commit", "")):
             raise ValueError("Caddy distribution identity missing or mismatched")
+        dependencies = {d["path"]: d["version"] for d in manifest["caddy_dependencies"]}
+        if (dependencies.get("github.com/caddyserver/caddy/v2") != CADDY_VERSION or
+            dependencies.get("github.com/caddyserver/certmagic") != CERTMAGIC_VERSION):
+            raise ValueError("Caddy/CertMagic dependency baseline mismatch")
     if len(names) != len(safe_names) or set(names) != safe_names:
         raise ValueError("archive version/target name mismatch")
     expected_names = safe_names | {"manifest.json", "SHA256SUMS"}

@@ -4,7 +4,7 @@ set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
 go="${GO:-$root/.tools/go/bin/go}"
-export GOEXPERIMENT=nojsonv2
+export GOEXPERIMENT=jsonv2
 # CI may use its ordinary Go runtime/cache, with no macOS bootstrap.
 if [ -z "${GO:-}" ]; then export GOPATH="$root/.tools/gopath" GOCACHE="$root/.tools/gocache"; fi
 core=$($go list -deps ./...)

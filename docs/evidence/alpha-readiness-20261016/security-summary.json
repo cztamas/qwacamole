@@ -1,0 +1,242 @@
+{
+  "scanner_version": "v1.9.0",
+  "database": "https://vuln.go.dev",
+  "database_retrieved_at": "2026-10-16T20:56:25.331805+00:00",
+  "database_metadata_sha256": "e23e6df49ea2c2390b01327a1ca29e5e766319f401a2ca733ab0d5f4ab221dda",
+  "scans": [
+    {
+      "name": "core",
+      "started_at": "2026-10-16T20:56:25.331920+00:00",
+      "config": {
+        "protocol_version": "v1.0.0",
+        "scanner_name": "govulncheck",
+        "scanner_version": "v1.9.0",
+        "db": "https://vuln.go.dev",
+        "db_last_modified": "2026-10-08T22:31:09Z",
+        "go_version": "go1.27.2",
+        "scan_level": "symbol",
+        "scan_mode": "source"
+      },
+      "findings": [],
+      "passed": true
+    },
+    {
+      "name": "agent",
+      "started_at": "2026-10-16T20:56:27.590347+00:00",
+      "config": {
+        "protocol_version": "v1.0.0",
+        "scanner_name": "govulncheck",
+        "scanner_version": "v1.9.0",
+        "db": "https://vuln.go.dev",
+        "db_last_modified": "2026-10-08T22:31:09Z",
+        "go_version": "go1.27.2",
+        "scan_level": "symbol",
+        "scan_mode": "source"
+      },
+      "findings": [],
+      "passed": true
+    },
+    {
+      "name": "caddy",
+      "started_at": "2026-10-16T20:56:29.239504+00:00",
+      "config": {
+        "protocol_version": "v1.0.0",
+        "scanner_name": "govulncheck",
+        "scanner_version": "v1.9.0",
+        "db": "https://vuln.go.dev",
+        "db_last_modified": "2026-10-08T22:31:09Z",
+        "go_version": "go1.27.2",
+        "scan_level": "symbol",
+        "scan_mode": "source"
+      },
+      "findings": [
+        {
+          "id": "GO-2026-5932",
+          "module": "golang.org/x/crypto",
+          "version": "v0.57.0",
+          "fixed_version": null,
+          "affected_packages": [],
+          "reachable": false,
+          "disposition": {
+            "reason": "This advisory covers the unmaintained OpenPGP packages, with no fixed version. Neither distributed command nor the development module imports golang.org/x/crypto/openpgp or its subpackages; the dependency supplies other cryptographic packages. Source/command and extracted-binary scans show no affected package or symbol. The check rejects this disposition if an affected package or reachable symbol appears; it applies only to this exact module version.",
+            "evidence": [
+              "https://pkg.go.dev/vuln/GO-2026-5932",
+              "https://go.dev/issue/44226"
+            ],
+            "excluded_packages": [
+              "golang.org/x/crypto/openpgp"
+            ]
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "devtools",
+      "started_at": "2026-10-16T20:56:33.077826+00:00",
+      "config": {
+        "protocol_version": "v1.0.0",
+        "scanner_name": "govulncheck",
+        "scanner_version": "v1.9.0",
+        "db": "https://vuln.go.dev",
+        "db_last_modified": "2026-10-08T22:31:09Z",
+        "go_version": "go1.27.2",
+        "scan_level": "symbol",
+        "scan_mode": "source"
+      },
+      "findings": [
+        {
+          "id": "GO-2026-5932",
+          "module": "golang.org/x/crypto",
+          "version": "v0.57.0",
+          "fixed_version": null,
+          "affected_packages": [],
+          "reachable": false,
+          "disposition": {
+            "reason": "This advisory covers the unmaintained OpenPGP packages, with no fixed version. Neither distributed command nor the development module imports golang.org/x/crypto/openpgp or its subpackages; the dependency supplies other cryptographic packages. Source/command and extracted-binary scans show no affected package or symbol. The check rejects this disposition if an affected package or reachable symbol appears; it applies only to this exact module version.",
+            "evidence": [
+              "https://pkg.go.dev/vuln/GO-2026-5932",
+              "https://go.dev/issue/44226"
+            ],
+            "excluded_packages": [
+              "golang.org/x/crypto/openpgp"
+            ]
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "agent-command",
+      "started_at": "2026-10-16T20:56:35.656461+00:00",
+      "config": {
+        "protocol_version": "v1.0.0",
+        "scanner_name": "govulncheck",
+        "scanner_version": "v1.9.0",
+        "db": "https://vuln.go.dev",
+        "db_last_modified": "2026-10-08T22:31:09Z",
+        "go_version": "go1.27.2",
+        "scan_level": "symbol",
+        "scan_mode": "source"
+      },
+      "findings": [],
+      "passed": true
+    },
+    {
+      "name": "caddy-command",
+      "started_at": "2026-10-16T20:56:37.125110+00:00",
+      "config": {
+        "protocol_version": "v1.0.0",
+        "scanner_name": "govulncheck",
+        "scanner_version": "v1.9.0",
+        "db": "https://vuln.go.dev",
+        "db_last_modified": "2026-10-08T22:31:09Z",
+        "go_version": "go1.27.2",
+        "scan_level": "symbol",
+        "scan_mode": "source"
+      },
+      "findings": [
+        {
+          "id": "GO-2026-5932",
+          "module": "golang.org/x/crypto",
+          "version": "v0.57.0",
+          "fixed_version": null,
+          "affected_packages": [],
+          "reachable": false,
+          "disposition": {
+            "reason": "This advisory covers the unmaintained OpenPGP packages, with no fixed version. Neither distributed command nor the development module imports golang.org/x/crypto/openpgp or its subpackages; the dependency supplies other cryptographic packages. Source/command and extracted-binary scans show no affected package or symbol. The check rejects this disposition if an affected package or reachable symbol appears; it applies only to this exact module version.",
+            "evidence": [
+              "https://pkg.go.dev/vuln/GO-2026-5932",
+              "https://go.dev/issue/44226"
+            ],
+            "excluded_packages": [
+              "golang.org/x/crypto/openpgp"
+            ]
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "binary-agent-linux-amd64",
+      "started_at": "2026-10-16T20:56:40.715163+00:00",
+      "config": {
+        "protocol_version": "v1.0.0",
+        "scanner_name": "govulncheck",
+        "scanner_version": "v1.9.0",
+        "db": "https://vuln.go.dev",
+        "db_last_modified": "2026-10-08T22:31:09Z",
+        "scan_level": "symbol",
+        "scan_mode": "binary"
+      },
+      "findings": [],
+      "passed": true
+    },
+    {
+      "name": "binary-agent-linux-arm64",
+      "started_at": "2026-10-16T20:56:41.784316+00:00",
+      "config": {
+        "protocol_version": "v1.0.0",
+        "scanner_name": "govulncheck",
+        "scanner_version": "v1.9.0",
+        "db": "https://vuln.go.dev",
+        "db_last_modified": "2026-10-08T22:31:09Z",
+        "scan_level": "symbol",
+        "scan_mode": "binary"
+      },
+      "findings": [],
+      "passed": true
+    },
+    {
+      "name": "binary-agent-darwin-arm64",
+      "started_at": "2026-10-16T20:56:42.785250+00:00",
+      "config": {
+        "protocol_version": "v1.0.0",
+        "scanner_name": "govulncheck",
+        "scanner_version": "v1.9.0",
+        "db": "https://vuln.go.dev",
+        "db_last_modified": "2026-10-08T22:31:09Z",
+        "scan_level": "symbol",
+        "scan_mode": "binary"
+      },
+      "findings": [],
+      "passed": true
+    },
+    {
+      "name": "binary-caddy-linux-amd64",
+      "started_at": "2026-10-16T20:56:43.822626+00:00",
+      "config": {
+        "protocol_version": "v1.0.0",
+        "scanner_name": "govulncheck",
+        "scanner_version": "v1.9.0",
+        "db": "https://vuln.go.dev",
+        "db_last_modified": "2026-10-08T22:31:09Z",
+        "scan_level": "symbol",
+        "scan_mode": "binary"
+      },
+      "findings": [
+        {
+          "id": "GO-2026-5932",
+          "module": "golang.org/x/crypto",
+          "version": "v0.57.0",
+          "fixed_version": null,
+          "affected_packages": [],
+          "reachable": false,
+          "disposition": {
+            "reason": "This advisory covers the unmaintained OpenPGP packages, with no fixed version. Neither distributed command nor the development module imports golang.org/x/crypto/openpgp or its subpackages; the dependency supplies other cryptographic packages. Source/command and extracted-binary scans show no affected package or symbol. The check rejects this disposition if an affected package or reachable symbol appears; it applies only to this exact module version.",
+            "evidence": [
+              "https://pkg.go.dev/vuln/GO-2026-5932",
+              "https://go.dev/issue/44226"
+            ],
+            "excluded_packages": [
+              "golang.org/x/crypto/openpgp"
+            ]
+          }
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "candidate_source": "6b966e265f5535167da8413f2c7b7b2964a5e873",
+  "passed": true
+}

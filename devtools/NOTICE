@@ -5,7 +5,9 @@ Third-party material retains its own licence and notices.
 
 The agent links Go runtime/standard-library code. GO-NOTICES.txt in agent
 packages contains the toolchain licence, patent notice and vendored
-standard-library notices. Nginx, Certbot and Caddy are external dependencies.
+standard-library notices. Nginx and Certbot are external dependencies.
+The separate Caddy package includes Caddy, CertMagic and their linked dependencies;
+GO-NOTICES.txt and DEPENDENCY-NOTICES.txt preserve their actual bundled notices.
 
 Mozilla fixtures in devtools/internal/pki/firefox-fixtures remain MPL-2.0,
 with their README, NOTICE and MPL-2.0.txt preserved. Mozilla fixtures and all
