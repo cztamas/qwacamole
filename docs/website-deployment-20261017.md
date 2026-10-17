@@ -93,3 +93,18 @@ requiring zero uploads and no private text in the error.
 passed. The change affects diagnostics before upload and clarifies token UI
 instructions; upload guards and native integrations are unchanged. Logs are
 under the same ignored local directory (`diagnostics-check.log`).
+
+The diagnostic retry at main `149665b1c23ea0c46151b9d4859c7081b836653f`
+([39052530672](https://github.com/cztamas/qwacamole/actions/runs/39052530672))
+returned HTTP 403, Cloudflare code 10000 before upload. The owner confirmed the
+account ID exactly matches the project account. Account mismatch and missing
+Pages Read/Write labels are therefore not established causes.
+
+On project denial, the guard now uses Cloudflare's read-only account/user token
+verification endpoints and reports only HTTP status and an allowlisted token
+state. It does not log token IDs, provider messages or headers. The enabled
+setup check also rejects whitespace/quotes in the secret, including pasted
+Bearer headers or commands, without echoing the value. Successful deployment
+behavior is unchanged. Astro check and all 17 website script tests passed;
+new tests cover secret formatting and active account/user tokens denied project
+access. Log: `token-verification-check.log` in the ignored local directory.

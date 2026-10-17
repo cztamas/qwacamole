@@ -23,7 +23,23 @@ export async function deploy({ env = process.env, directory = 'dist', execute = 
       const body = await projectResponse.json();
       if (Array.isArray(body.errors)) codes = body.errors.map(error => error?.code).filter(Number.isSafeInteger);
     } catch { /* Non-JSON errors still retain their HTTP status. */ }
-    throw new Error(`Pages project preflight failed (HTTP ${projectResponse.status}; Cloudflare codes: ${codes.join(', ') || 'unavailable'}); no upload attempted`);
+    // Verification is read-only and requires no token-management permission.
+    // Support both account-owned and user-owned tokens without logging IDs,
+    // provider messages, headers or credential-derived values.
+    const verification = [];
+    for (const kind of ['account', 'user']) {
+      try {
+        const endpoint = kind === 'account' ? `accounts/${env.CLOUDFLARE_ACCOUNT_ID}/tokens/verify` : 'user/tokens/verify';
+        const response = await request('https://api.cloudflare.com/client/v4/' + endpoint, {
+          headers: { Authorization: 'Bearer ' + env.CLOUDFLARE_API_TOKEN }, signal: AbortSignal.timeout(10000),
+        });
+        const body = await response.json();
+        const status = body.success === true && ['active', 'disabled', 'expired'].includes(body.result?.status) ? body.result.status : 'unverified';
+        verification.push(`${kind} token: HTTP ${response.status}, ${status}`);
+        if (response.ok && status === 'active') break;
+      } catch { verification.push(`${kind} token: verification unavailable`); }
+    }
+    throw new Error(`Pages project preflight failed (HTTP ${projectResponse.status}; Cloudflare codes: ${codes.join(', ') || 'unavailable'}; ${verification.join('; ')}); no upload attempted`);
   }
   const project = await projectResponse.json();
   if (!project.success || project.result?.name !== env.CLOUDFLARE_PAGES_PROJECT || project.result.production_branch !== 'main')

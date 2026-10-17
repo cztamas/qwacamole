@@ -182,3 +182,24 @@ test('project denial reports status and numeric codes without provider text or c
     assert.equal(f.writes(), 0);
   }
 });
+test('read-only verification distinguishes active account and user tokens from project access denial', async t => {
+  for (const kind of ['account', 'user']) {
+    const f = fixture(t);
+    const calls = [];
+    f.options.request = async (url, options) => {
+      calls.push(url);
+      assert.equal(options.headers.Authorization, 'Bearer synthetic');
+      if (url.includes('/pages/projects/')) return { ok: false, status: 403, json: async () => ({ errors: [{ code: 10000 }] }) };
+      const active = kind === 'account' ? url.includes('/accounts/') : url.endsWith('/user/tokens/verify');
+      return { ok: active, status: active ? 200 : 403, json: async () => ({ success: active,
+        result: { status: active ? 'active' : 'synthetic-private', id: 'synthetic-private' }, messages: ['synthetic-private'] }) };
+    };
+    await assert.rejects(deploy(f.options), error => {
+      assert.match(error.message, new RegExp(kind + ' token: HTTP 200, active'));
+      assert.doesNotMatch(error.message, /synthetic/);
+      return true;
+    });
+    assert.equal(calls.length, kind === 'account' ? 2 : 3);
+    assert.equal(f.writes(), 0);
+  }
+});

@@ -7,6 +7,8 @@ export function deploymentSetup(env) {
   if (enabled === 'false') return false;
   for (const key of ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_PAGES_PROJECT', 'CLOUDFLARE_API_TOKEN'])
     if (!env[key]?.trim()) throw new Error('Enabled deployment missing ' + key);
+  if (/[\s'"`]/.test(env.CLOUDFLARE_API_TOKEN))
+    throw new Error('CLOUDFLARE_API_TOKEN must contain only the token value, without whitespace, quotes, a command or a Bearer prefix');
   if (!/^[a-f0-9]{32}$/.test(env.CLOUDFLARE_ACCOUNT_ID)) throw new Error('Invalid account ID');
   if (!/^[a-z0-9][a-z0-9-]*$/.test(env.CLOUDFLARE_PAGES_PROJECT)) throw new Error('Invalid Pages project name');
   return true;
