@@ -153,7 +153,8 @@ provide the inputs; `GITHUB_TOKEN` is used only for repository reads.
   history showing no successful production source. API denial, missing metadata,
   unknown/diverged ancestry, incomplete pagination or an unfinished production
   write fails clearly before upload. History traversal is capped at 100 pages;
-  exceeding that bound fails rather than assuming freshness.
+  exceeding that bound fails rather than assuming freshness. Requests use 25
+  deployments per page; the live Pages API rejects `per_page=100`.
 - Successful deployment history is the high-water mark even after a dashboard
   rollback. Keep those history records; do not delete them to bypass this guard.
   Cloudflare metadata must contain a clean full commit and main branch. An older

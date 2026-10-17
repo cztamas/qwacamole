@@ -37,7 +37,9 @@ export async function deploymentFreshness({ env, project, pagesUrl, request }) {
     deployments.push(project.canonical_deployment);
   }
   for (let page = 1; ; page++) {
-    const response = await request(pagesUrl + `/deployments?env=production&per_page=100&page=${page}`, {
+    // Pages rejects larger page sizes (including 100); 25 is accepted by the
+    // live API. Keep traversing every page before deciding source freshness.
+    const response = await request(pagesUrl + `/deployments?env=production&per_page=25&page=${page}`, {
       headers: { Authorization: 'Bearer ' + env.CLOUDFLARE_API_TOKEN }, signal: AbortSignal.timeout(30000),
     });
     if (!response.ok) throw new Error('Production history unavailable; no upload attempted');
