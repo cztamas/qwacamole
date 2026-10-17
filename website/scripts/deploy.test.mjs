@@ -34,7 +34,12 @@ function fixture(t, changes = {}, projectChanges = {}) {
         }
         if (url.startsWith('https://api.cloudflare.com/')) {
           assert.equal(options.headers.Authorization, 'Bearer synthetic');
-          if (url.includes('/deployments?')) return { ok: true, json: async () => ({ success: true, result: [], result_info: { page: 1, total_pages: 0 } }) };
+          if (url.includes('/deployments?')) {
+            // The live Pages API returns 400 for per_page=100. Model that
+            // rejection so the complete first-deployment path catches it.
+            assert.equal(new URL(url).searchParams.get('per_page'), '25');
+            return { ok: true, json: async () => ({ success: true, result: [], result_info: { page: 1, per_page: 25, count: 0, total_count: 0, total_pages: 0 } }) };
+          }
           return { ok: true, json: async () => ({ success: true, result: { name: 'qwacamole', production_branch: 'main', canonical_deployment: null, ...projectChanges } }) };
         }
         assert.equal(url, record.url + 'build-info.json');
