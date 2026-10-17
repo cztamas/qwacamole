@@ -71,3 +71,25 @@ existing workflow and dispatch it from main. Require a successful upload and
 matching immutable `/build-info.json` before claiming hosting is live. Verify
 landing, quickstarts, search and 404 on Pages before connecting the custom
 domain through the separately documented domain setup.
+
+## Follow-up: CI credential diagnosis
+
+PR #11 was merged as `59f65b85e8a1fceac0176df93ea5da311703a6d2`, the owner
+saved the environment secret, and authorized deployment. Main workflow
+[39051238037](https://github.com/cztamas/qwacamole/actions/runs/39051238037)
+passed website checks but received a non-success response while reading the
+Pages project. It stopped before invoking Wrangler. A subsequent live project/
+history read through local OAuth confirmed no deployment exists. Automatic
+uploads were disabled again while investigating.
+
+The owner's token screenshots show `Pages Read` and `Pages Write`; missing Pages
+permissions are not established as the cause. The previous generic error omitted
+the HTTP status and provider code. The preflight now reports that status and only
+numeric Cloudflare error codes, never response text/headers. Tests cover a JSON
+provider denial containing synthetic private text and a non-JSON denial, both
+requiring zero uploads and no private text in the error.
+
+`npm run check` passed Astro check and all 15 script tests; `git diff --check`
+passed. The change affects diagnostics before upload and clarifies token UI
+instructions; upload guards and native integrations are unchanged. Logs are
+under the same ignored local directory (`diagnostics-check.log`).

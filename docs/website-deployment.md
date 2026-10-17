@@ -27,8 +27,11 @@ using Direct Upload; avoid duplicate deployment mechanisms.
 
 ## Configure GitHub, then enable
 
-Create a token with **Account → Cloudflare Pages → Edit**, scoped to **Include →
-the specific owning account**. It needs no DNS/zone edit permission. Keep account
+Open **Manage account → Account API tokens → Create Token** in the owning
+Cloudflare account. In the custom token's permission form, select
+**Account | Cloudflare Pages | Edit** (the current account-token summary shows
+**Pages Write**). These are permission selectors, not dashboard navigation.
+Keep the token scoped to the owning account. It needs no DNS/zone edit permission. Keep account
 setup and domain changes in the dashboard under separately authorized access.
 See [Cloudflare's CI token instructions](https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/).
 
