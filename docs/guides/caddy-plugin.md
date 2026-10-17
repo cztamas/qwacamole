@@ -242,7 +242,7 @@ In advanced JSON, pair the same middleware in `servers.*.errors.routes`.
 
 | Symptom | Check and recovery |
 |---|---|
-| Private module cannot be fetched | Confirm repository access with your normal Git credentials, scoped `GOPRIVATE`, and the immutable ref above. The repository is private. |
+| Source module cannot be fetched | Check the documented immutable ref and public Go proxy/checksum access. The repository is public; no repository-specific `GOPRIVATE` override or Git credentials are required. |
 | Caddy JSON module decoding fails | Use the documented Caddy/Go baseline and explicit `GOEXPERIMENT=jsonv2`; older Caddy releases have an incompatible RawMessage lookup. |
 | Credentials fail before issuance | Check leaf-first PEM order, unencrypted RSA key match, validity, hostname SAN/profile, and the separately supplied authority. Inspect the complete provisioning error; TLS roots are not QWAC authorities. |
 | State is already owned | Stop the other owner, or use a separate state directory. A standalone validation process also conflicts with a running owner. Do not delete its lock file. |

@@ -1,0 +1,97 @@
+{
+  "baseline_source": "3473b64a74fad6671347f07ac3e75390a660b26f",
+  "scope": "Gitleaks all locally reachable refs with full history plus tracked working-file snapshot; candidate scan examines complete decompressed archive members for full private-key PEM and recognized GitHub/OpenAI token formats. No unreachable objects, hidden remote refs or unknown encodings covered.",
+  "gitleaks_dispositions": {
+    "history": [
+      {
+        "rule": "generic-api-key",
+        "path": "devtools/cmd/qwacamole/plugin_expiry.go",
+        "line": 104,
+        "blob_sha256": "96adce06dd2caa07fde3c272193b6919ec25299b6f040b7f42fbd457615230de",
+        "line_sha256": "3fb85ff557a10c922efe55063ddbb859b7e3636e09a5270c7acb1d919094af1d",
+        "commit": "e85d52d402dffe2e40585ac728b1bf8c4260375f",
+        "disposition": "RFC 6455 public example WebSocket nonce"
+      },
+      {
+        "rule": "generic-api-key",
+        "path": "devtools/cmd/qwacamole/nginx_failures.go",
+        "line": 269,
+        "blob_sha256": "ecce8d2889dbb07f7469237bf44c37d9330922b4e52c25e7c3b72138b77f3ebf",
+        "line_sha256": "b01236c0c65d37db866b5e570541fa33164aeea4add411eb176490a5885ab5f9",
+        "commit": "872bcda35914558cf5c5fb715387054954cfddf0",
+        "disposition": "RFC 6455 public example WebSocket nonce"
+      },
+      {
+        "rule": "generic-api-key",
+        "path": "devtools/cmd/qwacamole/nginx_proxy_check.go",
+        "line": 64,
+        "blob_sha256": "eb7092a2af5d13224c213b386cd5963c5d1c08bc939fc6d54d2c0c97d0fd6454",
+        "line_sha256": "1e764150229e6277289a475ec3628f2e4f3cefa71d874888850c1829cd2d5d70",
+        "commit": "872bcda35914558cf5c5fb715387054954cfddf0",
+        "disposition": "RFC 6455 public example WebSocket nonce"
+      },
+      {
+        "rule": "generic-api-key",
+        "path": "devtools/cmd/qwacamole/plugin_smoke.go",
+        "line": 499,
+        "blob_sha256": "a1010e5aaa936192874ce2c4022b35324c2634081c54f25adeec180d8e4d50fa",
+        "line_sha256": "1460a5bf405e6e94d80fe60c5ffb0ed60f7b32f7490e283249bc96972e367f71",
+        "commit": "1ecccf0df725a9ae2a33c91a57375f97029618e3",
+        "disposition": "RFC 6455 public example WebSocket nonce"
+      },
+      {
+        "rule": "private-key",
+        "path": "internal/pki/firefox-fixtures/public-test-ca-key.pem",
+        "line": 1,
+        "blob_sha256": "0560d06fc2d28c8c66b873f823542dea3abd99b212b2ced76e9d5f331a1afccd",
+        "line_sha256": "8bcac7908eb950419537b91e19adc83ce2c9cbfdacf4f81157fdadfec11f7017",
+        "commit": "7cf2fcf3d53580aec6d237c100655d9625a49c27",
+        "disposition": "Exact intentionally public Mozilla fixture key; MPL attribution retained"
+      }
+    ],
+    "tree": [
+      {
+        "rule": "generic-api-key",
+        "path": "devtools/cmd/qwacamole/nginx_proxy_check.go",
+        "line": 93,
+        "blob_sha256": "965139da7bc5031971153d85b0510d7a08774e465a0936035a2b6acdcff7c99f",
+        "line_sha256": "1e764150229e6277289a475ec3628f2e4f3cefa71d874888850c1829cd2d5d70",
+        "disposition": "RFC 6455 public example WebSocket nonce"
+      },
+      {
+        "rule": "generic-api-key",
+        "path": "devtools/cmd/qwacamole/nginx_failures.go",
+        "line": 269,
+        "blob_sha256": "ecce8d2889dbb07f7469237bf44c37d9330922b4e52c25e7c3b72138b77f3ebf",
+        "line_sha256": "b01236c0c65d37db866b5e570541fa33164aeea4add411eb176490a5885ab5f9",
+        "disposition": "RFC 6455 public example WebSocket nonce"
+      },
+      {
+        "rule": "generic-api-key",
+        "path": "devtools/cmd/qwacamole/plugin_expiry.go",
+        "line": 104,
+        "blob_sha256": "96adce06dd2caa07fde3c272193b6919ec25299b6f040b7f42fbd457615230de",
+        "line_sha256": "3fb85ff557a10c922efe55063ddbb859b7e3636e09a5270c7acb1d919094af1d",
+        "disposition": "RFC 6455 public example WebSocket nonce"
+      },
+      {
+        "rule": "private-key",
+        "path": "devtools/internal/pki/firefox-fixtures/public-test-ca-key.pem",
+        "line": 1,
+        "blob_sha256": "0560d06fc2d28c8c66b873f823542dea3abd99b212b2ced76e9d5f331a1afccd",
+        "line_sha256": "8bcac7908eb950419537b91e19adc83ce2c9cbfdacf4f81157fdadfec11f7017",
+        "disposition": "Exact intentionally public Mozilla fixture key; MPL attribution retained"
+      },
+      {
+        "rule": "generic-api-key",
+        "path": "devtools/cmd/qwacamole/plugin_smoke.go",
+        "line": 524,
+        "blob_sha256": "4b6167eb11700fb9d8731f73401aac4e25e3d6269c960d48cc3ef60c83d72bca",
+        "line_sha256": "1460a5bf405e6e94d80fe60c5ffb0ed60f7b32f7490e283249bc96972e367f71",
+        "disposition": "RFC 6455 public example WebSocket nonce"
+      }
+    ]
+  },
+  "candidate_members_scanned": 30,
+  "candidate_findings": []
+}

@@ -1,8 +1,9 @@
 # Proposed 0.1.0-alpha.1 release contract and maintainer checklist
 
-This PR prepares an alpha; it publishes nothing. Owner approval is still needed
-for the version, visibility, reporting channel and
-publication timing. No proposed tag exists merely because it is described here.
+This guide prepares an alpha; it publishes nothing. The repository and website
+are public, and confidential reporting is available. Owner approval is still
+needed for the release version, final source/legal inventory and publication
+timing. No proposed tag exists merely because it is described here.
 
 ## Components and support
 
@@ -123,18 +124,33 @@ commands from inherited reports:
 
 ## Remaining owner actions before public launch
 
-This is the canonical launch checklist. The [current readiness report](evidence-alpha-readiness-20261016.md)
-records which technical checks ran. `approved` remains false until the owner
-separately approves publication. Current repository visibility is verified private;
-the environment/reporting API reads returned 404, so those settings are **unverified**.
+This is the canonical launch checklist. The [readiness report](evidence-alpha-readiness-20261016.md)
+records native/runtime checks; the [17 October preparation report](evidence-alpha-prepublish-20261017.md)
+records current external settings, fresh checks and remaining release gates.
+`approved` remains false until the owner separately approves publication.
+
+Completed prerequisites, verified on 17 October 2026:
+
+- The repository is public; standard MIT/NOTICE hashes match publication policy.
+- GitHub private vulnerability reporting is enabled. The primary email in
+  SECURITY.md remains `tamas.czank@gmail.com`, with best-effort support only.
+- `public-alpha-release` requires the existing maintainer reviewer and allows
+  only the `main` branch. The live environment passes the publication validator.
+- Preparation PR #10 is merged, with all three prerequisite source identities
+  retained as ancestors of main.
+- The website is deployed at https://qwacamole.com. Website deployment is
+  independent of module tags, package approval and the GitHub prerelease.
+
+No alpha tags or release exist. Production modules still use tested immutable
+commit pins; do not replace them with a version that has not been tagged and
+retrieved successfully. The remaining sequence is:
 
 | External action | Prerequisite and command or setting | Verify success |
 | --- | --- | --- |
+| Resolve anonymous dependency availability | The 17 October fresh-cache check resolved source refs but failed to download/verify the retained core dependency through the public proxy/checksum service; direct origin retrieval also failed checksum lookup | Repeat anonymous installation with checksums enabled; metadata resolution or authenticated CI alone is insufficient |
 | Approve scope, source, legal inventory and timing | Review the final candidate, MIT/NOTICE copies, actual bundled notices and fresh content/history audit; record a real decision URL and matching hashes in `release/publication.json` | Review exact C/E source ledger and manifest digest; legal hashes/copies and reproducible rebuild agree |
-| Approve a confidential reporting route | Use the existing `mailto:tamas.czank@gmail.com`, a documented HTTPS channel, or enable GitHub private vulnerability reporting; put the chosen approved destination in policy and SECURITY.md | Confirm the channel is usable; for GitHub run `gh api repos/cztamas/qwacamole/private-vulnerability-reporting`; the full preflight must accept it |
-| Protect publication | Settings → Environments → `public-alpha-release`: maintainer reviewers and only the `main` branch | Read the environment and `/deployment-branch-policies` APIs; `validate_environment` and live preflight pass |
-| Decide visibility | Resolve audit findings and review public contents first; owner changes repository visibility to public | Logged-out source access succeeds; the repository API reports `private: false` |
-| Preserve preparation history, then establish immutable module identities | Merge preparation PR #10 with **Create a merge commit**, preserving its pinned prerequisite commits; verify the ancestry commands below before the C/D/E sequence. Never squash/rebase this chain or move a tag | All three retained sources are ancestors of main; anonymous Go origin lookups later resolve core C and nested E; independent installs and full checks pass |
+| Recheck reporting and publication protection | Keep GitHub private vulnerability reporting enabled, retain the primary email policy, and preserve the environment's reviewer/main-only restrictions | Both API reads and the existing live validators pass immediately before publication |
+| Establish immutable module identities | With publication approval, follow the C/D/E sequence below. Never move a tag or remove retained source history | Anonymous Go origin lookups resolve core C and nested E; independent installs and full checks pass |
 | Select and review the approved candidate | Run `gh workflow run go.yml --ref main` and `gh workflow run agent-candidate.yml --ref main` at E; review security/routing artifacts, exact-source runs and manifest digest | Both manual main runs succeed at E, extracted packages verify, and the independent rebuild matches |
 | Run live preflight and authorize the one publication | Use the command below **without `--publish`** first, then the separately approved manual main publication action | All checks pass and rendered source/run/digest notes are reviewed; one prerelease appears without overwrite/retry |
 | Verify public distribution | After publication, use `curl --fail --location` on the actual published asset URLs, run `release-agent.py verify --smoke --require-native`, install into new prefixes and repeat `check-public-install.py` module/xcaddy checks | Asset identities/installations and HTTPS/binding checks pass; record release URL and actual reporting route |
@@ -146,14 +162,10 @@ response guarantee. A contact listing does not itself approve publication.
 
 ## Exact future source/tag sequence (owner executes after approval and merge)
 
-**Preserve this preparation PR's history.** Its private pseudo-versions and source
-installation examples require the actual `9b966…`, `e6198…` and `6b966…` commits.
-Use **Create a merge commit** for PR #10; squash/rebase would omit those identities
-from main. The repository permits merge commits and automatically deletes merged
-branches, so branch retention or GitHub's PR-object retention must not be the
-durability plan. After approving the exact final head, the owner can use
-`gh pr merge 10 --repo cztamas/qwacamole --merge --match-head-commit "$REVIEWED_HEAD"`.
-This document does not authorize that merge. Afterward verify:
+**Preserve the preparation history.** PR #10 was merged at
+`e3c9c1c9322c1bee9cbf3fa1cd5177be39c3aa33`; its commit pins and source-installation
+examples require the actual `9b966…`, `e6198…` and `6b966…` identities. All three
+are retained on main. Before the C/D/E sequence, verify again:
 
 ```sh
 git fetch origin main
@@ -166,10 +178,11 @@ do
 done
 ```
 
-If branch policy prevents a merge commit, stop and have the owner select a durable
-repinning sequence before removing the preparation branch. Do not bypass branch
-protection, assume private pseudo-versions stay fetchable after history removal,
-or reuse the private source-install examples until their origins are preserved.
+If any retained identity is missing, stop and select a durable repinning sequence
+before publishing. Keep branch protections and immutable source history intact.
+The source repository is now public; anonymous source installation still has the
+availability prerequisite above, and release-version installation requires the
+future tags below. Pre-publication preparation does not authorize tag creation.
 
 The root must become a real retrievable release before nested requirements name
 it. Record all full SHAs in the final release notes and manifest review record.

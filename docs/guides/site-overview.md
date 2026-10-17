@@ -33,8 +33,8 @@ same-authority credential replacement preserves the prior valid binding.
 
 ## Experimental status and trust boundaries
 
-This is an unpublished experimental alpha. The repository is currently private;
-source access requires authorized Git credentials; packaged candidates require authenticated repository access.
+This is an unpublished experimental alpha. The source repository is public;
+downloading retained GitHub Actions candidates requires GitHub authentication.
 No proposed alpha tag or public package download exists yet. Original code is
 [MIT licensed](licensing.md); third-party notices remain separate.
 

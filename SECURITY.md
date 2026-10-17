@@ -9,9 +9,8 @@ keys/authorities for real identity claims.
 The primary contact for security reports is
 [tamas.czank@gmail.com](mailto:tamas.czank@gmail.com).
 Do not post private credentials, exploitable details or browser profiles in public
-issues. If GitHub private vulnerability reporting is enabled, you can also use
-this repository's **Security → Report a vulnerability** flow. Its availability
-has not been verified.
+issues. GitHub private vulnerability reporting is enabled; you can also use
+this repository's [**Security → Report a vulnerability** flow](https://github.com/cztamas/qwacamole/security/advisories/new).
 
 Include the immutable source ref, Go/Caddy/browser versions, affected
 configuration, expected versus observed behavior and a minimal synthetic

@@ -1,7 +1,8 @@
 # qwacamole 0.1.0-alpha.1 — proposed, unpublished
 
-This is a review draft, not a release announcement. Original project code is MIT licensed. Version, visibility,
-security reporting and publication require owner approval. The
+This is a review draft, not a release announcement. Original project code is MIT licensed.
+The source repository is public and private vulnerability reporting is enabled.
+The release version, final source/legal inventory and publication require owner approval. The
 [maintainer checklist](alpha-release.md) defines the exact future source/tag
 sequence. Finalize the approved generic notes before selecting E; the publication
 script appends verified C/E source SHAs and manifest/run identity without editing
@@ -58,8 +59,9 @@ Current installation uses authenticated, exact-source candidates through the
 and assets do not exist yet. Final published source identities will be core C
 and nested agent/Caddy E, with nested requirements pointing to the real root
 tagged version. The package manifest must agree with E and that dependency.
-Anonymous availability is a post-publication gate; private installation does not
-substitute for it.
+Anonymous tagged-module/xcaddy verification runs after the tags exist; downloaded
+release-asset verification runs after prerelease publication. Authenticated
+candidate installation does not substitute for either check.
 
 The reviewed dependency baseline is Caddy 2.11.7, CertMagic 0.25.6 and Go 1.27.2
 with explicit `GOEXPERIMENT=jsonv2`. It replaces the vulnerable escaped-path

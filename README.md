@@ -6,8 +6,8 @@ installation. Shared signing, durable publication and lifecycle policy gate TLS
 activation and protected responses. Credential preparation, inspection and import
 use the production `qwacamole-agent` CLI.
 
-This is an **experimental, unpublished alpha**. The repository is private.
-Original project code is MIT licensed; visibility and publication require owner
+This is an **experimental, unpublished alpha**. The repository is public.
+Original project code is MIT licensed; release publication requires owner
 approval. The proposed `0.1.0-alpha.1` has not been tagged or released. Configured authority-chain trust
 does not establish EU trusted-list qualification, revocation status or browser
 trust. Synthetic demonstrations make no legal identity claim.
@@ -51,7 +51,7 @@ runtime-tested platforms and cross-compiled targets.
 
 **Public releases and downloads are not available yet.** The installation guide
 provides the authenticated GitHub Actions candidate path, identity/checksum
-verification and the future public procedure. A candidate is a private review
+verification and the future public procedure. A candidate is a review
 artifact; its existence does not approve publication.
 
 For custom builds, use the linked [advanced source/xcaddy installation](docs/guides/source-installation.md).
@@ -103,8 +103,9 @@ For a production preview, run `npm --prefix website run build`, then
 `npm --prefix website run preview -- --ignore-lock` (Ctrl+C to stop).
 See [local setup and testing](website/README.md) for exact Node commands,
 checks and preview/search behavior. It renders the same operator Markdown used here, with static
-search and no Go/build credentials. [Cloudflare Pages deployment](docs/website-deployment.md)
-defaults disabled until account setup; qwacamole.com hosting is not yet verified.
+search and no Go/build credentials. The published site is [qwacamole.com](https://qwacamole.com/).
+[Cloudflare Pages deployment](docs/website-deployment.md) is enabled for checked
+main builds; it is independent of software release publication.
 The [audience and ordering report](docs/evidence-website-audience-20261010.md) records
 new deployment regressions, product-route boundaries and local browser review.
 The [dated website report](docs/evidence-website-20261009.md) includes responsive

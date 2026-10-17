@@ -1,8 +1,8 @@
 # Install a packaged binary
 
-Public releases and downloads are not available yet. Authorized repository users
+Public releases and downloads are not available yet. Signed-in GitHub users
 can install a retained, successful candidate from GitHub Actions. You need the
-GitHub CLI (`gh`), repository access, `tar` and SHA-256 tools; **Go and a repository
+authenticated GitHub CLI (`gh`), `tar` and SHA-256 tools; **Go and a repository
 clone are not needed**. The reviewed candidate identities below are pinned; stop if the artifact has
 expired or any identity differs, and obtain a newly reviewed candidate.
 
@@ -13,15 +13,15 @@ Other deployment arrangements use the integration references.
 
 ## Download and check the candidate
 
-This reviewed private candidate was built from the security-updated source and
-retained until **15 November 2026**. It is not a public release. Download into a
+This reviewed candidate was built from main on 17 October 2026 and is
+retained until **16 November 2026 at 18:48 UTC**. It is not a public release. Download into a
 new directory:
 
 ```sh
 VERSION=0.1.0-alpha.1
-SOURCE=6b966e265f5535167da8413f2c7b7b2964a5e873
-RUN_ID=38965179833
-MANIFEST_SHA256=923eb8ad0b56959284f4ab1fba9debaea5f7e2850d812daa881ad3b4f18d388d
+SOURCE=3473b64a74fad6671347f07ac3e75390a660b26f
+RUN_ID=39059507003
+MANIFEST_SHA256=5a97e0b904789138ded9f9ae5261909bcf4ccf0d78e74b9ba9743da35b0f8ab7
 mkdir qwacamole-candidate
 cd qwacamole-candidate
 gh run view "$RUN_ID" --repo cztamas/qwacamole --json conclusion,headSha

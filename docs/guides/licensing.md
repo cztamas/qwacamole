@@ -23,5 +23,6 @@ beside it. Do not relabel that covered material MIT. The fixture root expires
 
 A licence grants permissions to use the code. It does not establish a QWAC's
 legal qualification, browser trust, a production support promise or public
-repository access. Current installation requires authorized repository access;
-public tags and download assets are unavailable.
+repository access. The source repository is public. Retained GitHub Actions
+candidates require GitHub authentication; public release tags and download
+assets are unavailable until publication.

@@ -99,4 +99,6 @@ automatic mechanism, main-only and serialized, without PR previews. The separate
 deployment job consumes checked dist/, compares Git ancestry against retained
 successful production history, skips superseded sources and verifies full commit
 identity. Reruns, unknown history and rollback are documented in the guide.
-No live deployment or custom-domain binding is claimed yet.
+Production is deployed at https://qwacamole.com/ with main-only automatic
+uploads enabled. The maintainer guide records setup, source verification and
+rollback. Website publication does not publish the alpha's modules or packages.
