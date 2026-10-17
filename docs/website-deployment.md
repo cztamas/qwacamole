@@ -35,6 +35,11 @@ Keep the token scoped to the owning account. It needs no DNS/zone edit permissio
 setup and domain changes in the dashboard under separately authorized access.
 See [Cloudflare's CI token instructions](https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/).
 
+In the account-token policy editor, use **Entire qwacamole account** (or the
+equivalent whole-account scope for the owning account), not **Specified Domains**.
+Pages Read/Write are account permissions; a policy restricted to the
+`qwacamole.com` domain does not grant the required project access.
+
 The deployment job uses the `website-production` GitHub environment. Configure
 it with main-only deployment branches; optionally add maintainer reviewers.
 Set these environment variables and secret (repository-level equivalents also
@@ -75,6 +80,11 @@ documentation change. Select a fresh successfully checked source. The workflow
 summary records full Git SHA and the immutable Pages deployment URL. It verifies
 that URL's `/build-info.json` reports the same SHA after upload. A docs deployment
 does not publish a Go release or make the source repository public.
+
+The new URL can briefly return 403/404/5xx before edge availability. Identity
+verification retries only its unauthenticated GET, with at most six five-second
+requests and five ten-second waits (80 seconds maximum). A successful response
+with the wrong source fails immediately. This never retries an upload.
 
 Before connecting a custom domain, visit the Pages URL and verify HTTPS, landing,
 both quickstarts, search, 404 and `/build-info.json`. Retain the run URL, deployment

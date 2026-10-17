@@ -53,6 +53,22 @@ test('checked artifact uploads once with main/source identity and verified stati
   assert.deepEqual(await deploy(f.options), { sha: env.GITHUB_SHA, url: 'https://123abc.qwacamole.pages.dev', deploymentId: 'synthetic-id' });
   assert.equal(f.writes(), 1);
 });
+test('edge propagation retries identity reads while executing exactly one upload', async t => {
+  const f = fixture(t), read = f.options.request;
+  let identityReads = 0, waits = 0;
+  f.options.wait = async () => { waits++; };
+  f.options.request = async (url, options) => {
+    if (url.startsWith('https://123abc.qwacamole.pages.dev/')) {
+      identityReads++;
+      if (identityReads < 3) return { ok: false, status: 403 };
+    }
+    return read(url, options);
+  };
+  assert.equal((await deploy(f.options)).sha, env.GITHUB_SHA);
+  assert.equal(identityReads, 3);
+  assert.equal(waits, 2);
+  assert.equal(f.writes(), 1);
+});
 
 function production(sha) {
   return { environment: 'production', latest_stage: { name: 'deploy', status: 'success' },
@@ -142,7 +158,7 @@ test('wrong production metadata and failed post-upload identity fail without ret
   const originalRequest = g.options.request;
   g.options.request = async (url, options) => url.startsWith('https://api.cloudflare.com/') || url.startsWith('https://api.github.com/')
     ? originalRequest(url, options) : ({ ok: true, json: async () => ({ commit: 'c'.repeat(40) }) });
-  await assert.rejects(deploy(g.options), /could not be verified/);
+  await assert.rejects(deploy(g.options), /source identity mismatch/);
   assert.equal(g.writes(), 1);
 });
 test('project branch, duplicate Git builds and API denial stop before upload', async t => {

@@ -93,3 +93,31 @@ requiring zero uploads and no private text in the error.
 passed. The change affects diagnostics before upload and clarifies token UI
 instructions; upload guards and native integrations are unchanged. Logs are
 under the same ignored local directory (`diagnostics-check.log`).
+
+## Account scope correction and first live deployment
+
+The owner showed the token's policy resource selector: `Specified Domains` /
+`qwacamole.com`, despite the correct Pages Read and Pages Write permission labels.
+After changing it to `Entire qwacamole account`, the project preflight and upload
+succeeded without changing the GitHub secret. This establishes the domain-scoped
+policy as the cause of the original 403.
+
+Attempt 2 of run 39052530672 created production deployment
+`186fa833-7e20-4918-9456-b623e9aca534` for clean main source
+`149665b1c23ea0c46151b9d4859c7081b836653f`. Its immediate identity GET failed while
+the new URL became available. Subsequent valid-HTTPS GETs to both
+`https://186fa833.qwacamole.pages.dev/build-info.json` and
+`https://qwacamole.pages.dev/build-info.json` returned 200 and that exact commit.
+All 16 existing website browser checks passed against the live production Pages
+URL, including both viewport sizes, quickstarts, navigation, search, 404,
+accessibility and the product-documentation boundary. No custom domain or DNS
+change has been made.
+
+The final change bounds read-only edge readiness verification to six GETs with
+five-second request timeouts and five ten-second waits. It never repeats the
+upload; a 200 response with the wrong source stops immediately. Tests cover
+transient 403/404/503, persistent denial, connection failure, wrong identity and
+exactly one upload across repeated verification reads. Astro check and all 19
+script tests passed, as did `git diff --check`. Local logs/screenshots are under
+the ignored setup directory (`readiness-check.log`, `live-browser.log`,
+`live-results/`, `immutable.body`, `production.body`).
