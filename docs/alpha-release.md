@@ -1,9 +1,11 @@
 # Proposed 0.1.0-alpha.1 release contract and maintainer checklist
 
 This guide prepares an alpha; it publishes nothing. The repository and website
-are public, and confidential reporting is available. Owner approval is still
-needed for the release version, final source/legal inventory and publication
-timing. No proposed tag exists merely because it is described here.
+are public, and confidential reporting is available. The owner approved
+publication of `0.1.0-alpha.1` under MIT; the decision is recorded in
+[PR #14](https://github.com/cztamas/qwacamole/pull/14) and `release/publication.json`.
+Final source identities, tags, artifacts and live checks remain prerequisites.
+No proposed tag exists merely because it is described here.
 
 ## Components and support
 
@@ -127,11 +129,15 @@ commands from inherited reports:
 This is the canonical launch checklist. The [readiness report](evidence-alpha-readiness-20261016.md)
 records native/runtime checks; the [17 October preparation report](evidence-alpha-prepublish-20261017.md)
 records current external settings, fresh checks and remaining release gates.
-`approved` remains false until the owner separately approves publication.
+The owner's 17 October instruction, “Record the publication approval”, is
+recorded as `approved: true` in this preparation branch, with PR #14 as the
+decision/review URL. Main receives that record only after the PR is merged.
 
 Completed prerequisites, verified on 17 October 2026:
 
 - The repository is public; standard MIT/NOTICE hashes match publication policy.
+- Owner publication approval is recorded for version `0.1.0-alpha.1`, retaining
+  those MIT/NOTICE hashes and the documented experimental support limits.
 - GitHub private vulnerability reporting is enabled. The primary email in
   SECURITY.md remains `tamas.czank@gmail.com`, with best-effort support only.
 - `public-alpha-release` requires the existing maintainer reviewer and allows
@@ -148,11 +154,11 @@ retrieved successfully. The remaining sequence is:
 | External action | Prerequisite and command or setting | Verify success |
 | --- | --- | --- |
 | Resolve anonymous dependency availability | The 17 October fresh-cache check resolved source refs but failed to download/verify the retained core dependency through the public proxy/checksum service; direct origin retrieval also failed checksum lookup | Repeat anonymous installation with checksums enabled; metadata resolution or authenticated CI alone is insufficient |
-| Approve scope, source, legal inventory and timing | Review the final candidate, MIT/NOTICE copies, actual bundled notices and fresh content/history audit; record a real decision URL and matching hashes in `release/publication.json` | Review exact C/E source ledger and manifest digest; legal hashes/copies and reproducible rebuild agree |
+| Review final source and inventory | Publication approval is recorded; review the eventual final candidate, MIT/NOTICE copies, bundled notices and fresh content/history audit against that decision | Review exact C/E source ledger and manifest digest; legal hashes/copies and reproducible rebuild agree |
 | Recheck reporting and publication protection | Keep GitHub private vulnerability reporting enabled, retain the primary email policy, and preserve the environment's reviewer/main-only restrictions | Both API reads and the existing live validators pass immediately before publication |
 | Establish immutable module identities | With publication approval, follow the C/D/E sequence below. Never move a tag or remove retained source history | Anonymous Go origin lookups resolve core C and nested E; independent installs and full checks pass |
 | Select and review the approved candidate | Run `gh workflow run go.yml --ref main` and `gh workflow run agent-candidate.yml --ref main` at E; review security/routing artifacts, exact-source runs and manifest digest | Both manual main runs succeed at E, extracted packages verify, and the independent rebuild matches |
-| Run live preflight and authorize the one publication | Use the command below **without `--publish`** first, then the separately approved manual main publication action | All checks pass and rendered source/run/digest notes are reviewed; one prerelease appears without overwrite/retry |
+| Run live preflight and publish once | Use the command below **without `--publish`** first, then the protected manual main publication action | All checks pass and rendered source/run/digest notes are reviewed; one prerelease appears without overwrite/retry |
 | Verify public distribution | After publication, use `curl --fail --location` on the actual published asset URLs, run `release-agent.py verify --smoke --require-native`, install into new prefixes and repeat `check-public-install.py` module/xcaddy checks | Asset identities/installations and HTTPS/binding checks pass; record release URL and actual reporting route |
 
 A mailto policy accepts one ordinary literal mailbox, without recipient lists,

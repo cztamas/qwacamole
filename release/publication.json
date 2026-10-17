@@ -1,6 +1,6 @@
 {
-  "approved": false,
-  "owner_decision_url": null,
+  "approved": true,
+  "owner_decision_url": "https://github.com/cztamas/qwacamole/pull/14",
   "license_sha256": "c6faceffe9385fd92b42c46c311627fb40e5805d4fc22f339dc62517317dcbd4",
   "notice_sha256": "3e8d6a74e3d53f371e4a2c24ece74faca72ca98bbb48ed57342e19d1b8483cae",
   "confidential_reporting_url": null,

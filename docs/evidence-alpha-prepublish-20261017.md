@@ -1,17 +1,18 @@
 # Alpha pre-publication preparation — 17 October 2026
 
-**Preparation is complete for review; software publication remains unapproved.**
+**Preparation and owner publication approval are recorded for review.**
 The repository and website are public. The release environment now accepts only
 main and retains its maintainer reviewer. Fresh main packages, their legal and
 security inventories, and an independent reproducible rebuild pass. Anonymous
-Go installation is still an unresolved prerequisite, described below. No tags,
-GitHub release or approval-policy changes were made by this preparation.
+Go installation is still an unresolved prerequisite, described below. The owner
+subsequently requested the approval record described in the addendum. No tags or
+GitHub release were created.
 
 ## Source and external settings
 
 Baseline main: **`3473b64a74fad6671347f07ac3e75390a660b26f`**.
-This preparation changes documentation and website availability copy, with no
-production Go, dependency-pin or release-tool changes. Earlier reports remain
+This preparation changes documentation, website availability copy and the owner
+approval policy, with no production Go, dependency-pin or release-tool changes. Earlier reports remain
 historical, especially the [16 October runtime/browser report](evidence-alpha-readiness-20261016.md).
 
 - The repository API reports `private: false` and default branch `main`.
@@ -27,8 +28,9 @@ historical, especially the [16 October runtime/browser report](evidence-alpha-re
   `branch`; protected-branches mode is false. The actual environment and branch
   API responses pass `publish-alpha.py`'s `validate_environment` function.
   Existing administrator bypass and self-review settings were preserved.
-- `release/publication.json` still has `approved: false`, no owner-decision URL,
-  and the proposed version `0.1.0-alpha.1`. No release or module tag exists.
+- Initial checks used `approved: false` and no owner-decision URL, at proposed
+  version `0.1.0-alpha.1`. The later owner approval is recorded below.
+  No release or module tag exists.
 
 The live website is independent of software publication. The successful
 [production workflow 39055585134](https://github.com/cztamas/qwacamole/actions/runs/39055585134)
@@ -91,7 +93,7 @@ packages or the required exact-source main checks after release repinning.
 | Check | Result |
 | --- | --- |
 | Release Python tests | 35 pass, including the full mocked approved gate, artifact mismatch, existing release and API failures |
-| [Manual main portable integration 39059504421](https://github.com/cztamas/qwacamole/actions/runs/39059504421) | In progress at the baseline source; success is not yet claimed |
+| [Manual main portable integration 39059504421](https://github.com/cztamas/qwacamole/actions/runs/39059504421) | Success at the baseline source: four-module races, independent modules, boundaries/security, restrictive-umask setup, Nginx serving/upgrade and Caddy ACME/lifecycle checks |
 | Live external validators | Environment reviewer/main-only policy and enabled private reporting pass |
 | Non-publishing preflight in a clean baseline checkout | Expected refusal: `owner publication approval missing/version mismatch`; later gate stages were not reached |
 | Website check | Astro diagnostics and 19 script tests pass |
@@ -101,7 +103,7 @@ packages or the required exact-source main checks after release repinning.
 The preflight used the exact baseline source, candidate run and reviewed manifest
 above, **without `--publish`**. It did not pass the complete approved gate and
 does not verify the GitHub publication job's credential. That full live preflight
-still requires approval, real tags/pins and final approved artifacts.
+still requires the recorded approval on main, real tags/pins and final approved artifacts.
 
 Fresh Gitleaks scans covered all locally reachable refs with `--all --full-history`
 and a tracked working-file snapshot, with inline ignores disabled and redacted
@@ -141,13 +143,32 @@ availability failure are unresolved; this does not establish a code defect or
 a successful anonymous install. The source guide now states the limitation and
 points to the verified authenticated package path. Checksums were not disabled.
 
+## Owner approval addendum
+
+On 17 October 2026, after this preparation PR was opened, the owner instructed:
+**“Record the publication approval.”** This records approval for the documented
+experimental **`0.1.0-alpha.1`** publication under the selected standard MIT
+license, retaining the policy's exact LICENSE/NOTICE hashes and support limits.
+`release/publication.json` now has `approved: true` and the real review URL
+**https://github.com/cztamas/qwacamole/pull/14**. The PR body records the decision;
+the policy change reaches main only after merge. Earlier refusal results and the
+baseline candidate's `candidate: true` identity remain historical and unchanged.
+All 35 release tests passed again after this policy change. The approved legal-file
+validator accepted the decision URL/version and exact LICENSE/NOTICE hashes;
+agent/Caddy legal copies still match.
+
+Subsequent candidate builds read this approval and can mark packages approved;
+they are still not publishable until the full gate verifies final tagged core
+requirements, exact-source main runs, artifact identity and reproducibility.
+This request records approval without executing tag creation or release publication.
+
 ## Remaining publication actions
 
 Follow the [canonical launch checklist](alpha-release.md): resolve anonymous
-dependency availability; obtain the owner's release/source/legal/timing decision;
+dependency availability; merge the recorded approval and review final source/inventory;
 perform the immutable C/D/E tag and repinning sequence; run final-source manual
 main integration/candidate workflows and review their manifest/rebuild; pass
-anonymous tagged module/xcaddy checks and the full live preflight; then obtain
-the separate publication authorization. After publication, verify actual public
-assets and installed runtime identities. This PR does not authorize those tags,
-merging, or release publication.
+anonymous tagged module/xcaddy checks and the full live preflight; then execute
+the approved publication through its protected main workflow. After publication, verify actual public
+assets and installed runtime identities. No merge, tag creation or release
+publication was executed as part of recording this approval.

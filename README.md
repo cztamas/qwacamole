@@ -7,8 +7,9 @@ activation and protected responses. Credential preparation, inspection and impor
 use the production `qwacamole-agent` CLI.
 
 This is an **experimental, unpublished alpha**. The repository is public.
-Original project code is MIT licensed; release publication requires owner
-approval. The proposed `0.1.0-alpha.1` has not been tagged or released. Configured authority-chain trust
+Original project code is MIT licensed. Owner publication approval for
+`0.1.0-alpha.1` is recorded in [the preparation PR](https://github.com/cztamas/qwacamole/pull/14);
+the version has not been tagged or released. Configured authority-chain trust
 does not establish EU trusted-list qualification, revocation status or browser
 trust. Synthetic demonstrations make no legal identity claim.
 
