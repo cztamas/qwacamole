@@ -15,7 +15,16 @@ export async function deploy({ env = process.env, directory = 'dist', execute = 
     'https://api.cloudflare.com/client/v4/accounts/' + env.CLOUDFLARE_ACCOUNT_ID + '/pages/projects/' + env.CLOUDFLARE_PAGES_PROJECT,
     { headers: { Authorization: 'Bearer ' + env.CLOUDFLARE_API_TOKEN }, signal: AbortSignal.timeout(30000) },
   );
-  if (!projectResponse.ok) throw new Error('Pages project preflight failed; no upload attempted');
+  if (!projectResponse.ok) {
+    // Only report numeric provider codes, never response messages or headers:
+    // upstream diagnostic text can contain credential or account details.
+    let codes = [];
+    try {
+      const body = await projectResponse.json();
+      if (Array.isArray(body.errors)) codes = body.errors.map(error => error?.code).filter(Number.isSafeInteger);
+    } catch { /* Non-JSON errors still retain their HTTP status. */ }
+    throw new Error(`Pages project preflight failed (HTTP ${projectResponse.status}; Cloudflare codes: ${codes.join(', ') || 'unavailable'}); no upload attempted`);
+  }
   const project = await projectResponse.json();
   if (!project.success || project.result?.name !== env.CLOUDFLARE_PAGES_PROJECT || project.result.production_branch !== 'main')
     throw new Error('Pages project must exist with main as production branch; no upload attempted');

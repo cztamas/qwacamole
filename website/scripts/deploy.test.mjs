@@ -166,3 +166,19 @@ test('upload failure does not expose captured output or retry', async t => {
   await assert.rejects(deploy(f.options), error => error.message.includes('upload failed') && !error.message.includes('private'));
   assert.equal(calls, 1);
 });
+
+test('project denial reports status and numeric codes without provider text or credentials', async t => {
+  for (const json of [
+    async () => ({ errors: [{ code: 10000, message: 'synthetic private token' }, { code: 'synthetic private token' }] }),
+    async () => { throw new Error('synthetic private token'); },
+  ]) {
+    const f = fixture(t);
+    f.options.request = async () => ({ ok: false, status: 403, json });
+    await assert.rejects(deploy(f.options), error => {
+      assert.match(error.message, /HTTP 403; Cloudflare codes: (10000|unavailable)/);
+      assert.doesNotMatch(error.message, /private|synthetic/);
+      return true;
+    });
+    assert.equal(f.writes(), 0);
+  }
+});
