@@ -7,9 +7,9 @@ instructions, remove this repository's entries from `GOPRIVATE`, `GONOPROXY` and
 `GONOSUMDB`, preserving entries for other projects. The [packaged installation](binary-installation.md)
 does not need Go or a source checkout.
 
-These commands require the `0.1.0-alpha.1` module tags. Check the
+These commands use the published `0.1.0-alpha.1` module tags. See the
 [release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
-for publication status and the verified source identities. Stop if a tag is
+for the verified source identities. Stop if a tag is
 missing; keep public proxy/checksum verification enabled.
 
 ## Caddy with xcaddy

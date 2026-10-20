@@ -6,10 +6,12 @@ and electronic seal certificates are not substitutes. These commands require no
 remote enrollment, issuer account or paid service. A qualified issuer remains
 responsible for issuing your real certificate.
 
-Preparation commands belong to the existing production `qwacamole-agent` CLI
-([installation](agent-nginx.md#installation-and-configuration)) and work for
-**both Caddy and Nginx**, without a
-deployment configuration, Nginx or devtools. Each production binding configuration
+Preparation commands belong to the production `qwacamole-agent` CLI
+([packaged installation](binary-installation.md)) and work for
+**both Caddy and Nginx**, without a deployment configuration, Nginx or devtools.
+For Caddy deployments, also install the agent package to use these local commands.
+Use its full executable path or add the installation prefix's `bin` directory to
+your shell's `PATH` for the examples below. Each production binding configuration
 owns one literal hostname; use separate state/configuration for multiple sites.
 
 ## Local key and CSR

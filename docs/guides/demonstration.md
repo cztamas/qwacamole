@@ -7,8 +7,8 @@ It does not change your normal browser profile, system trust or hosts file.
 
 ## Prepare your machine
 
-The bundled setup supports **macOS on Apple Silicon**. You need authorized
-repository access, git, curl, tar, shasum, make and network access to Go download
+The bundled setup supports **macOS on Apple Silicon**. You need git, curl, tar,
+shasum, make and network access to the public repository, Go download
 and module servers. Bootstrap downloads checksum-verified Go, xcaddy and Pebble;
 no preinstalled Go, Docker or administrative privileges are required.
 
@@ -28,7 +28,9 @@ UDP 8053 must be free. Stop only services you own before reclaiming those ports.
 
 ## Start the Chrome demo
 
-From an authenticated clone:
+Clone the public repository; no GitHub authentication is required. The demo builds
+development tools from repository main, separately from the published production
+packages:
 
 ```sh
 git clone https://github.com/cztamas/qwacamole.git

@@ -33,9 +33,9 @@ same-authority credential replacement preserves the prior valid binding.
 
 ## Experimental status and trust boundaries
 
-This is an experimental alpha. The source repository is public;
-downloading retained GitHub Actions candidates requires GitHub authentication.
-Check the [release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1) for versioned downloads and verified source identities. Original code is
+The experimental **0.1.0-alpha.1** release and source repository are public.
+See the [release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
+for downloads and verified source identities. Original code is
 [MIT licensed](licensing.md); third-party notices remain separate.
 
 Operational validation does not establish EU trusted-list qualification,

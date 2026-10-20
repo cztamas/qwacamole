@@ -19,8 +19,8 @@ The packaged `qwac-version --json` command reports distribution version, source,
 Caddy/core identities, platform and toolchain. `list-modules` and
 `go version -m` remain useful advanced build diagnostics. Expect
 `tls.issuance.qwac` and `http.handlers.qwac`, no `qwac_demo` and no development
-module replacements. Check the installation guide for release availability and
-verified identities; authenticated candidates are not public releases.
+module replacements. Follow the installation guide to download the published
+release and verify its identities.
 
 ### State and verification
 
@@ -216,7 +216,12 @@ at final response commit, after downstream headers. Other application Link value
 and Cache-Control survive. Status, bodies and streaming are passed through without
 buffering. Applications should reserve the binding relation for this middleware.
 An unavailable/expired binding produces 503 instead of running the protected
-application; unrelated hostnames pass through. A new TLS certificate cannot be
+application; unrelated hostnames pass through. Availability is checked again at
+response commitment. If upstream headers arrive after expiry, Caddy cancels the
+upstream request and completes a bodyless 503 with `Cache-Control: no-store`,
+without protected upstream headers or body. Already committed streams continue;
+new responses and protocol upgrades must pass the gate again.
+A new TLS certificate cannot be
 returned by the issuer until signing, verification and durable publication all
 succeed. Refresh/publication/recovery errors use Caddy structured logs. Existing
 valid TLS/bindings remain usable during recoverable failures and automatic ACME

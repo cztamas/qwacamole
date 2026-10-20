@@ -45,7 +45,7 @@ export default defineConfig({
     logo: { src: './src/assets/mark.svg' },
     favicon: '/favicon.svg',
     customCss: ['./src/styles/docs.css'],
-    social: [{ icon: 'github', label: 'Source (private repository)', href: 'https://github.com/cztamas/qwacamole' }],
+    social: [{ icon: 'github', label: 'Source on GitHub', href: 'https://github.com/cztamas/qwacamole' }],
     editLink: { baseUrl: 'https://github.com/cztamas/qwacamole/edit/main/' },
     sidebar: [
       { label: 'Start here', items: [{ label: 'Overview', slug: 'overview' }, { label: 'Binary installation', slug: 'installation' }, { label: 'Caddy quickstart', slug: 'caddy/quickstart' }, { label: 'Certbot / Nginx quickstart', slug: 'nginx/quickstart' }] },

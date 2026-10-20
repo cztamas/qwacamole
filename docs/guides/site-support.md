@@ -1,9 +1,9 @@
 # Supported versions, browser compatibility and troubleshooting
 
-Qwacamole is an experimental alpha. The source repository is public;
-downloading retained binary candidates requires GitHub authentication. Check the
+Qwacamole's experimental **0.1.0-alpha.1** release and source repository are public.
+See the
 [release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
-for publication status and verified identities.
+for downloads and verified identities.
 Support is best-effort only, with no response-time guarantee. Check these
 constraints before installing, upgrading or interpreting a browser indicator.
 
@@ -11,11 +11,12 @@ constraints before installing, upgrading or interpreting a browser indicator.
 
 | Component | Tested configuration |
 | --- | --- |
-| Production agent and Caddy plugin | Exact-source packaged candidates and custom source builds; Go 1.27.2 with `GOEXPERIMENT=jsonv2`, xcaddy 0.4.5, Caddy 2.11.7, CertMagic 0.25.6 |
+| Production agent and Caddy plugin | Published 0.1.0-alpha.1 packages and custom source builds; Go 1.27.2 with `GOEXPERIMENT=jsonv2`, xcaddy 0.4.5, Caddy 2.11.7, CertMagic 0.25.6 |
 | Agent runtime | Linux amd64 (Ubuntu 24.04.5, distro Nginx 1.24.0 and Certbot 2.9.0; portable CI also covers Certbot 5.8.0), macOS arm64 (Nginx 1.30.5, Certbot 5.8.0) |
-| Native browser demonstrations | macOS arm64, stock Chrome 155.0.8059.85 with genuine PKIMetadata 1803, Firefox 158.0 and geckodriver 0.37.1 |
+| Native browser demonstrations | macOS arm64, stock Chrome 155.0.8059.85 with genuine PKIMetadata 1810, Firefox 158.0 and geckodriver 0.37.1 |
 | Synthetic ACME demonstration | Pebble 2.8.0; bundled bootstrap supports macOS arm64 only |
 
+These configurations were verified for the release on 20 October 2026.
 Linux arm64 agent builds are cross-compiled only. Windows, macOS notarization
 and Caddy's hosted builder are untested. Automated setup targets Ubuntu 24.04 amd64 only;
 manual service/platform arrangements require independent evaluation. Newer tools and
