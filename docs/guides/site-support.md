@@ -1,8 +1,9 @@
 # Supported versions, browser compatibility and troubleshooting
 
-Qwacamole is an experimental, unpublished alpha. The source repository is public;
-downloading retained binary candidates requires GitHub authentication. Public
-release tags and downloads are unavailable.
+Qwacamole is an experimental alpha. The source repository is public;
+downloading retained binary candidates requires GitHub authentication. Check the
+[release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
+for publication status and verified identities.
 Support is best-effort only, with no response-time guarantee. Check these
 constraints before installing, upgrading or interpreting a browser indicator.
 
@@ -50,7 +51,7 @@ and negative test matrices are retained in repository engineering documentation.
 
 | Symptom | Next step |
 | --- | --- |
-| Source Go module fetch fails | Check public Go proxy/checksum access and the reviewed ref. The [source guide](source-installation.md) records the current dependency-fetch limitation; use the [verified packaged candidate](binary-installation.md) meanwhile. Keep checksum verification enabled; no repository-specific `GOPRIVATE` override is needed. |
+| Source Go module fetch fails | Check public Go proxy/checksum access and the reviewed ref. Check tag availability using the [source guide](source-installation.md), or use the [packaged release](binary-installation.md). Keep checksum verification enabled; no repository-specific `GOPRIVATE` override is needed. |
 | Caddy JSON module decoding fails | Use the pinned toolchain with GOEXPERIMENT=jsonv2. |
 | Credential validation fails | Check key match, profile, hostname SANs, validity, leaf-first chain and independently selected authority. |
 | Protected request returns 503 | Inspect expiry, signing/publication errors, state ownership, disk space and deployment readiness. Repair the cause rather than bypassing the gate. |

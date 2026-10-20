@@ -1,6 +1,6 @@
 # Security reporting and scope
 
-This is an unpublished experimental alpha, with no supported production release.
+This is an experimental alpha, with no supported production release.
 Support is best-effort only, with no response-time guarantee. The synthetic
 demonstrations do not establish legal qualification, QTSP status, EU Trusted List
 registration or production revocation handling. Do not use development test

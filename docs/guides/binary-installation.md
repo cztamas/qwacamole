@@ -1,40 +1,38 @@
 # Install a packaged binary
 
-Public releases and downloads are not available yet. Signed-in GitHub users
-can install a retained, successful candidate from GitHub Actions. You need the
-authenticated GitHub CLI (`gh`), `tar` and SHA-256 tools; **Go and a repository
-clone are not needed**. The reviewed candidate identities below are pinned; stop if the artifact has
-expired or any identity differs, and obtain a newly reviewed candidate.
+This guide installs **0.1.0-alpha.1**. Check the
+[release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
+first; downloads become available when the protected publication workflow finishes.
+Use the GitHub CLI (`gh`), `tar` and SHA-256 tools; **Go and a repository clone
+are not needed**. The release page also provides direct public download links.
 
 Agent archives: Linux amd64, Linux arm64 and macOS arm64. Linux arm64 is
 cross-compiled only. The packaged Caddy binary targets Linux amd64. Automated
 setup targets **Ubuntu 24.04 amd64** and one dedicated integration per host.
 Other deployment arrangements use the integration references.
 
-## Download and check the candidate
+## Download and verify
 
-This reviewed candidate was built from main on 17 October 2026 and is
-retained until **16 November 2026 at 18:48 UTC**. It is not a public release. Download into a
-new directory:
+Download into a new directory. The reviewed manifest digest comes from the
+release notes, separately from the downloaded checksum file:
 
 ```sh
 VERSION=0.1.0-alpha.1
-SOURCE=3473b64a74fad6671347f07ac3e75390a660b26f
-RUN_ID=39059507003
-MANIFEST_SHA256=5a97e0b904789138ded9f9ae5261909bcf4ccf0d78e74b9ba9743da35b0f8ab7
-mkdir qwacamole-candidate
-cd qwacamole-candidate
-gh run view "$RUN_ID" --repo cztamas/qwacamole --json conclusion,headSha
-# Confirm success and that headSha is exactly $SOURCE before proceeding.
-gh run download "$RUN_ID" --repo cztamas/qwacamole \
-  --name "agent-candidate-$SOURCE" --dir .
+mkdir qwacamole-release
+cd qwacamole-release
+gh release view "v$VERSION" --repo cztamas/qwacamole
+MANIFEST_SHA256=$(gh release view "v$VERSION" --repo cztamas/qwacamole \
+  --json body --jq '.body | capture("Reviewed manifest SHA256: `(?<digest>[0-9a-f]{64})`").digest')
+gh release download "v$VERSION" --repo cztamas/qwacamole --dir .
 printf '%s  manifest.json\n' "$MANIFEST_SHA256" | sha256sum -c -
 sha256sum -c SHA256SUMS
 ```
 
-On macOS use `shasum -a 256 -c` for both checksum commands. Stop if any identity
-or checksum differs. Checksums detect corruption; the separately reviewed
-manifest and authenticated run identify the supplied candidate.
+On macOS use `shasum -a 256 -c` for both checksum commands. Stop if the release,
+reviewed digest or any asset is missing, or if any checksum differs. Check the
+manifest's version, source/core identities and target against the release notes.
+Checksums detect corruption; the separately reviewed manifest and release record
+identify the supplied artifacts. Never substitute an unreviewed Actions candidate.
 
 ## Install your integration
 
@@ -64,11 +62,3 @@ On the other agent targets, select the matching archive and a new installation
 prefix, then use [manual deployment](agent-nginx.md). Continue with the
 [Caddy quickstart](caddy-quickstart.md) or [Nginx quickstart](nginx-quickstart.md).
 [Source installation](source-installation.md) remains available for custom builds.
-
-## After public publication
-
-Only after a release exists, replace the authenticated candidate download with
-`gh release download "v$VERSION" --repo cztamas/qwacamole --dir .` in a new
-directory. Use that release's independently obtained manifest digest and the
-same checksum, extraction and installation steps. This command is a future
-procedure, not evidence that the proposed release is available now.

@@ -129,9 +129,11 @@ commands from inherited reports:
 This is the canonical launch checklist. The [readiness report](evidence-alpha-readiness-20261016.md)
 records native/runtime checks; the [17 October preparation report](evidence-alpha-prepublish-20261017.md)
 records current external settings, fresh checks and remaining release gates.
+The [20 October release verification](evidence-alpha-release-20261020.md) records
+the actual core tag, production pin commit and newly executed release checks.
 The owner's 17 October instruction, “Record the publication approval”, is
-recorded as `approved: true` in this preparation branch, with PR #14 as the
-decision/review URL. Main receives that record only after the PR is merged.
+recorded as `approved: true`, with PR #14 as the decision/review URL. PR #14
+was merged at `dc0a66e4e8b19de0ae44341af389994c154c1957` on 20 October.
 
 Completed prerequisites, verified on 17 October 2026:
 
@@ -147,13 +149,15 @@ Completed prerequisites, verified on 17 October 2026:
 - The website is deployed at https://qwacamole.com. Website deployment is
   independent of module tags, package approval and the GitHub prerelease.
 
-No alpha tags or release exist. Production modules still use tested immutable
-commit pins; do not replace them with a version that has not been tagged and
-retrieved successfully. The remaining sequence is:
+The core tag is now `v0.1.0-alpha.1` at
+`dc0a66e4e8b19de0ae44341af389994c154c1957`, retrieved with public checksum
+verification. Agent/Caddy require that tagged core. Their final tags, artifact
+identities and publication status must be checked against the release record.
+Never require an invented or unverified version. The remaining sequence is:
 
 | External action | Prerequisite and command or setting | Verify success |
 | --- | --- | --- |
-| Resolve anonymous dependency availability | The 17 October fresh-cache check resolved source refs but failed to download/verify the retained core dependency through the public proxy/checksum service; direct origin retrieval also failed checksum lookup | Repeat anonymous installation with checksums enabled; metadata resolution or authenticated CI alone is insufficient |
+| Verify anonymous release dependencies | The retained core dependency downloads and verifies through the public proxy/checksum service on 20 October; the 17 October failure remains historical | Repeat full anonymous tagged installation with checksums enabled; metadata resolution or authenticated CI alone is insufficient |
 | Review final source and inventory | Publication approval is recorded; review the eventual final candidate, MIT/NOTICE copies, bundled notices and fresh content/history audit against that decision | Review exact C/E source ledger and manifest digest; legal hashes/copies and reproducible rebuild agree |
 | Recheck reporting and publication protection | Keep GitHub private vulnerability reporting enabled, retain the primary email policy, and preserve the environment's reviewer/main-only restrictions | Both API reads and the existing live validators pass immediately before publication |
 | Establish immutable module identities | With publication approval, follow the C/D/E sequence below. Never move a tag or remove retained source history | Anonymous Go origin lookups resolve core C and nested E; independent installs and full checks pass |
@@ -236,8 +240,10 @@ The two distributed production source identities are **C** (core) and **E**
    repository authentication never satisfies this public gate. Repeat all native
    acceptance against final production sources as recorded in the release ledger.
 7. Run the live publication preflight **without `--publish`**, using the intended
-   release credential, and require every API/source/artifact check to pass before
-   reviewing its rendered notes. Record the source/run/digest and result.
+   release credential: dispatch `Publish owner-approved alpha` from main with
+   `publish=false`. The protected environment and job permissions are identical
+   to publication. Require every API/source/artifact check to pass and review
+   its rendered notes. Record the source/run/digest and result.
    The approved generic notes must already be committed at E; the script appends
    actual C/E SHAs, reviewed manifest digest and run ID from verified inputs.
    GitHub's automatic source archives follow root tag C; nested module installs
@@ -245,7 +251,9 @@ The two distributed production source identities are **C** (core) and **E**
    Do not edit/retag E to put its own SHA or later CI run ID into its source.
    Confirm tested runtime targets and unresolved limits. Manually dispatch
    `Publish owner-approved alpha` **from main**, supplying version, E, successful
-   candidate run ID and owner-reviewed manifest SHA256. The script rejects missing
+   candidate run ID, owner-reviewed manifest SHA256 and `publish=true`.
+   The input defaults false; an ordinary verification run cannot create a release.
+   The script rejects missing
    approval/security/public availability, wrong tags/pins/source, dirty checkout,
    missing exact-source CI, an unapproved package or existing release. It rebuilds
    E independently and compares checksums before the single prerelease creation.

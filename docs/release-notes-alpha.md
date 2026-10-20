@@ -1,14 +1,10 @@
-# qwacamole 0.1.0-alpha.1 — proposed, unpublished
+# qwacamole 0.1.0-alpha.1
 
-This is a review draft, not a release announcement. Original project code is MIT licensed.
-The source repository is public and private vulnerability reporting is enabled.
-Owner publication approval for `0.1.0-alpha.1` under MIT is recorded in
-[PR #14](https://github.com/cztamas/qwacamole/pull/14). Final source/artifact review,
-tags and live release gates remain pending. The
-[maintainer checklist](alpha-release.md) defines the exact future source/tag
-sequence. Finalize the approved generic notes before selecting E; the publication
-script appends verified C/E source SHAs and manifest/run identity without editing
-or retagging that source. No release tags have been created here.
+Experimental alpha, approved under the standard MIT license in
+[PR #14](https://github.com/cztamas/qwacamole/pull/14). Security reports use
+`tamas.czank@gmail.com` or GitHub private vulnerability reporting; support is
+best-effort with no response guarantee. The verified release identity appended
+below records the exact core and agent/Caddy sources, manifest and candidate run.
 
 The root core provides strict supplied RSA 2-QWAC validation, local key/CSR
 preparation support, RS256 TLS bindings and durable lifecycle policy. The
@@ -36,8 +32,6 @@ Ubuntu 24.04 amd64 supports dedicated fresh setup through agent `setup` or Caddy
 commands. Setup requires supplied credentials and selected authority, preserves
 strict defaults, and refuses changed files/credentials on repeat. No Go or clone
 is needed for packaged installation. Nginx/Certbot remain external prerequisites.
-Public releases/downloads are unavailable until the approved controlled publication
-passes its gates and is executed. Authenticated candidates do not establish public access.
 
 This first alpha is experimental. Scope remains supplied RSA/RS256, explicit
 trust, one literal hostname per independent state, exclusive local storage,
@@ -55,15 +49,12 @@ TLS history and recovery generations. Do not rebuild journals or drop coverage.
 See [agent operations](guides/agent-nginx.md), [migration](guides/agent-migration.md),
 [Caddy operations](guides/operations.md) and [credential handling](guides/byo-credentials.md).
 
-Current installation uses authenticated, exact-source candidates through the
-[packaged installation guide](guides/binary-installation.md); custom builds use
-[the advanced source guide](guides/source-installation.md). Public release tags
-and assets do not exist yet. Final published source identities will be core C
-and nested agent/Caddy E, with nested requirements pointing to the real root
-tagged version. The package manifest must agree with E and that dependency.
-Anonymous tagged-module/xcaddy verification runs after the tags exist; downloaded
-release-asset verification runs after prerelease publication. Authenticated
-candidate installation does not substitute for either check.
+Install using the [packaged installation guide](guides/binary-installation.md)
+or [source/xcaddy guide](guides/source-installation.md). Go consumers request
+`v0.1.0-alpha.1` for each module; Git tags are `v0.1.0-alpha.1`,
+`agent/v0.1.0-alpha.1` and `caddy/v0.1.0-alpha.1`. GitHub's automatic source
+archives follow the root/core tag; the nested module tags and binary manifest
+identify the separate agent/Caddy source. Devtools has no supported release tag.
 
 The reviewed dependency baseline is Caddy 2.11.7, CertMagic 0.25.6 and Go 1.27.2
 with explicit `GOEXPERIMENT=jsonv2`. It replaces the vulnerable escaped-path

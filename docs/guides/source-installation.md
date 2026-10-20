@@ -7,23 +7,21 @@ instructions, remove this repository's entries from `GOPRIVATE`, `GONOPROXY` and
 `GONOSUMDB`, preserving entries for other projects. The [packaged installation](binary-installation.md)
 does not need Go or a source checkout.
 
-**Current availability:** the anonymous installation check on 17 October 2026
-failed when the public Go proxy/checksum service could not serve the retained
-core dependency. The source commands below have not yet passed that check.
-Use the verified [packaged candidate](binary-installation.md) meanwhile; do not
-disable checksum verification or add private-module exceptions to bypass it.
+These commands require the `0.1.0-alpha.1` module tags. Check the
+[release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
+for publication status and the verified source identities. Stop if a tag is
+missing; keep public proxy/checksum verification enabled.
 
 ## Caddy with xcaddy
 
-These commands use the reviewed implemented source `6b966e265f5535167da8413f2c7b7b2964a5e873`.
-Use another ref only after reviewing its compatibility with this dependency baseline.
+These commands use version `v0.1.0-alpha.1` and its reviewed dependency baseline.
 Ensure your Go bin directory is on PATH:
 
 ```sh
 export GOWORK=off GOEXPERIMENT=jsonv2
 go install github.com/caddyserver/xcaddy/cmd/xcaddy@v0.4.5
 xcaddy build v2.11.7 \
-  --with github.com/cztamas/qwacamole/caddy@6b966e265f5535167da8413f2c7b7b2964a5e873 \
+  --with github.com/cztamas/qwacamole/caddy@v0.1.0-alpha.1 \
   --output ./caddy-qwac
 ./caddy-qwac list-modules
 go version -m ./caddy-qwac
@@ -35,7 +33,7 @@ installation. Continue with the [Caddy reference](caddy-plugin.md).
 
 ## Production agent
 
-Use a new scratch directory and the exact reviewed source ref. Installation does
+Use a new scratch directory and the reviewed release version. Installation does
 not use a workspace or local module replacements:
 
 ```sh
@@ -44,7 +42,7 @@ not use a workspace or local module replacements:
   cd "$agent_install_dir"
   GOWORK=off GOEXPERIMENT=jsonv2 \
     GOMODCACHE="$agent_install_dir/modules" GOBIN="$agent_install_dir/bin" \
-    go install github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@6b966e265f5535167da8413f2c7b7b2964a5e873
+    go install github.com/cztamas/qwacamole/agent/cmd/qwacamole-agent@v0.1.0-alpha.1
   "$agent_install_dir/bin/qwacamole-agent" version -json
   go version -m "$agent_install_dir/bin/qwacamole-agent"
   sudo install -m 0755 "$agent_install_dir/bin/qwacamole-agent" /usr/local/bin/qwacamole-agent
