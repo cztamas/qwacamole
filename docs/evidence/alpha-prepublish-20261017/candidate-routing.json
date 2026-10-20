@@ -1,0 +1,16 @@
+{
+  "binary_sha256": "4539cb4cd10fae6a70b4992a9a10faddfd5df43389b9e1317069468d47a0f586",
+  "caddy_version": "v2.11.7 h1:yj0Y4fYZGPkSvibBJ1sTWE33xC0fxztVyXEW5iIdUT4=",
+  "binding_gate_configured": false,
+  "responses": {
+    "/admin%2Fpanel": {
+      "status": 403,
+      "body": "DENY"
+    },
+    "/ADMIN%2Fpanel": {
+      "status": 403,
+      "body": "DENY"
+    }
+  },
+  "passed": true
+}

@@ -1,7 +1,10 @@
 # qwacamole 0.1.0-alpha.1 — proposed, unpublished
 
-This is a review draft, not a release announcement. Original project code is MIT licensed. Version, visibility,
-security reporting and publication require owner approval. The
+This is a review draft, not a release announcement. Original project code is MIT licensed.
+The source repository is public and private vulnerability reporting is enabled.
+Owner publication approval for `0.1.0-alpha.1` under MIT is recorded in
+[PR #14](https://github.com/cztamas/qwacamole/pull/14). Final source/artifact review,
+tags and live release gates remain pending. The
 [maintainer checklist](alpha-release.md) defines the exact future source/tag
 sequence. Finalize the approved generic notes before selecting E; the publication
 script appends verified C/E source SHAs and manifest/run identity without editing
@@ -33,8 +36,8 @@ Ubuntu 24.04 amd64 supports dedicated fresh setup through agent `setup` or Caddy
 commands. Setup requires supplied credentials and selected authority, preserves
 strict defaults, and refuses changed files/credentials on repeat. No Go or clone
 is needed for packaged installation. Nginx/Certbot remain external prerequisites.
-Public releases/downloads are unavailable until the controlled publication is
-approved and executed. Authenticated candidates do not establish public access.
+Public releases/downloads are unavailable until the approved controlled publication
+passes its gates and is executed. Authenticated candidates do not establish public access.
 
 This first alpha is experimental. Scope remains supplied RSA/RS256, explicit
 trust, one literal hostname per independent state, exclusive local storage,
@@ -58,8 +61,9 @@ Current installation uses authenticated, exact-source candidates through the
 and assets do not exist yet. Final published source identities will be core C
 and nested agent/Caddy E, with nested requirements pointing to the real root
 tagged version. The package manifest must agree with E and that dependency.
-Anonymous availability is a post-publication gate; private installation does not
-substitute for it.
+Anonymous tagged-module/xcaddy verification runs after the tags exist; downloaded
+release-asset verification runs after prerelease publication. Authenticated
+candidate installation does not substitute for either check.
 
 The reviewed dependency baseline is Caddy 2.11.7, CertMagic 0.25.6 and Go 1.27.2
 with explicit `GOEXPERIMENT=jsonv2`. It replaces the vulnerable escaped-path

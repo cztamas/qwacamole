@@ -1,9 +1,13 @@
 # Website: Cloudflare Pages setup and rollback
 
 The static Astro/Starlight site lives in `website/`. GitHub Actions builds it
-without Cloudflare credentials. Production deployment is **disabled by default**
-and has not been verified on qwacamole.com. This guide prepares setup; it does
-not authorize DNS, nameserver, account or repository visibility changes.
+without Cloudflare credentials. Production is live at **https://qwacamole.com**.
+The `website-production` environment enables main-only Direct Upload; unset/false
+`WEBSITE_DEPLOY_ENABLED` still disables uploads for a fresh setup. Domain activation,
+valid HTTPS and deployed source identity were verified on 17 October 2026.
+Website deployment does not publish the software alpha. See the
+[current preparation report](evidence-alpha-prepublish-20261017.md) for verified
+state and the [setup record](website-deployment-20261017.md) for historical steps.
 
 ## One deployment mechanism
 
@@ -88,13 +92,17 @@ with the wrong source fails immediately. This never retries an upload.
 
 Before connecting a custom domain, visit the Pages URL and verify HTTPS, landing,
 both quickstarts, search, 404 and `/build-info.json`. Retain the run URL, deployment
-URL/ID and commit together. Source and release links currently require repository
-authorization; public docs hosting does not change that.
+URL/ID and commit together. The source repository is public. Retained Actions
+artifacts still require GitHub authentication, and release assets do not exist
+until the separately approved alpha publication.
 
 ## Connect qwacamole.com deliberately
 
-Canonical URL in Astro is **https://qwacamole.com**. We have not checked the
-domain's current DNS provider and do not assume Cloudflare nameservers.
+Canonical URL in Astro is **https://qwacamole.com**. The apex domain is active
+on the Pages project, with Cloudflare authoritative DNS and a proxied CNAME to
+`qwacamole.pages.dev`. The owner created the DNS record; local Wrangler access
+permits Pages changes but the DNS write API rejected it. Keep the deployment
+token limited to Pages permissions.
 
 For an **apex** Pages domain, Cloudflare requires the domain as a zone in the
 owning account and its assigned authoritative nameservers at the registrar.
@@ -113,7 +121,7 @@ Cloudflare redirect rule/Bulk Redirect to the apex, preserving path and query.
 Do not add a hostname redirect until its DNS and HTTPS are ready.
 [www to apex](https://developers.cloudflare.com/pages/how-to/www-redirect/).
 If choosing a different canonical hostname, change Astro's site URL and landing
-canonical together and rebuild. This PR performs no domain or DNS changes.
+canonical together and rebuild.
 
 After activation, check normal HTTPS (no insecure override), certificate hostname,
 all three main routes, search and `https://qwacamole.com/build-info.json` against
