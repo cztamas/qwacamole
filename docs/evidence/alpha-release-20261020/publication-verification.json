@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "verification_date": "2026-10-20",
+  "release": {
+    "id": 418765352,
+    "url": "https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1",
+    "published_at": "2026-10-20T19:07:39Z",
+    "draft": false,
+    "prerelease": true
+  },
+  "sources": {
+    "core": "dc0a66e4e8b19de0ae44341af389994c154c1957",
+    "agent_caddy": "be065af605ce3f7be1eaf8981df343c82082aebf",
+    "production_pin": "c2c664135627f54c393941b64f2755a6872843a1",
+    "agent_caddy_tree_equals_production_pin": true
+  },
+  "manifest_sha256": "e8c28682e15ff637dbb01f293ebc4e306a83ba9e2512818bfde88372410edad8",
+  "workflows": {
+    "core_integration": 39469414439,
+    "final_integration": 39476496412,
+    "candidate": 39476501314,
+    "preflight": 39479178016,
+    "publication": 39480194073,
+    "website": 39475969519
+  },
+  "verified": {
+    "approved_legal_hashes_and_copies": true,
+    "exact_main_integration": true,
+    "exact_main_candidate": true,
+    "independent_rebuild_byte_identical": true,
+    "workflow_credential_preflight": true,
+    "anonymous_tagged_install_and_caddy_nginx_smokes": true,
+    "all_public_assets_match_reviewed_candidate": true,
+    "public_manifest_archive_checksums": true,
+    "public_native_installer_and_identity": true,
+    "six_release_documentation_links": true,
+    "ordinary_website_https_at_final_source": true
+  },
+  "public_assets": [
+    {
+      "name": "manifest.json",
+      "size": 30981,
+      "sha256": "e8c28682e15ff637dbb01f293ebc4e306a83ba9e2512818bfde88372410edad8"
+    },
+    {
+      "name": "qwacamole-agent-0.1.0-alpha.1-darwin-arm64.tar.gz",
+      "size": 6588150,
+      "sha256": "f9bb6a17c8a3dc28943f8eaa42bced8697800d1da4818ac703721cf81a2ba735"
+    },
+    {
+      "name": "qwacamole-agent-0.1.0-alpha.1-linux-amd64.tar.gz",
+      "size": 6918300,
+      "sha256": "d6ec52cee33dd30333f045777bfc2ad70b91c743476d58bb66d77a0681107aab"
+    },
+    {
+      "name": "qwacamole-agent-0.1.0-alpha.1-linux-arm64.tar.gz",
+      "size": 6303080,
+      "sha256": "411ab4f889c5219e73ff4ccdceeb020136ec0a465d1c319ff415896bac7e77b4"
+    },
+    {
+      "name": "qwacamole-caddy-0.1.0-alpha.1-linux-amd64.tar.gz",
+      "size": 37923936,
+      "sha256": "65d47b2245cba29c39fa6818c9bd8ed645fe6600690a2836ed43782d0b3ccd7c"
+    },
+    {
+      "name": "SHA256SUMS",
+      "size": 541,
+      "sha256": "a9eca96b51b0c794991bd3acc7b6e5e9b814b8574c559a0cfbc546d365791079"
+    }
+  ],
+  "public_native_version": {
+    "version": "0.1.0-alpha.1",
+    "source_commit": "be065af605ce3f7be1eaf8981df343c82082aebf",
+    "core_version": "v0.1.0-alpha.1",
+    "go_version": "go1.27.2",
+    "goos": "darwin",
+    "goarch": "arm64",
+    "modified": false
+  },
+  "security": {
+    "passing_scans": 10,
+    "complete_archive_members_scanned": 30,
+    "recognized_key_token_findings": 0,
+    "scope": "common full PEM private keys and recognized GitHub/OpenAI tokens; not a universal absence claim"
+  },
+  "native_browser_scope": {
+    "production_pin": "c2c664135627f54c393941b64f2755a6872843a1",
+    "installed_test_package_source": "47e2952f89e39f99a38a38b196d4b53d6516d281",
+    "chrome": "155.0.8059.85",
+    "chrome_metadata": "1810",
+    "chrome_fixture_passes": 10,
+    "chrome_known_expired_exp_failure_preserved": true,
+    "chrome_lifecycle_passed": true,
+    "firefox": "158.0",
+    "firefox_fixture_passes": 11,
+    "firefox_lifecycle_passed": true,
+    "installed_nginx_checks_each_browser": 24
+  },
+  "runtime_limits": [
+    "Linux arm64 is cross-compiled only",
+    "Chromium accepts expired binding exp; server gates still enforce expiry",
+    "No Windows or macOS notarization claim"
+  ],
+  "raw_evidence_directory": ".local/alpha-release-20261020/"
+}

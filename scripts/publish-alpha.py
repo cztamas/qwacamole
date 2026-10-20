@@ -84,6 +84,11 @@ def render_notes(template, version, root_source, source, manifest_sha256, candid
     # The source cannot contain its own final commit hash. Resolve identity in
     # the release body from the verified manifest/tags, never by editing the
     # clean selected source after building or retagging it.
+    # GitHub resolves release-body relative links from the root/core tag,
+    # not from docs/release-notes-alpha.md or the nested production source.
+    template = re.sub(r"\]\((guides/[^)\s]+)\)",
+                      lambda match: "](https://github.com/" + REPO + "/blob/" + source +
+                      "/docs/" + match[1] + ")", template)
     return template.rstrip() + ("\n\n## Verified release identity\n\n"
         f"Version: `{version}`. Core source: `{root_source}`. Agent/Caddy source: `{source}`.\n\n"
         "GitHub's automatic source archives follow the root/core tag. Use the "

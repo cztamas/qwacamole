@@ -69,6 +69,21 @@ class Publication(unittest.TestCase):
             with self.subTest(environment=env, branches=br), self.assertRaises(ValueError):
                 publish.validate_environment(env, br)
 
+    def test_release_guide_links_use_nested_source_and_docs_directory(self):
+        template = ("[Install](guides/binary-installation.md#download-and-verify) "
+                    "[Operations](guides/operations.md) "
+                    "[External](https://example.test/guides/operations.md) "
+                    "[Contact](mailto:security@example.test) [Section](#support)")
+        source = "a" * 40
+        result = publish.render_notes(template, "0.1.0-alpha.1", "b" * 40, source, "c" * 64, 123)
+        for target in ("guides/binary-installation.md#download-and-verify", "guides/operations.md"):
+            self.assertIn("https://github.com/cztamas/qwacamole/blob/" + source + "/docs/" + target, result)
+        for link in ("[External](https://example.test/guides/operations.md)",
+                     "[Contact](mailto:security@example.test)", "[Section](#support)"):
+            self.assertIn(link, result)
+        self.assertIn("[Install](guides/", template)
+        self.assertNotIn("](guides/", result)
+
     def test_unapproved_policy_cannot_reach_network_or_publication(self):
         source = "a" * 40
         with patch.object(publish, "run", side_effect=[source, ""]), patch.object(publish.subprocess, "check_call"), patch.object(publish.json, "loads", return_value={"approved": False}), patch.object(publish, "api") as api:
