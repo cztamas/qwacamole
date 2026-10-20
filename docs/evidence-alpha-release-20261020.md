@@ -112,3 +112,52 @@ fixture and lifecycle checks must pass. Firefox compatibility remains explicit;
 synthetic roots stay confined to fresh disposable profiles. No production or
 user browser trust is expanded. Final anonymous tagged installations and package
 runtime checks remain separate from development-harness acceptance.
+
+## Final publication and public verification
+
+The [0.1.0-alpha.1 prerelease](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
+was published on **20 October 2026 at 19:07:39 UTC**. Final nested source E is
+**`be065af605ce3f7be1eaf8981df343c82082aebf`**, the merge of PR #15, preserving D.
+Both nested module tags point to E; the core tag remains C. Their complete
+production trees equal the independently tested D trees.
+
+- Exact-main [integration 39476496412](https://github.com/cztamas/qwacamole/actions/runs/39476496412)
+  and [candidate 39476501314](https://github.com/cztamas/qwacamole/actions/runs/39476501314)
+  passed at E. All ten enforcing source/command/binary security scans and the
+  packaged Caddy routing regression passed.
+- Downloaded final candidate and independent approved rebuild have identical
+  complete SHA256SUMS and manifest bytes. Reviewed manifest SHA-256:
+  **`e8c28682e15ff637dbb01f293ebc4e306a83ba9e2512818bfde88372410edad8`**.
+  Final archives' legal files match policy/source; all 30 decompressed members
+  passed the bounded key/token scan without an artifact exception.
+- Fresh credential-free tagged core/agent/Caddy installs resolved exact C/E
+  origins, with public checksums, no workspace/replacements or private-module
+  overrides. Actual anonymously installed Caddy and Nginx-agent smokes passed.
+- Protected [preflight 39479178016](https://github.com/cztamas/qwacamole/actions/runs/39479178016)
+  passed with `publish=false`, using the actual publication job credential and
+  unchanged environment protection. Its rendered identities were reviewed.
+  [Publication 39480194073](https://github.com/cztamas/qwacamole/actions/runs/39480194073)
+  then passed with identical inputs and `publish=true`. The configured eligible
+  owner reviewer approved each environment gate; no protection was disabled.
+- All six public assets downloaded over verified HTTPS in a credential-free
+  curl environment and match the reviewed candidate. Public-package verification,
+  direct manifest/archive checksum comparison and native smoke pass. The actual
+  public macOS package installs into a fresh prefix and reports E, tagged core,
+  Go 1.27.2 and `modified: false`.
+- [Website deployment 39475969519](https://github.com/cztamas/qwacamole/actions/runs/39475969519)
+  passed. Ordinary public HTTPS on qwacamole.com returned E's build-info with no
+  DNS override; later documentation-only commits may advance the website.
+
+The public release-page check found that GitHub rendered template-relative
+`guides/…` links from the core tag, omitting `docs/` and selecting the wrong
+component source. Only those six release-body documentation links were corrected
+to immutable E paths; the verified identity section was preserved exactly.
+The future renderer now performs that conversion, with a regression covering
+guide anchors, source selection and unchanged external/mail/local-anchor links.
+**36 release tests pass.** Published tag/source and artifact identities remain
+the values above.
+
+[Sanitized final verification](evidence/alpha-release-20261020/publication-verification.json)
+records public asset sizes/hashes, workflow identities, public native version,
+verification scope and the unchanged browser/platform limitations. Full raw
+evidence remains in the ignored directory named above.
