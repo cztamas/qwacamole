@@ -1,0 +1,13 @@
+{
+  "blocker": "1 native browser acceptance tests failed; see .local/alpha-release-20261020/native-caddy-chrome/integration-20261020-200535/evidence/browser-suite.json",
+  "cached_discovery_after_expiry_renewal_replacement": true,
+  "continuous_http2_through_tls_expiry": true,
+  "independent_refresh": true,
+  "initial_native_verified": true,
+  "negative_suite_passed": false,
+  "profile_unchanged": true,
+  "renewal_failure_gates": true,
+  "renewal_native_verified": true,
+  "replacement_native_verified": true,
+  "restart_recovered": true
+}

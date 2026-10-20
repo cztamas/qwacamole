@@ -11,7 +11,7 @@ copies. Third-party material retains its own licences.
 | Material | Licence and distribution scope |
 | --- | --- |
 | Go runtime and standard library | BSD-style Go LICENSE and PATENTS, plus applicable vendored notices. Retain the notices supplied with the toolchain or linked distribution. |
-| Caddy / CertMagic and their dependencies | Apache-2.0 for those projects; the separate plugin-included Caddy candidate package bundles their linked code and retains actual dependency licences/notices in `DEPENDENCY-NOTICES.txt`, plus Go notices. Public releases/downloads are not yet available. |
+| Caddy / CertMagic and their dependencies | Apache-2.0 for those projects; the separate plugin-included Caddy package bundles their linked code and retains actual dependency licences/notices in `DEPENDENCY-NOTICES.txt`, plus Go notices. |
 | Nginx / Certbot / Pebble / browser tools | Separately installed prerequisites with their own licences; not bundled in the production agent. |
 | Mozilla public test authority and test key | MPL-2.0 covered devtools fixture. Test use only; never use it for production identity. |
 
@@ -24,5 +24,6 @@ beside it. Do not relabel that covered material MIT. The fixture root expires
 A licence grants permissions to use the code. It does not establish a QWAC's
 legal qualification, browser trust, a production support promise or public
 repository access. The source repository is public. Retained GitHub Actions
-candidates require GitHub authentication; public release tags and download
-assets are unavailable until publication.
+candidates require GitHub authentication. Check the
+[release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
+for public release availability and verified artifact identities.

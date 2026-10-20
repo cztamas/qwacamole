@@ -6,10 +6,10 @@ installation. Shared signing, durable publication and lifecycle policy gate TLS
 activation and protected responses. Credential preparation, inspection and import
 use the production `qwacamole-agent` CLI.
 
-This is an **experimental, unpublished alpha**. The repository is public.
+This is an **experimental alpha**. The repository is public.
 Original project code is MIT licensed. Owner publication approval for
 `0.1.0-alpha.1` is recorded in [the preparation PR](https://github.com/cztamas/qwacamole/pull/14);
-the version has not been tagged or released. Configured authority-chain trust
+check the [release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1) for publication status and verified source identities. Configured authority-chain trust
 does not establish EU trusted-list qualification, revocation status or browser
 trust. Synthetic demonstrations make no legal identity claim.
 
@@ -50,10 +50,10 @@ The Nginx quickstart requires public IPv4/A-record reachability and no AAAA reco
 See [supported targets and tested versions](docs/guides/site-support.md) for
 runtime-tested platforms and cross-compiled targets.
 
-**Public releases and downloads are not available yet.** The installation guide
-provides the authenticated GitHub Actions candidate path, identity/checksum
-verification and the future public procedure. A candidate is a review
-artifact; its existence does not approve publication.
+The installation guide covers release download, identity/checksum verification
+and installation. Stop if the release is not available or any identity differs.
+GitHub Actions candidates are review artifacts and do not substitute for the
+published release.
 
 For custom builds, use the linked [advanced source/xcaddy installation](docs/guides/source-installation.md).
 Keep installation commands in those canonical guides so source revisions,

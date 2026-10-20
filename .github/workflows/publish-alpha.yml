@@ -15,6 +15,11 @@ on:
       manifest_sha256:
         description: Owner-reviewed manifest SHA256
         required: true
+      publish:
+        description: Create the prerelease after verification (false renders preflight notes only)
+        type: boolean
+        default: false
+        required: true
 
 permissions:
   contents: read
@@ -51,10 +56,14 @@ jobs:
           SOURCE: ${{ inputs.source_commit }}
           CANDIDATE_RUN: ${{ inputs.candidate_run }}
         run: gh run download "$CANDIDATE_RUN" --repo cztamas/qwacamole --name "agent-candidate-$SOURCE" --dir candidate
-      - name: Verify every prerequisite and publish once
+      - name: Verify prerequisites and render notes or publish once
         env:
           SOURCE: ${{ inputs.source_commit }}
           VERSION: ${{ inputs.version }}
           CANDIDATE_RUN: ${{ inputs.candidate_run }}
           MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
-        run: python3 scripts/publish-alpha.py --source "$SOURCE" --version "$VERSION" --candidate-run "$CANDIDATE_RUN" --manifest-sha256 "$MANIFEST_SHA256" --directory candidate --go go --publish
+          PUBLISH: ${{ inputs.publish }}
+        run: |
+          flags=()
+          if [ "$PUBLISH" = true ]; then flags+=(--publish); fi
+          python3 scripts/publish-alpha.py --source "$SOURCE" --version "$VERSION" --candidate-run "$CANDIDATE_RUN" --manifest-sha256 "$MANIFEST_SHA256" --directory candidate --go go "${flags[@]}"

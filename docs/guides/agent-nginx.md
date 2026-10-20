@@ -41,9 +41,9 @@ can use the complete JSON/manual configuration below;
 
 ### Packaged agent and setup
 
-[Authenticated candidates](binary-installation.md) contain the executable,
-installation instructions, a JSON template and notices. Public release tags and
-downloads remain unavailable. Nginx and Certbot are separate prerequisites.
+[Agent packages](binary-installation.md) contain the executable,
+installation instructions, a JSON template and notices. Check that guide for
+release availability and verified identities. Nginx and Certbot are separate prerequisites.
 `version -json` reports the exact packaged source, core version and platform.
 Source Go installs report `module:VERSION` when Go supplies module metadata
 instead of a VCS revision; retain the module origin when a full SHA is required.

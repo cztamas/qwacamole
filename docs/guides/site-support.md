@@ -1,8 +1,9 @@
 # Supported versions, browser compatibility and troubleshooting
 
-Qwacamole is an experimental, unpublished alpha. The source repository is public;
-downloading retained binary candidates requires GitHub authentication. Public
-release tags and downloads are unavailable.
+Qwacamole is an experimental alpha. The source repository is public;
+downloading retained binary candidates requires GitHub authentication. Check the
+[release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
+for publication status and verified identities.
 Support is best-effort only, with no response-time guarantee. Check these
 constraints before installing, upgrading or interpreting a browser indicator.
 
@@ -12,7 +13,7 @@ constraints before installing, upgrading or interpreting a browser indicator.
 | --- | --- |
 | Production agent and Caddy plugin | Exact-source packaged candidates and custom source builds; Go 1.27.2 with `GOEXPERIMENT=jsonv2`, xcaddy 0.4.5, Caddy 2.11.7, CertMagic 0.25.6 |
 | Agent runtime | Linux amd64 (Ubuntu 24.04.5, distro Nginx 1.24.0 and Certbot 2.9.0; portable CI also covers Certbot 5.8.0), macOS arm64 (Nginx 1.30.5, Certbot 5.8.0) |
-| Native browser demonstrations | macOS arm64, stock Chrome 155.0.8059.82 with genuine PKIMetadata 1803, Firefox 158.0 and geckodriver 0.37.1 |
+| Native browser demonstrations | macOS arm64, stock Chrome 155.0.8059.85 with genuine PKIMetadata 1803, Firefox 158.0 and geckodriver 0.37.1 |
 | Synthetic ACME demonstration | Pebble 2.8.0; bundled bootstrap supports macOS arm64 only |
 
 Linux arm64 agent builds are cross-compiled only. Windows, macOS notarization
@@ -50,7 +51,7 @@ and negative test matrices are retained in repository engineering documentation.
 
 | Symptom | Next step |
 | --- | --- |
-| Source Go module fetch fails | Check public Go proxy/checksum access and the reviewed ref. The [source guide](source-installation.md) records the current dependency-fetch limitation; use the [verified packaged candidate](binary-installation.md) meanwhile. Keep checksum verification enabled; no repository-specific `GOPRIVATE` override is needed. |
+| Source Go module fetch fails | Check public Go proxy/checksum access and the reviewed ref. Check tag availability using the [source guide](source-installation.md), or use the [packaged release](binary-installation.md). Keep checksum verification enabled; no repository-specific `GOPRIVATE` override is needed. |
 | Caddy JSON module decoding fails | Use the pinned toolchain with GOEXPERIMENT=jsonv2. |
 | Credential validation fails | Check key match, profile, hostname SANs, validity, leaf-first chain and independently selected authority. |
 | Protected request returns 503 | Inspect expiry, signing/publication errors, state ownership, disk space and deployment readiness. Repair the cause rather than bypassing the gate. |

@@ -1,0 +1,46 @@
+{
+  "critical-header": {
+    "browser_version": "158.0",
+    "passed": true
+  },
+  "expired-binding": {
+    "browser_version": "158.0",
+    "passed": true
+  },
+  "no-qwac-trust": {
+    "browser_version": "158.0",
+    "passed": true
+  },
+  "no-tls-trust": {
+    "browser_version": "158.0",
+    "passed": true
+  },
+  "positive": {
+    "browser_version": "158.0",
+    "passed": true
+  },
+  "qwac-hostname": {
+    "browser_version": "158.0",
+    "passed": true
+  },
+  "qwac-profile": {
+    "browser_version": "158.0",
+    "passed": true
+  },
+  "signature": {
+    "browser_version": "158.0",
+    "passed": true
+  },
+  "tls-expiry": {
+    "browser_version": "158.0",
+    "passed": true
+  },
+  "tls-hostname": {
+    "browser_version": "158.0",
+    "passed": true
+  },
+  "wrong-tls": {
+    "browser_version": "158.0",
+    "passed": true
+  }
+}

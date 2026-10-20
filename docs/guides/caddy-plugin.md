@@ -19,8 +19,8 @@ The packaged `qwac-version --json` command reports distribution version, source,
 Caddy/core identities, platform and toolchain. `list-modules` and
 `go version -m` remain useful advanced build diagnostics. Expect
 `tls.issuance.qwac` and `http.handlers.qwac`, no `qwac_demo` and no development
-module replacements. Public release downloads/tags remain unavailable;
-authenticated candidates are not public releases.
+module replacements. Check the installation guide for release availability and
+verified identities; authenticated candidates are not public releases.
 
 ### State and verification
 
