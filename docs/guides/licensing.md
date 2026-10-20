@@ -23,7 +23,7 @@ beside it. Do not relabel that covered material MIT. The fixture root expires
 
 A licence grants permissions to use the code. It does not establish a QWAC's
 legal qualification, browser trust, a production support promise or public
-repository access. The source repository is public. Retained GitHub Actions
-candidates require GitHub authentication. Check the
+repository access. The source repository and experimental **0.1.0-alpha.1**
+release are public. See the
 [release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
-for public release availability and verified artifact identities.
+for downloads and verified artifact identities.

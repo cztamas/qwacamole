@@ -1,8 +1,8 @@
 # Install a packaged binary
 
-This guide installs **0.1.0-alpha.1**. Check the
-[release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
-first; downloads become available when the protected publication workflow finishes.
+Install the published experimental **0.1.0-alpha.1** release. Downloads and
+verified artifact identities are available on the
+[release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1).
 Use the GitHub CLI (`gh`), `jq`, `tar` and SHA-256 tools; **Go and a repository clone
 are not needed**. The release page also provides direct public download links.
 
@@ -57,7 +57,7 @@ sudo "./qwacamole-caddy-$VERSION-linux-amd64/install.sh" \
 
 The installer checks the platform, installs executable permissions, retains
 instructions/templates/notices and prints the installed version and source.
-It refuses an existing prefix; for another candidate or upgrade, choose a new
+It refuses an existing prefix; for an upgrade, choose a new
 version/source-specific directory and follow the [maintenance guide](operations.md).
 It never overwrites an existing Caddy binary or starts a service.
 
