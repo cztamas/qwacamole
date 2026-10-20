@@ -1,0 +1,11 @@
+{
+  "cached_discovery_after_expiry_renewal_replacement": true,
+  "fixture_checks": 11,
+  "independent_refresh": true,
+  "initial_native_verified": true,
+  "profile": ".local/alpha-release-20261020/native-caddy-firefox/firefox-integration-478531742/profiles/lifecycle",
+  "profile_trust_unchanged": true,
+  "renewal_failure_gates": true,
+  "renewal_native_verified": true,
+  "restart_recovered": true
+}

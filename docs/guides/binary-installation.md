@@ -3,7 +3,7 @@
 This guide installs **0.1.0-alpha.1**. Check the
 [release page](https://github.com/cztamas/qwacamole/releases/tag/v0.1.0-alpha.1)
 first; downloads become available when the protected publication workflow finishes.
-Use the GitHub CLI (`gh`), `tar` and SHA-256 tools; **Go and a repository clone
+Use the GitHub CLI (`gh`), `jq`, `tar` and SHA-256 tools; **Go and a repository clone
 are not needed**. The release page also provides direct public download links.
 
 Agent archives: Linux amd64, Linux arm64 and macOS arm64. Linux arm64 is
@@ -25,14 +25,17 @@ MANIFEST_SHA256=$(gh release view "v$VERSION" --repo cztamas/qwacamole \
   --json body --jq '.body | capture("Reviewed manifest SHA256: `(?<digest>[0-9a-f]{64})`").digest')
 gh release download "v$VERSION" --repo cztamas/qwacamole --dir .
 printf '%s  manifest.json\n' "$MANIFEST_SHA256" | sha256sum -c -
+jq -r '.archives[] | "\(.sha256)  \(.name)"' manifest.json | sha256sum -c -
 sha256sum -c SHA256SUMS
 ```
 
-On macOS use `shasum -a 256 -c` for both checksum commands. Stop if the release,
+On macOS use `shasum -a 256 -c` for all checksum commands. Stop if the release,
 reviewed digest or any asset is missing, or if any checksum differs. Check the
 manifest's version, source/core identities and target against the release notes.
-Checksums detect corruption; the separately reviewed manifest and release record
-identify the supplied artifacts. Never substitute an unreviewed Actions candidate.
+The manifest's archive digests authenticate each downloaded archive; the mutable
+`SHA256SUMS` asset alone cannot establish that link. The separately reviewed
+manifest and release record identify the artifacts. Never substitute an
+unreviewed Actions candidate.
 
 ## Install your integration
 

@@ -1,6 +1,6 @@
 # Contributing
 
-This repository is preparing an unpublished public alpha. Original project code
+This repository develops an experimental public alpha. Original project code
 and documentation use the MIT License; third-party
 material retains its own licences/notices. Repository visibility and release
 publication remain owner decisions. Do not publish packages/tags on the project's

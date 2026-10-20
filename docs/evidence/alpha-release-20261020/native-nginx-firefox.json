@@ -1,0 +1,33 @@
+{
+  "package_source": "47e2952f89e39f99a38a38b196d4b53d6516d281",
+  "core_source": "dc0a66e4e8b19de0ae44341af389994c154c1957",
+  "passed": true,
+  "process_exit_code": 0,
+  "error": "<nil>",
+  "checks": [
+    "isolated production agent and HTTP-only Nginx bootstrap",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=false)",
+    "private runtime/socket permissions and control methods/body validation; public control/file paths reject",
+    "real Certbot HTTP-01 issuance, deploy-hook publication and verified Nginx activation",
+    "fresh verified browser-facing TLS leaf covered by qualified binding",
+    "ordinary reverse-proxy streaming/cache/Link, redirect, error and conditional responses",
+    "Nginx replaces forged forwarding metadata, preserves external port/encoded URL, origin secure cookies and absolute redirects; unsupported Host rejected",
+    "HTTP challenge, Host rejection, fixed-authority redirect and HTTPS-only HSTS (confirmed=true)",
+    "configured body limit: 2 MiB upload status 413",
+    "real Nginx TLS WebSocket 101, discovery/upstream Link and bidirectional frame traffic",
+    "binding GET/HEAD/no-store/method rejection and nonrecursive discovery",
+    "Nginx internal gate/control and invalid binding paths are inaccessible",
+    "independent signed binding refresh without TLS renewal",
+    "automatic Certbot renewal and fresh verified controlled activation",
+    "original active TLS stream survives Nginx reload with both leaves bound",
+    "second real Certbot renewal freshly verified with original active stream and all TLS retained",
+    "agent-backpressure upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "nginx-buffered upload preserves complete body/hash with origin backpressure beyond ten seconds",
+    "real cache longer than original signed lifetime discovers renewed binding",
+    "same-key QWAC replacement publishes retained coverage through unchanged discovery",
+    "same-authority QWAC replacement through unchanged cached discovery",
+    "authenticated automatic collection preserves current document and retained leaves",
+    "agent unavailability rejects protected application requests",
+    "agent restart reconciles files and actual verified served TLS"
+  ]
+}

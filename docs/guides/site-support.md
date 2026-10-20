@@ -13,7 +13,7 @@ constraints before installing, upgrading or interpreting a browser indicator.
 | --- | --- |
 | Production agent and Caddy plugin | Exact-source packaged candidates and custom source builds; Go 1.27.2 with `GOEXPERIMENT=jsonv2`, xcaddy 0.4.5, Caddy 2.11.7, CertMagic 0.25.6 |
 | Agent runtime | Linux amd64 (Ubuntu 24.04.5, distro Nginx 1.24.0 and Certbot 2.9.0; portable CI also covers Certbot 5.8.0), macOS arm64 (Nginx 1.30.5, Certbot 5.8.0) |
-| Native browser demonstrations | macOS arm64, stock Chrome 155.0.8059.82 with genuine PKIMetadata 1803, Firefox 158.0 and geckodriver 0.37.1 |
+| Native browser demonstrations | macOS arm64, stock Chrome 155.0.8059.85 with genuine PKIMetadata 1803, Firefox 158.0 and geckodriver 0.37.1 |
 | Synthetic ACME demonstration | Pebble 2.8.0; bundled bootstrap supports macOS arm64 only |
 
 Linux arm64 agent builds are cross-compiled only. Windows, macOS notarization

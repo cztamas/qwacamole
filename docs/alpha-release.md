@@ -31,8 +31,8 @@ arbitrary CDN termination is claimed. Strict bindings remain default; Firefox
 compatibility is explicit. Preserve Chromium's expired-exp failing assertion.
 
 The reviewed candidate uses Go 1.27.2 with `GOEXPERIMENT=jsonv2`, xcaddy 0.4.5,
-Caddy 2.11.7, CertMagic 0.25.6 and Pebble 2.8.0. New native runs use Chrome
-155.0.8059.82 / genuine PKIMetadata 1803 and Firefox 158.0 / geckodriver 0.37.1.
+Caddy 2.11.7, CertMagic 0.25.6 and Pebble 2.8.0. 20 October native runs use Chrome
+155.0.8059.85 / genuine PKIMetadata 1810 and Firefox 158.0 / geckodriver 0.37.1.
 The clean Ubuntu 24.04.5 amd64 guest uses distro Nginx 1.24.0 and Certbot 2.9.0;
 macOS arm64 uses Nginx 1.30.5 and Certbot 5.8.0. See the
 [current readiness report](evidence-alpha-readiness-20261016.md) for exact-source

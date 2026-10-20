@@ -63,10 +63,41 @@ Raw generated keys, browser profiles, caches and logs stay under ignored
 | Core C local race tests / release Python tests | Pass / 35 pass |
 | Agent/Caddy independent D race tests | Both pass |
 | Public core tag and D module identities | Exact origins and checksums verified |
-| Full release-graph workspace/independent tests | In progress; no success claimed yet |
-| Sequential native Chrome/Firefox acceptance | Pending release-graph builds |
+| Hosted review source `47e2952…` | Candidate `39471865603`, portable integration `39471865470` and website `39471865461` all pass; website deployment skipped for PR |
+| Full release-graph workspace/independent tests | Both pass, including all four modules and dependency boundaries; no independent replacement |
+| Native Caddy / Chrome | Lifecycle passes; ten fixtures pass, unchanged expired-`exp` negative fails as the documented incompatibility |
+| Native Caddy / Firefox 158.0 | All eleven fixtures and lifecycle/cache/replacement/restart/failure-recovery checks pass |
+| Installed Nginx package / Chrome and Firefox | Both pass all 24 lifecycle checks, including actual Certbot renewals, cached identity after expiry/replacement, uploads, WebSocket, collection and restart |
 | Website check/build/browser tests | Astro diagnostics, 19 script tests, 16 pages, 702 internal links/assets and 16 Chromium browser tests pass |
 | History audit | Refreshed Gitleaks full reachable history, inline ignores disabled: only the same five exact reviewed public-fixture findings |
+| Tracked tree and review-package audit | Same five exact public-fixture source findings; no full private-key PEM or recognized GitHub/OpenAI token in all 30 decompressed archive members |
+| Archive authentication regression | Actual archives match reviewed-manifest digests; replacing an archive and regenerating SHA256SUMS passes the old check but fails the new direct manifest comparison |
+
+Chrome is **155.0.8059.85**, with genuine installed PKIMetadata **1810**.
+Its lifecycle summary preserves positive initial/renewed identity, cached
+discovery after expiry/renewal/replacement, held HTTP/2 through TLS expiry plus a
+complete binding lifetime, replacement, restart, independent refresh and failure
+recovery. `negative_suite_passed` remains **false**, and the only failed fixture
+is `expired-binding`; the failing assertion was not weakened.
+
+The verified review package at source
+`47e2952f89e39f99a38a38b196d4b53d6516d281` was extracted and installed into a
+new local macOS arm64 prefix. Its agent reports version `0.1.0-alpha.1`, core
+`v0.1.0-alpha.1`, Go 1.27.2 and `modified: false`. Its production trees equal D. Final selected E
+packages must still pass their own exact identity, rebuild and runtime checks.
+
+Fresh runs were sequential, with one new state/profile per run. Firefox used
+the already staged, stock signed **158.0** executable after strict signature
+verification; no application update or user preferences were installed. The
+browser harness contains development adapters, while the Nginx checks use the
+actual extracted/installed production package. Production trees match D exactly.
+Sanitized [Chrome suite](evidence/alpha-release-20261020/native-caddy-chrome-browser-suite.json),
+[Chrome lifecycle](evidence/alpha-release-20261020/native-caddy-chrome-integration.json),
+[Firefox suite](evidence/alpha-release-20261020/native-caddy-firefox-firefox-suite.json),
+[Firefox lifecycle](evidence/alpha-release-20261020/native-caddy-firefox-firefox-integration.json),
+[Nginx Chrome](evidence/alpha-release-20261020/native-nginx-chrome.json) and
+[Nginx Firefox](evidence/alpha-release-20261020/native-nginx-firefox.json) retain
+the results without keys, full profiles or raw browser logs.
 
 The five history findings are four RFC 6455 public example nonces and the exact
 Mozilla fixture key, whose SHA-256 remains
